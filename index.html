@@ -54,6 +54,7 @@ input,select,textarea{font:inherit;color:inherit}
 .holask{margin:0 0 14px;padding:12px 14px;border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:16px;background:var(--surface);display:grid;gap:10px}.holask[hidden],.app.pcmode .holask{display:none}
 .hq+.hq{border-top:1px solid var(--line);padding-top:10px}.hq-t{display:flex;gap:10px;align-items:flex-start}.hq-ic{font-size:20px;line-height:1.2}.hq-t b{display:block;font-size:15px}.hq-t small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}.hq p{margin:8px 0 8px;font-size:14px}.hq-b{display:flex;flex-wrap:wrap;gap:8px}
 .btn.ghost{background:none;border-color:transparent;color:var(--muted)}.dayhead .d .tag.t-hol{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.sync.bad{background:var(--bad);color:var(--bad-ink);border-color:transparent}
 .hello{margin:0 0 14px;padding:14px 16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 12%,var(--surface)),var(--surface));box-shadow:0 4px 18px rgba(0,0,0,.06)}.hello[hidden]{display:none}.hl-top{display:flex;align-items:center;gap:12px}.hl-av{flex:0 0 44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:19px;background:var(--accent);color:var(--accent-ink)}
 .hl-tx{flex:1;min-width:0}.hl-hi{font-family:var(--display);font-weight:700;font-size:19px;line-height:1.2}
 .hl-st{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-top:2px}.hl-st i{width:8px;height:8px;border-radius:50%;background:var(--good);flex:0 0 8px}.hl-st.bad{color:var(--bad);font-weight:600}.hl-st.bad i{background:var(--bad)}
@@ -1038,11 +1039,22 @@ var view = { week: weekStart(today), wkSel: null, tab: (function(){ try { return
 
 /* ---------- Kayıt ---------- */
 var docRef = null, syncMode = 'local', saveTimer = null;
-function setSync(m){ syncMode = m; var el = document.getElementById('sync'); el.textContent = m === 'cloud' ? 'Kaydedildi' : m === 'saving' ? 'Kaydediliyor…' : 'Bu cihazda'; }
+var localOk = true;
+function setSync(m){
+  syncMode = m; var el = document.getElementById('sync');
+  /* Bağımsız sürümde kayıt cihazın kendisine yapılır: başarılıysa "Kaydedildi" */
+  if (STANDALONE) m = localOk ? 'cloud' : 'fail';
+  el.textContent = m === 'cloud' ? 'Kaydedildi' : m === 'saving' ? 'Kaydediliyor…' : m === 'fail' ? 'Kaydedilemiyor' : 'Bu cihazda';
+  el.classList.toggle('bad', m === 'fail');
+}
 var STANDALONE = true;
 var OWNER_ID = 'u_bAwd464yQRWmzAC1tPoEEA', PC_GATE = true, myId = '', meName = '', noWrite = false, cloudFail = false, bkRef = null, bkDone = '';
 function pcOk(){ return !PC_GATE || myId === OWNER_ID; }
-function saveLocal(){ try { localStorage.setItem(LS, JSON.stringify(state)); } catch (e) {} }
+function saveLocal(){
+  var ok = false;
+  try { var j = JSON.stringify(state); localStorage.setItem(LS, j); ok = localStorage.getItem(LS) === j; } catch (e) { ok = false; }
+  if (STANDALONE && ok !== localOk){ localOk = ok; setSync(syncMode); renderHello(); }
+}
 function withTimeout(p){ return Promise.race([p, new Promise(function(r){ setTimeout(function(){ r(null); }, 10000); })]); }
 var lastRemote = 0;
 function tomb(k){ state.del = state.del || {}; state.del[k] = Date.now(); }
@@ -1149,6 +1161,7 @@ function renderHelloLocal(el){
   var first = String((state.settings && state.settings.myName) || '').trim().split(/\s+/)[0];
   var tipsOpen = false; try { tipsOpen = localStorage.getItem(LS + '-tips') === '1'; } catch (e) {}
   var bd = lastBkDays(), needBk = hasData() && (bd < 0 || bd >= 7);
+  if (!localOk){ el.innerHTML = '<div class="hl-top"><div class="hl-av" aria-hidden="true">!</div><div class="hl-tx"><div class="hl-hi">Kayıt yapılamıyor</div><div class="hl-st bad"><i></i>Girdiklerin bu sayfayı kapatınca silinir</div></div></div><p class="hl-warn">Tarayıcın bu siteye veri kaydetmeye izin vermiyor. Gizli/özel sekmedeysen normal sekmede aç; tarayıcı ayarlarında bu site için çerez ve site verilerine izin ver.</p>'; el.classList.add('warn'); el.hidden = false; return; }
   var h = '<div class="hl-top"><div class="hl-av" aria-hidden="true"></div><div class="hl-tx"><div class="hl-hi"></div><div class="hl-st' + (needBk ? ' bad' : '') + '"><i></i>' + (needBk ? (bd < 0 ? 'Henüz yedek almadın' : 'Son yedeğin ' + bd + ' gün önce') : 'Verilerin sadece bu cihazda, hiçbir yere gönderilmiyor') + '</div></div><button class="btn small hl-tg" data-act="helloTips" aria-expanded="' + tipsOpen + '" aria-controls="helloTipsBox">İpuçları</button></div>';
   if (needBk) h += '<div class="hl-bk"><span>Telefonun değişirse ya da tarayıcı verileri silinirse kayıtların kaybolmasın diye yedek dosyası indir.</span><button class="btn small primary" data-act="bkDownload">Yedeği indir</button></div>';
   h += '<div class="hl-tips" id="helloTipsBox"' + (tipsOpen ? '' : ' hidden') + '><b>Verilerin kaybolmaması için bunlara dikkat et:</b><ul>'
@@ -1240,7 +1253,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-14j';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-14k';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2930,6 +2943,8 @@ document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape'){ clo
 })();
 snapTake(); layInit(); renderAll(); wBadge(); if (pcOk()) loadWatch(true); setSync('local');
 if (STANDALONE){
+  try { localStorage.setItem(LS + '-t', '1'); localOk = localStorage.getItem(LS + '-t') === '1'; localStorage.removeItem(LS + '-t'); } catch (e) { localOk = false; }
+  setSync('local');
   renderHello();
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   try { if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js'); } catch (e) {}
