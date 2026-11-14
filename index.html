@@ -96,6 +96,7 @@ input,select,textarea{font:inherit;color:inherit}
 .hl-tips{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13.5px;line-height:1.5}.hl-tips[hidden]{display:none}.hl-tips ul{margin:6px 0 0;padding-left:18px}.hl-tips li{margin:3px 0}.syncbox{display:grid;gap:6px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);margin:10px 0}.syncbox.on{border-color:color-mix(in srgb,var(--good) 45%,var(--line))}.syncbox .btn{justify-self:start}.syncjoin{display:flex;gap:8px}.syncjoin input{flex:1;min-width:0;font:inherit;font-size:16px;letter-spacing:.06em;text-transform:uppercase;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}.synccode{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.synccode .num{flex:1 0 100%;font-size:18px;font-weight:700;letter-spacing:.06em}.syncmsg{font-weight:500}
 .hl-bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;margin-top:12px;font-size:13.5px}.hl-bk span{flex:1 1 200px}.bkbtns{margin:10px 0 6px}
 .hl-warn{margin:12px 0 0;font-weight:600;color:var(--bad)}
+.nowr{white-space:nowrap}
 .settabs{display:flex;flex-wrap:wrap;margin-bottom:12px}.settabs button{flex:1 1 auto}.settabs.six{display:grid;grid-template-columns:repeat(3,1fr)}
 .autobox{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);margin-bottom:12px;font-size:13.5px}.autobox small{color:var(--muted)}
 .autob{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-left:4px;vertical-align:1px}
@@ -1405,7 +1406,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-15a';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-15b';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -1602,8 +1603,8 @@ function renderHero(){
   }
   h += '<div class="slip"><button class="btn small" data-act="slipAdd"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5.5 5.5 0 0 1-7.8-7.8l8.9-8.9a3.7 3.7 0 0 1 5.2 5.2l-8.9 8.9a1.8 1.8 0 0 1-2.6-2.6l8.2-8.2"/></svg>' + (slip ? 'Bordroyu değiştir' : 'Bordro ekle') + '</button><a class="btn small mhbtn" href="https://www.myholland.eu/finances" target="_blank" rel="noopener noreferrer" title="myHolland’da bordrolarını indir, sonra Bordro ekle ile yükle">myHolland ↗</a>';
   if (slip){
-    var diff = r2(est.payable - p.payable);
-    h += ' <button class="btn small danger" data-act="slipDel">Bordroyu kaldır</button><span class="delta num ' + (Math.abs(diff) <= 1 ? 'ok' : 'off') + '">Uygulama tahmini ' + eur(est.payable) + ' (' + sgn(diff) + ')</span>';
+    var diff = r2(est.payable - (p.payable - parkOf(p)));
+    h += ' <button class="btn small danger" data-act="slipDel">Bordroyu kaldır</button><span class="delta num ' + (Math.abs(diff) <= 1 ? 'ok' : 'off') + '">' + (parkOf(p) > 0 ? 'Park hariç uygulama tahmini ' : 'Uygulama tahmini ') + eur(est.payable) + ' <span class="nowr">(' + sgn(diff) + ')</span></span>';
   }
   h += '</div>';
   document.getElementById('hero').innerHTML = h;
@@ -2333,8 +2334,8 @@ async function importFiles(files){
   if (drvMsg.length) h += '<div class="sl okn"><b>Araç günleri bordroya göre düzeltildi:</b> ' + esc(drvMsg.join('; ')) + '.</div>';
   res.forEach(function(x){
     if (x.err){ h += '<div class="sl err"><b>' + esc(x.name) + '</b><br>' + esc(x.err) + '</div>'; return; }
-    var r = x.r, est = weekResult(r.ws, 'done').est, d = r2(est.payable - r.slip.payable);
-    h += '<div class="sl"><b>Hafta ' + r.slip.week + '</b> · hesaba yatan <b>' + eur(r.slip.payable) + '</b><div class="w num">' + hm(r.slip.hours.norm + r.slip.hours.irr + r.slip.hours.over) + ' saat · uygulama tahmini ' + eur(est.payable) + ' (' + sgn(d) + ')' + (r.warn.length ? '<br>' + esc(r.warn.join(' ')) : '') + '</div></div>';
+    var r = x.r, est = weekResult(r.ws, 'done').est, pk = r2(+((r.slip.lines || {}).extraTravel) || 0), d = r2(est.payable - (r.slip.payable - pk));
+    h += '<div class="sl"><b>Hafta ' + r.slip.week + '</b> · hesaba yatan <b>' + eur(r.slip.payable) + '</b>' + (pk > 0 ? ' <span class="pkc">(' + eur(pk) + ' park dahil)</span>' : '') + '<div class="w num">' + hm(r.slip.hours.norm + r.slip.hours.irr + r.slip.hours.over) + ' saat · ' + (pk > 0 ? 'park hariç ' : '') + 'uygulama tahmini ' + eur(est.payable) + ' <span class="nowr">(' + sgn(d) + ')</span>' + (r.warn.length ? '<br>' + esc(r.warn.join(' ')) : '') + '</div></div>';
   });
   out.innerHTML = h;
 }
