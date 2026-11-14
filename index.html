@@ -1290,7 +1290,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-14o';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-14p';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3050,7 +3050,7 @@ if (STANDALONE){
   try { if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js'); } catch (e) {}
   /* Güncelleme kontrolü: sunucudaki sürüm farklıysa (tarayıcı eski dosyayı önbellekten verdiyse) sayfa bir kez yeni sürümle açılır */
   try {
-    fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+    if (navigator.onLine !== false) fetch('version.json?t=' + Date.now(), { cache: 'no-store' }).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
       if (!j || !j.v || j.v === APP_VER) return;
       var k = 'maas-takip-upd-' + j.v; try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, '1'); } catch (e) { return; }
       var go = function(){ location.replace(location.pathname + '?v=' + encodeURIComponent(j.v)); };
