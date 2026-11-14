@@ -99,6 +99,19 @@ input,select,textarea{font:inherit;color:inherit}
 .hl-bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;margin-top:12px;font-size:13.5px}.hl-bk span{flex:1 1 200px}.bkbtns{margin:10px 0 6px}
 .hl-warn{margin:12px 0 0;font-weight:600;color:var(--bad)}
 .nowr{white-space:nowrap}
+.synccard{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font:inherit;color:var(--ink);padding:12px 14px;margin-bottom:12px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface2);cursor:pointer}
+.synccard .sc-ic{flex:0 0 34px;height:34px;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:17px;color:#fff}
+.synccard .sc-tx{flex:1;min-width:0;display:grid;gap:1px}.synccard small{color:var(--muted);font-size:12.5px}.synccard .sc-go{font-size:22px;color:var(--muted)}
+.synccard.on{border-color:color-mix(in srgb,var(--good) 55%,var(--line));background:color-mix(in srgb,var(--good) 9%,var(--surface))}.synccard.on .sc-ic{background:var(--good)}
+.synccard.new{border-color:#e8870e;background:color-mix(in srgb,#e8870e 11%,var(--surface))}.synccard.new .sc-ic{background:#e8870e}.synccard.new b{color:#b4620a}
+.synccard.off{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 9%,var(--surface))}.synccard.off .sc-ic{background:var(--bad)}.synccard.off b{color:var(--bad)}
+.synccard.sel{box-shadow:0 0 0 2px var(--accent, #3d4fd6)}
+.hl-read{border-color:var(--bad)!important;color:var(--bad)!important;font-weight:700}
+.hl-read.pulse{background:var(--bad)!important;color:#fff!important}
+@media (prefers-reduced-motion:no-preference){.hl-read.pulse{animation:readp 1.2s ease-in-out infinite}}
+@keyframes readp{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--bad) 60%,transparent);opacity:1}50%{box-shadow:0 0 0 7px transparent;opacity:.55}}
+:root[data-theme="dark"] .synccard.new b{color:#f5a54a}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .synccard.new b{color:#f5a54a}}
+.hl-tips h4{margin:10px 0 2px;font-size:14px}.hl-tips h4:first-child{margin-top:0}
 .settabs{display:flex;flex-wrap:wrap;margin-bottom:12px}.settabs button{flex:1 1 auto}.settabs.six{display:grid;grid-template-columns:repeat(3,1fr)}
 .autobox{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);margin-bottom:12px;font-size:13.5px}.autobox small{color:var(--muted)}
 .autob{display:inline-block;font-size:10.5px;font-weight:700;padding:1px 6px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-left:4px;vertical-align:1px}
@@ -729,7 +742,7 @@ body.lay-dragging,body.lay-dragging *{cursor:grabbing!important;user-select:none
       <div class="cw" data-card="pcItems"><section class="card" id="pcItems"></section></div>
     </div>
   </div>
-  <p class="note" id="calNote">Tutarlar tahmindir. Çalışma ücreti, ADV, tatil parası ve kesintiler hafta 45 bordrosuna göre ayarlandı. Gelir vergisi bordrodaki haftaya bağlanmış bir tahmin eğrisidir; bordro eklediğin haftalarda gerçek rakamlar kullanılır ve tahminin farkı gösterilir.</p>
+  <p class="note" id="calNote">Tutarlar tahmindir. Gelir vergisi bir tahmin eğrisiyle hesaplanır; bordro eklediğin haftalarda gerçek rakamlar kullanılır ve tahminle farkı gösterilir.</p>
 </div>
 
 <!-- Vardiya ekle / düzenle -->
@@ -1087,6 +1100,7 @@ function setSync(m){
   if (STANDALONE) m = !localOk ? 'fail' : (typeof sync !== 'undefined' && sync.key) ? (sync.busy ? 'syncing' : sync.err === 'offline' ? 'offline' : sync.err ? 'syncfail' : 'synced') : 'cloud';
   el.textContent = m === 'cloud' ? 'Kaydedildi' : m === 'saving' ? 'Kaydediliyor…' : m === 'fail' ? 'Kaydedilemiyor' : m === 'syncing' ? 'Eşitleniyor…' : m === 'synced' ? 'Eşitlendi' : m === 'offline' ? 'Kaydedildi · çevrimdışı' : m === 'syncfail' ? 'Eşitlenemedi' : 'Bu cihazda';
   el.classList.toggle('bad', m === 'fail' || m === 'syncfail');
+  var sc = document.querySelector('.synccard'); if (sc && STANDALONE){ var w = document.createElement('div'); w.innerHTML = syncCardHTML(); sc.replaceWith(w.firstChild); }
 }
 var STANDALONE = true;
 var OWNER_ID = 'u_bAwd464yQRWmzAC1tPoEEA', PC_GATE = true, myId = '', meName = '', noWrite = false, cloudFail = false, bkRef = null, bkDone = '';
@@ -1316,7 +1330,7 @@ async function syncDelete(){
   catch (e) { sync.msg = 'Silinemedi: ' + String(e.message || e); renderSettings(); }
   sync.ask = '';
 }
-function syncOff(msg){ try { localStorage.removeItem(LS + '-sync'); } catch (e) {} sync.key = null; sync.code = ''; sync.id = ''; sync.upd = ''; sync.show = false; sync.ask = ''; sync.msg = msg || 'Bu cihazda eşitleme kapatıldı. Veriler bu cihazda duruyor.'; setSync(syncMode); renderSettings(); renderHello(); }
+function syncOff(msg){ try { localStorage.removeItem(LS + '-sync'); localStorage.setItem(LS + '-syncwas', '1'); } catch (e) {} sync.key = null; sync.code = ''; sync.id = ''; sync.upd = ''; sync.show = false; sync.ask = ''; sync.msg = msg || 'Bu cihazda eşitleme kapatıldı. Veriler bu cihazda duruyor.'; setSync(syncMode); renderSettings(); renderHello(); }
 function syncBoot(){
   if (!syncReady()) return;
   var c = ''; try { c = localStorage.getItem(LS + '-sync') || ''; sync.last = +localStorage.getItem(LS + '-synclast') || 0; } catch (e) {}
@@ -1327,6 +1341,16 @@ function syncBoot(){
   setInterval(function(){ if (document.visibilityState === 'visible') syncNow(); }, 60000);
 }
 if (window.MT_TEST) window.MT_EVAL = function(x){ return eval(x); }; /* yalnız otomatik testler için */
+function syncCardHTML(){
+  var was = false; try { was = localStorage.getItem(LS + '-syncwas') === '1'; } catch (e) {}
+  var on = syncReady() && syncOn(), sel = setTabSel === 'sync', cls, ic, t1, t2;
+  if (!syncReady()){ cls = 'off'; ic = '!'; t1 = 'Eşitleme kullanılamıyor'; t2 = 'Bu tarayıcı şifrelemeyi desteklemiyor'; }
+  else if (on && sync.err && sync.err !== 'offline'){ cls = 'off'; ic = '!'; t1 = 'Eşitlenemedi'; t2 = 'Ayrıntı için dokun'; }
+  else if (on){ cls = 'on'; ic = '✓'; t1 = sync.busy ? 'Eşitleniyor…' : sync.err === 'offline' ? 'Eşitleme açık · çevrimdışı' : 'Eşitleniyor'; t2 = 'Cihazların şifreli olarak eşit'; }
+  else if (was){ cls = 'off'; ic = '!'; t1 = 'Eşitleme kapalı'; t2 = 'Tekrar eşitlemeyi ayarla'; }
+  else { cls = 'new'; ic = '⇄'; t1 = 'Diğer cihazlarla eşitle'; t2 = 'Telefon ve bilgisayarda aynı veriler'; }
+  return '<button type="button" class="synccard ' + cls + (sel ? ' sel' : '') + '" data-act="setTab" data-v="sync" aria-pressed="' + sel + '"><span class="sc-ic" aria-hidden="true">' + ic + '</span><span class="sc-tx"><b>' + t1 + '</b><small>' + t2 + '</small></span><span class="sc-go" aria-hidden="true">›</span></button>';
+}
 function syncJoinBox(title, note, btn){
   return '<div class="syncbox"><b>' + title + '</b><small class="fh">' + note + '</small><div class="syncjoin"><input id="syncCode" type="text" size="8" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" maxlength="24" placeholder="ABCD-EFGH-JKLM-NPRS" aria-label="Eşitleme kodu"><button class="btn small primary" data-act="syncJoin">' + btn + '</button></div></div>';
 }
@@ -1361,16 +1385,23 @@ function renderHelloLocal(el){
   var tipsOpen = false; try { tipsOpen = localStorage.getItem(LS + '-tips') === '1'; } catch (e) {}
   var bd = lastBkDays(), needBk = hasData() && (bd < 0 || bd >= 7) && !(syncOn() && sync.last && Date.now() - sync.last < 7 * 86400000);
   if (!localOk){ el.innerHTML = '<div class="hl-top"><div class="hl-av" aria-hidden="true">!</div><div class="hl-tx"><div class="hl-hi">Kayıt yapılamıyor</div><div class="hl-st bad"><i></i>Girdiklerin bu sayfayı kapatınca silinir</div></div></div><p class="hl-warn">Tarayıcın bu siteye veri kaydetmeye izin vermiyor. Gizli/özel sekmedeysen normal sekmede aç; tarayıcı ayarlarında bu site için çerez ve site verilerine izin ver.</p>'; el.classList.add('warn'); el.hidden = false; return; }
-  var h = '<div class="hl-top"><div class="hl-av" aria-hidden="true"></div><div class="hl-tx"><div class="hl-hi"></div><div class="hl-st' + (needBk ? ' bad' : '') + '"><i></i>' + (needBk ? (bd < 0 ? 'Henüz yedek almadın' : 'Son yedeğin ' + bd + ' gün önce') : (syncOn() ? 'Cihazların arasında şifreli eşitleniyor' : 'Verilerin sadece bu cihazda, hiçbir yere gönderilmiyor')) + '</div></div><button class="btn small hl-tg" data-act="helloTips" aria-expanded="' + tipsOpen + '" aria-controls="helloTipsBox">İpuçları</button></div>';
+  var h = '<div class="hl-top"><div class="hl-av" aria-hidden="true"></div><div class="hl-tx"><div class="hl-hi"></div><div class="hl-st' + (needBk ? ' bad' : '') + '"><i></i>' + (needBk ? (bd < 0 ? 'Henüz yedek almadın' : 'Son yedeğin ' + bd + ' gün önce') : (syncOn() ? 'Cihazların arasında şifreli eşitleniyor' : 'Verilerin sadece bu cihazda, hiçbir yere gönderilmiyor')) + '</div></div><button class="btn small hl-tg hl-read' + (readSeen() ? '' : ' pulse') + '" data-act="helloTips" aria-expanded="' + tipsOpen + '" aria-controls="helloTipsBox">' + (tipsOpen ? 'Kapat' : 'Burayı oku') + '</button></div>';
   if (needBk) h += '<div class="hl-bk"><span>Telefonun değişirse ya da tarayıcı verileri silinirse kayıtların kaybolmasın diye yedek dosyası indir' + (syncReady() && !syncOn() ? ' ya da Ayarlar › Eşitleme’yi aç' : '') + '.</span><button class="btn small primary" data-act="bkDownload">Yedeği indir</button></div>';
-  h += '<div class="hl-tips" id="helloTipsBox"' + (tipsOpen ? '' : ' hidden') + '><b>Verilerin kaybolmaması için bunlara dikkat et:</b><ul>'
-    + '<li>Uygulamayı ana ekrana ekle: iPhone’da Safari › Paylaş › Ana Ekrana Ekle, Android’de Chrome › ⋮ › Ana ekrana ekle. Böylece veriler daha güvenli saklanır ve internet olmadan da açılır.</li>'
-    + '<li>Haftada bir Ayarlar › Yedek’ten <b>Yedeği indir</b> ve dosyayı telefonunda ya da kendi bulut hesabında sakla.</li>'
-    + '<li>Telefon ve bilgisayarda aynı verileri görmek için Ayarlar › <b>Eşitleme</b>’yi aç. Veriler sana özel kodla şifrelenir; sunucu içeriği okuyamaz.</li>'
-    + '<li>Eşitleme kullanmıyorsan, başka bir telefonda yedek dosyasını <b>Dosyadan geri yükle</b> ile aç.</li>'
-    + '<li>Tarayıcı geçmişini ve site verilerini silerken bu siteyi silme; kayıtların da silinir.</li>'
-    + '<li>Bordro PDF’i telefonunda okunur, hiçbir sunucuya gönderilmez. Bordrodan sadece tutarlar kaydedilir; adın, adresin ve kimlik numaraların kaydedilmez.</li>'
-    + '<li>Hesap, e-posta ya da şifre gerekmez. Verilerini senden başka kimse göremez.</li></ul></div>';
+  h += '<div class="hl-tips" id="helloTipsBox"' + (tipsOpen ? '' : ' hidden') + '>'
+    + '<h4>🔒 Verilerin nasıl korunuyor?</h4><ul>'
+    + '<li><b>Hesap yok, kimlik yok.</b> Ad, e-posta, telefon ya da şifre istenmez. Kim olduğunu bilen bir sunucu yok.</li>'
+    + '<li><b>Veriler senin cihazında.</b> Vardiyaların, bordro tutarların ve ayarların bu tarayıcının hafızasında durur.</li>'
+    + '<li><b>Bordro PDF’i dışarı çıkmaz.</b> PDF telefonunda okunur, hiçbir yere yüklenmez. Bordrodan sadece tutarlar kaydedilir; adın, adresin, BSN ve IBAN numaran kaydedilmez.</li>'
+    + '<li><b>Eşitleme uçtan uca şifreli.</b> Eşitlemeyi açarsan veriler cihazından çıkmadan önce sana özel 16 haneli kodla <b>AES-256</b> (bankaların da kullandığı şifreleme) ile kilitlenir. Sunucuda (Google Firebase, Avrupa) sadece okunamayan karışık bir metin durur. Kod hiçbir yere gönderilmez.</li>'
+    + '<li><b>Kimse verine erişemez.</b> Uygulamayı yapan kişi de dahil hiç kimse verilerini göremez; kodun olmadan kayıt bulunamaz bile. Sunucu kuralları listelemeyi ve silmeyi kapatır.</li>'
+    + '<li><b>Takip yok.</b> Reklam, sayaç ya da analiz aracı yok. Sayfa kendi dosyaları ve şifreli eşitleme sunucusu dışında hiçbir yere bağlanamaz (tarayıcı güvenlik kilidi).</li>'
+    + '<li><b>Açık kod.</b> Uygulamanın kodu GitHub’da herkesin incelemesine açık.</li></ul>'
+    + '<h4>⚠️ Senin dikkat etmen gerekenler</h4><ul>'
+    + '<li>Eşitleme kodunu kimseyle paylaşma. Biri gördüyse Ayarlar › Eşitleme › <b>Kodu yenile</b>: eski kod hemen iptal olur.</li>'
+    + '<li>Telefonunu ekran kilidiyle koru; telefonunu açabilen biri uygulamayı da açabilir.</li>'
+    + '<li>Haftada bir Ayarlar › Yedek’ten <b>Yedeği indir</b> ya da eşitlemeyi aç. Tarayıcı verilerini silerken bu siteyi silme; kayıtların da silinir.</li>'
+    + '<li>Uygulamayı ana ekrana ekle: iPhone’da Safari › Paylaş › Ana Ekrana Ekle, Android’de Chrome › ⋮ › Ana ekrana ekle. İnternetsiz de açılır.</li>'
+    + '<li>Tutarlar tahmindir; kesin olan bordrondur. Bordro yükledikçe tahminler sana göre ayarlanır.</li></ul></div>';
   el.innerHTML = h;
   el.querySelector('.hl-av').textContent = first ? first.charAt(0).toLocaleUpperCase('tr-TR') : '👋';
   el.querySelector('.hl-hi').textContent = first ? 'Merhaba ' + first : 'Merhaba';
@@ -1394,6 +1425,7 @@ function bkFromFile(f){
   };
   rd.readAsText(f);
 }
+function readSeen(){ try { return localStorage.getItem(LS + '-readseen') === '1'; } catch (e) { return true; } }
 function renderHello(){
   var el = $('hello'); if (!el) return;
   if (STANDALONE){ renderHelloLocal(el); return; }
@@ -1401,17 +1433,22 @@ function renderHello(){
   var first = String(meName || '').trim().split(/\s+/)[0], bad = noWrite || cloudFail;
   var tipsOpen = false; try { tipsOpen = localStorage.getItem(LS + '-tips') === '1'; } catch (e) {}
   var stx = noWrite ? 'Kaydedilmiyor: sadece görüntüleme yetkin var' : cloudFail ? 'Şu an buluta kaydedilemiyor' : 'Verilerin sadece sana ait, sadece senin hesabına kaydediliyor';
-  var h = '<div class="hl-top"><div class="hl-av" aria-hidden="true"></div><div class="hl-tx"><div class="hl-hi"></div><div class="hl-st' + (bad ? ' bad' : '') + '"><i></i>' + stx + '</div></div><button class="btn small hl-tg" data-act="helloTips" aria-expanded="' + tipsOpen + '" aria-controls="helloTipsBox">İpuçları</button></div>';
+  var h = '<div class="hl-top"><div class="hl-av" aria-hidden="true"></div><div class="hl-tx"><div class="hl-hi"></div><div class="hl-st' + (bad ? ' bad' : '') + '"><i></i>' + stx + '</div></div><button class="btn small hl-tg hl-read' + (readSeen() ? '' : ' pulse') + '" data-act="helloTips" aria-expanded="' + tipsOpen + '" aria-controls="helloTipsBox">' + (tipsOpen ? 'Kapat' : 'Burayı oku') + '</button></div>';
   if (noWrite) h += '<p class="hl-warn">Girdiğin vardiyalar ve bordrolar sayfayı kapatınca silinir. Okan’dan “Düzenleyebilir” yetkisi iste; sonra her şey kendi hesabına kaydedilir ve kimse göremez.</p>';
   else if (cloudFail) h += '<p class="hl-warn">İnternet bağlantını kontrol et. Girdiklerin bu cihazda bekliyor, bağlantı gelince kaydedilecek.</p>';
-  h += '<div class="hl-tips" id="helloTipsBox"' + (tipsOpen ? '' : ' hidden') + '>';
-  h += '<b>Verilerinin kaybolmaması için bunlara dikkat et:</b><ul>'
+  h += '<div class="hl-tips" id="helloTipsBox"' + (tipsOpen ? '' : ' hidden') + '>'
+    + '<h4>🔒 Verilerin nasıl korunuyor?</h4><ul>'
+    + '<li>Kayıtların, Claude hesabınla girdiğin bu uygulamanın veritabanında <b>sana ait ayrı bir alanda</b> tutulur. Uygulama başkalarının verisini sana, seninkini de başkalarına göstermez.</li>'
+    + '<li><b>Bordro PDF’i dışarı çıkmaz.</b> PDF cihazında okunur, yüklenmez. Bordrodan sadece tutarlar kaydedilir; adın, adresin, BSN ve IBAN numaran kaydedilmez.</li>'
+    + '<li>Uygulamanın kodu her gün otomatik kontrol edilir; onaysız bir değişiklik olursa eski haline döndürülür.</li>'
+    + '<li>Bu sürümde veriler şifrelenmeden saklanır; uygulama sahibi teknik olarak veritabanına erişebilir. Tam gizlilik istiyorsan şifreli web sürümünü kullan: okanozgur16.github.io/maas-takip</li></ul>'
+    + '<h4>⚠️ Verilerinin kaybolmaması için</h4><ul>'
     + '<li>Her zaman aynı Claude hesabıyla gir. Başka hesapla girersen verilerini göremezsin.</li>'
     + '<li>Bir şey girdikten sonra üstte <b>“Kaydedildi”</b> yazısını gör. “Bu cihazda” yazıyorsa henüz kaydedilmemiştir.</li>'
-    + '<li>Bordronu her hafta PDF olarak yükle ve PDF’leri telefonunda da sakla. PDF hiçbir yere gönderilmez; telefonunda okunur ve bordrodan sadece tutarlar kaydedilir. Adın, adresin ve kimlik numaraların kaydedilmez.</li>'
     + '<li>İlk bordronu yüklediğinde ücretin, kiran ve kesintilerin otomatik ayarlanır. Ayarlar’da elle değiştirdiğin alanlara bordro dokunmaz.</li>'
     + '<li>Uygulama her gün otomatik yedek alır. Bir şey ters giderse Ayarlar › Yedek’ten geri dönebilirsin.</li>'
-    + '<li>Aynı anda iki cihazda değişiklik yapma; birinde bitirip diğerini yenile.</li></ul></div>';
+    + '<li>Aynı anda iki cihazda değişiklik yapma; birinde bitirip diğerini yenile.</li>'
+    + '<li>Tutarlar tahmindir; kesin olan bordrondur.</li></ul></div>';
   el.innerHTML = h;
   el.querySelector('.hl-av').textContent = (first || '?').charAt(0).toLocaleUpperCase('tr-TR');
   el.querySelector('.hl-hi').textContent = first ? 'Merhaba ' + first : 'Merhaba';
@@ -1453,7 +1490,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-15c';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-15e';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -1913,7 +1950,7 @@ function fixedInfo(S){
 function renderCalNote(){
   var el = $('calNote'); if (!el) return;
   var st = state.settings || {}, n = Object.keys(state.slips || {}).length;
-  el.textContent = 'Tutarlar tahmindir. ' + (st.autoAt ? 'Ücretin ve kesintilerin ' + st.autoAt.toLocaleLowerCase('tr-TR') + ' bordrona göre ayarlandı. ' : (n ? 'Ücretin ve kesintilerin Ayarlar’daki değerlerle hesaplanır. ' : 'İlk bordronu yükleyene kadar varsayılan değerlerle hesaplanır; bordro yükleyince seninkine göre ayarlanır. ')) + 'Gelir vergisi bir tahmin eğrisiyle hesaplanır; bordro eklediğin haftalarda gerçek rakamlar kullanılır ve tahminle farkı gösterilir.';
+  el.textContent = 'Tutarlar tahmindir. ' + (st.autoAt || n ? '' : 'İlk bordronu yükleyene kadar varsayılan değerlerle hesaplanır. ') + 'Gelir vergisi bir tahmin eğrisiyle hesaplanır; bordro eklediğin haftalarda gerçek rakamlar kullanılır ve tahminle farkı gösterilir.';
 }
 function renderMonth(){
   var el = document.getElementById('month'); if (!el) return;
@@ -2427,7 +2464,6 @@ function saveManualSlip(){
 
 /* ---------- Ayarlar ---------- */
 var SET_TABS = [['pay', 'Ücret'], ['home', 'Konut'], ['ded', 'Kesintiler'], ['shift', 'Vardiya'], ['bk', 'Yedek']];
-if (STANDALONE) SET_TABS.push(['sync', 'Eşitleme']);
 var setTabSel = 'pay';
 function fld(k, label, type, step, S, help){
   var v = k.indexOf('.') > 0 ? S[k.split('.')[0]][k.split('.')[1]] : S[k], au = (state.settings.auto || {})[k] && !(state.settings.lock || {})[k];
@@ -2435,6 +2471,7 @@ function fld(k, label, type, step, S, help){
 }
 function renderSettings(){
   var S = SET(), st = state.settings, h = '';
+  if (STANDALONE) h += syncCardHTML();
   h += '<div class="seg settabs' + (SET_TABS.length > 5 ? ' six' : '') + '" role="tablist">' + SET_TABS.map(function(t){ return '<button role="tab" data-act="setTab" data-v="' + t[0] + '" aria-pressed="' + (setTabSel === t[0]) + '">' + t[1] + '</button>'; }).join('') + '</div>';
   if (setTabSel !== 'bk' && setTabSel !== 'shift' && setTabSel !== 'sync'){
     var nS = Object.keys(state.slips).filter(function(w){ return state.slips[w].source === 'pdf'; }).length;
@@ -3173,7 +3210,7 @@ document.addEventListener('click', function(ev){
   else if (a === 'custDel'){ var cl = (state.settings.custom || []).slice(); cl.splice(+el.getAttribute('data-i'), 1); state.settings.custom = cl; commit(); renderSettings(); }
   else if (a === 'bkNo'){ bkAsk = -1; var q = document.querySelector('.bkask'); if (q) q.remove(); }
   else if (a === 'bkRestore'){ bkRestore(+el.getAttribute('data-i')); }
-  else if (a === 'helloTips'){ var tp = $('helloTipsBox'); if (tp){ tp.hidden = !tp.hidden; el.setAttribute('aria-expanded', String(!tp.hidden)); try { localStorage.setItem(LS + '-tips', tp.hidden ? '0' : '1'); } catch (e) {} } }
+  else if (a === 'helloTips'){ var tp = $('helloTipsBox'); if (tp){ tp.hidden = !tp.hidden; el.setAttribute('aria-expanded', String(!tp.hidden)); el.textContent = tp.hidden ? 'Burayı oku' : 'Kapat'; el.classList.remove('pulse'); try { localStorage.setItem(LS + '-tips', tp.hidden ? '0' : '1'); localStorage.setItem(LS + '-readseen', '1'); } catch (e) {} } }
   else if (a === 'bkDownload'){ bkDownload(); }
   else if (a === 'syncStart'){ el.disabled = true; el.textContent = 'Başlatılıyor…'; syncStart(); }
   else if (a === 'syncJoin'){ var cv = $('syncCode') ? $('syncCode').value : ''; el.disabled = true; el.textContent = 'Bağlanıyor…'; syncJoin(cv); }
