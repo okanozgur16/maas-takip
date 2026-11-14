@@ -272,6 +272,7 @@ textarea{width:100%;min-height:90px;padding:9px 10px;border:1px solid var(--line
 .drop{position:relative;display:grid;gap:4px;place-items:center;text-align:center;padding:22px 14px;border:2px dashed var(--line);border-radius:14px;background:var(--surface2);cursor:pointer}
 .drop:hover,.drop.over{border-color:var(--accent);background:var(--accent-soft)}
 .drop b{font-size:16px}.drop span{font-size:13px;color:var(--muted)}
+.mhbtn{margin-left:8px;text-decoration:none}.mhguide{border:1px solid var(--line);border-radius:12px;padding:10px 12px;background:var(--surface2);font-size:13.5px;line-height:1.5}.mhguide summary{cursor:pointer;font-weight:600}.mhguide ol{margin:8px 0 6px;padding-left:20px}.mhguide li{margin:3px 0}.mhguide small{display:block;color:var(--muted);font-size:12px}
 .dropin{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:0}.alt-pick{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:12.5px;color:var(--muted)}.pickall{position:relative;overflow:hidden}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .sliplist{display:grid;gap:8px}
@@ -776,6 +777,7 @@ body.lay-dragging,body.lay-dragging *{cursor:grabbing!important;user-select:none
       <div class="seg wide" role="group" aria-label="Bordro ekleme yöntemi"><button data-act="slipTab" data-v="pdf" aria-pressed="true">PDF yükle</button><button data-act="slipTab" data-v="man" aria-pressed="false">Elle yaz</button></div>
       <div id="slipPdf" style="display:grid;gap:12px">
         <div class="drop" id="drop"><b>PDF bordroyu seç veya buraya bırak</b><span>Birden fazla dosya seçebilirsin. Her biri kendi haftasına otomatik yerleşir, saatler ve tutarlar bordrodan okunur.</span><input type="file" id="pdfIn" class="dropin" accept="application/pdf,.pdf" multiple aria-label="PDF bordro seç"></div>
+        <details class="mhguide"><summary>Bordroların myHolland’da mı? Nasıl indirileceğini gör</summary><ol><li><a href="https://www.myholland.eu/finances" target="_blank" rel="noopener noreferrer">myHolland’ı aç ↗</a>, giriş yap, <b>Finances › Weekly settlement</b> bölümüne gel.</li><li>Eklemek istediğin haftalara (<b>Wk 32, Wk 33…</b>) tek tek dokun; her biri PDF olarak telefonuna ya da bilgisayarına iner.</li><li>Buraya dön, yukarıdaki alana dokun ve indirdiğin PDF’lerin hepsini birlikte seç. Her bordro kendi haftasına yerleşir.</li></ol><small>Aynı haftayı tekrar yüklemek sorun olmaz; bir haftada birden fazla bordro (ör. park ödemesi) varsa hepsini yükle, toplanır. Uygulama myHolland’a kendisi bağlanamaz: tarayıcılar bir sitenin başka bir sitedeki oturumuna erişmesine güvenlik gereği izin vermez. Bu yüzden şifren hiçbir zaman uygulamaya girmez.</small></details>
         <div class="alt-pick"><span>Dosya seçici açılmıyor ya da PDF görünmüyorsa:</span><label class="btn small pickall">Tüm dosyalardan seç<input type="file" id="pdfIn2" class="dropin" multiple aria-label="Tüm dosyalardan seç"></label></div>
         <div class="sliplist" id="slipOut" aria-live="polite"></div>
       </div>
@@ -1253,7 +1255,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-14l';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-14m';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -1447,7 +1449,7 @@ function renderHero(){
     h += '<div class="callout"><span>Bu haftaya henüz saat girilmedi. Günlerden birine vardiya ekle.</span>' +
       (other45 ? '<button class="btn small" data-act="openWeek" data-w="' + other45 + '">Son bordro haftasını aç</button>' : '') + '</div>';
   }
-  h += '<div class="slip"><button class="btn small" data-act="slipAdd"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5.5 5.5 0 0 1-7.8-7.8l8.9-8.9a3.7 3.7 0 0 1 5.2 5.2l-8.9 8.9a1.8 1.8 0 0 1-2.6-2.6l8.2-8.2"/></svg>' + (slip ? 'Bordroyu değiştir' : 'Bordro ekle') + '</button>';
+  h += '<div class="slip"><button class="btn small" data-act="slipAdd"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5.5 5.5 0 0 1-7.8-7.8l8.9-8.9a3.7 3.7 0 0 1 5.2 5.2l-8.9 8.9a1.8 1.8 0 0 1-2.6-2.6l8.2-8.2"/></svg>' + (slip ? 'Bordroyu değiştir' : 'Bordro ekle') + '</button><a class="btn small mhbtn" href="https://www.myholland.eu/finances" target="_blank" rel="noopener noreferrer" title="myHolland’da bordrolarını indir, sonra Bordro ekle ile yükle">myHolland ↗</a>';
   if (slip){
     var diff = r2(est.payable - p.payable);
     h += ' <button class="btn small danger" data-act="slipDel">Bordroyu kaldır</button><span class="delta num ' + (Math.abs(diff) <= 1 ? 'ok' : 'off') + '">Uygulama tahmini ' + eur(est.payable) + ' (' + sgn(diff) + ')</span>';
@@ -1936,6 +1938,13 @@ var SLIP_ROWS = [
 function slipSafe(t){ t = String(t || ''); return !/(IBAN|BSN|burgerservice|sofinummer|geboorte|adres|straat|postcode|woonplaats|rekening|personeelsnummer|dossier|@|\bNL\d{2}[A-Z]{4})/i.test(t) && !/\d{5,}/.test(t); }
 function slipClean(t){ return String(t || '').replace(/\d{4,}/g, '').replace(/\s+/g, ' ').trim(); }
 var SLIP_NEG = { housingGross: 1, paww: 1, azv: 1, stipp: 1, wia: 1, lbT: 1, lbB: 1, whk: 1, housingNet: 1, utilities: 1, insurance: 1, extraIns: 1 };
+/* Bir PDF'te birden fazla bordro varsa (her biri "Periode:" başlıklı sayfayla başlar) ayrı ayrı okunur */
+function splitSlipPages(pages){
+  var st = [];
+  pages.forEach(function(p, i){ var t = (p || []).join('\n'); if (/Periode:/.test(t) && /^Omschrijving\b/m.test(t)) st.push(i); });
+  if (st.length <= 1) return [pages];
+  return st.map(function(s0, i){ return pages.slice(s0, i + 1 < st.length ? st[i + 1] : pages.length); });
+}
 function parseSlipPages(pages){
   var p1 = pages[0] || [], p2 = pages[1] || [], txt = p1.join('\n'), warn = [];
   var m = /Periode:\s*(\d\d)-(\d\d)-(\d{4})\s*t\/m/.exec(txt);
@@ -2070,7 +2079,7 @@ function mergeSlip(old, nw){
   } out.notes = (old.notes || []).concat(nw.notes || []).filter(function(x, i, a){ return a.indexOf(x) === i; });
   return out;
 }
-if (typeof module !== 'undefined') module.exports = { parseSlipPages: parseSlipPages, slipAutoNotes: slipAutoNotes, mergeSlip: mergeSlip, isoWeekOf: isoWeekOf, corrTR: corrTR };
+if (typeof module !== 'undefined') module.exports = { splitSlipPages: splitSlipPages, parseSlipPages: parseSlipPages, slipAutoNotes: slipAutoNotes, mergeSlip: mergeSlip, isoWeekOf: isoWeekOf, corrTR: corrTR };
 
 function applySlip(r){
   var old = state.slips[r.ws];
@@ -2160,7 +2169,7 @@ async function importFiles(files){
   out.innerHTML = '<div class="sl">Okunuyor…</div>';
   for (var i = 0; i < files.length; i++){
     var f = files[i];
-    try { var r = parseSlipPages(await pdfLines(f)); if (r.err) errPush('Bordro okunamadı: ' + r.err, 'pdf'); res.push(r.err ? { name: f.name, err: r.err } : { name: f.name, r: r }); }
+    try { var grp = splitSlipPages(await pdfLines(f)); grp.forEach(function(pg, gi){ var r = parseSlipPages(pg), nm = f.name + (grp.length > 1 ? ' (' + (gi + 1) + '/' + grp.length + ')' : ''); if (r.err) errPush('Bordro okunamadı: ' + r.err, 'pdf'); res.push(r.err ? { name: nm, err: r.err } : { name: nm, r: r }); }); }
     catch (e) { errPush('PDF açılamadı: ' + (e && e.message), 'pdf'); res.push({ name: f.name, err: 'PDF okunamadı: ' + (e && e.message ? e.message : 'bilinmeyen hata') + '. Dosyayı elle yazabilir ya da bana gönderebilirsin.' }); }
   }
   var ok = res.filter(function(x){ return x.r; }).sort(function(a, b){ return a.r.ws.localeCompare(b.r.ws) || ((+a.r.slip.num || 0) - (+b.r.slip.num || 0)); });
