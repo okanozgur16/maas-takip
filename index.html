@@ -1253,7 +1253,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-14k';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-14l';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -1930,7 +1930,7 @@ var SLIP_ROWS = [
   ['lbT', /^Loonheffingen \(Week wit\)/], ['lbB', /^Loonheffingen \(bijz/], ['whk', /^Gediff\. premie Whk/],
   ['netLoon', /^Netto loon/], ['housingNet', /^(Inhouding|Vergoeding) ET-uitruil huisvesting/], ['driver', /^Chauffeursvergoeding/],
   ['utilities', /^Inhouding nutsvoorzieningen/], ['insurance', /^Inhouding verzekeringen/], ['extraIns', /^Inhoudinge aanvullende verzekering/],
-  ['extraTravel', /^Tijdelijke extra reiskosten/], ['payable', /^Netto te betalen/]
+  ['extraTravel', /^(Tijdelijke extra reiskosten|Paid Parking|Parkeerkosten|Parkeervergoeding|Vergoeding parkeren)/i], ['payable', /^Netto te betalen/]
 ];
 /* Gizlilik: bordrodan sadece tutar satırları alınır. Ad, adres, BSN, IBAN, doğum tarihi gibi bilgiler hiçbir zaman saklanmaz. */
 function slipSafe(t){ t = String(t || ''); return !/(IBAN|BSN|burgerservice|sofinummer|geboorte|adres|straat|postcode|woonplaats|rekening|personeelsnummer|dossier|@|\bNL\d{2}[A-Z]{4})/i.test(t) && !/\d{5,}/.test(t); }
@@ -1955,7 +1955,8 @@ function parseSlipPages(pages){
       if (SLIP_ROWS[i][1].test(l)){
         hit = true;
         if (k === 'gross') sec = 'ded'; else if (k === 'netLoon') sec = 'net'; else if (k === 'payable') sec = 'end';
-        if (L[k] === undefined){
+        if (k === 'extraTravel' && L[k] !== undefined){ var ns2 = slipNums(l); if (ns2.length) L[k] = Math.round((L[k] + ns2[ns2.length - 1]) * 100) / 100; }
+        else if (L[k] === undefined){
           var ns = slipNums(l);
           if (SLIP_NEG[k]){ var neg = ns.filter(function(x){ return x < 0; }); L[k] = neg.length ? Math.abs(neg[neg.length - 1]) : 0; }
           else L[k] = ns.length ? ns[ns.length - 1] : 0;
@@ -1996,25 +1997,80 @@ function parseSlipPages(pages){
   return { ws: ws, slip: slip, cum: cum, warn: warn };
 }
 var EXTRA_TR = { extraIns: 'Ek sigorta kesintisi', extraTravel: 'Geçici ek yol masrafı', leer: 'Eğitim saatleri (Leeruren)' };
+function corrTR(name){
+  var n = String(name || '');
+  if (/huisvesting/i.test(n)) return 'kira';
+  if (/nutsvoorz/i.test(n)) return 'su-elektrik';
+  if (/aanvull/i.test(n)) return 'ek sigorta';
+  if (/verzekering/i.test(n)) return 'sigorta';
+  if (/reiskost/i.test(n)) return 'yol masrafı';
+  if (/loon|uren/i.test(n)) return 'ücret';
+  return n;
+}
 function slipAutoNotes(s){
   var L = s.lines, n = [], f = function(v){ return (Math.round(Math.abs(v) * 100) / 100).toFixed(2).replace('.', ','); };
-  if (L.extraTravel) n.push('Geçici ek yol masrafı +€' + f(L.extraTravel) + ' yattı.');
+  var sg = function(v){ return (v < 0 ? '−€' : '+€') + f(v); };
+  if (L.extraTravel) n.push('Geçici ek yol masrafı (park) +€' + f(L.extraTravel) + ' yattı.');
   if (L.leer) n.push('Eğitim saatleri (Leeruren) €' + f(L.leer) + ' yattı.');
   if (L.extraIns) n.push('Ek sigorta kesintisi −€' + f(L.extraIns) + ' kesildi.');
-  if (s.corr && s.corr.length) n.push('Bordroda düzeltme ya da mahsup satırları var.');
+  var dd = 5, drvOn = true, everDrv = false;
+  try { if (typeof SET === 'function'){ var S_ = SET(); dd = +S_.driverDay || 5; drvOn = S_.driverMode !== 'off'; } } catch (e) {}
+  try { if (typeof state !== 'undefined' && state.slips) everDrv = Object.keys(state.slips).some(function(w){ var x = state.slips[w]; return x && x.lines && x.lines.driver > 0; }); } catch (e) {}
+  var worked = s.hours && (s.hours.norm + s.hours.irr + s.hours.over) > 0;
+  if (L.driver > 0){ var nd = L.driver / dd; n.push(Math.abs(nd - Math.round(nd)) < 0.01 ? 'Araç eki: ' + Math.round(nd) + ' gün × €' + f(dd) + ' = €' + f(L.driver) + '.' : 'Araç eki €' + f(L.driver) + ' yattı.'); }
+  else if (worked && drvOn && everDrv) n.push('Bu hafta araç eki yatmadı.');
+  if (s.corr && s.corr.length){
+    var grp = { Correctie: [], Verrekening: [] };
+    s.corr.forEach(function(c){ var m = /^(Correctie|Verrekening) WAS\s+(.*?)\s*(-?[\d.]+)?$/.exec(c); if (!m) return; var a = m[3] !== undefined ? parseFloat(m[3]) : NaN; grp[m[1]].push({ n: corrTR(m[2]), a: a }); });
+    [['Correctie', 'Düzeltme satırları'], ['Verrekening', 'Mahsup satırları (önceki bordrodaki farkın kapatılması)']].forEach(function(g){
+      var list = grp[g[0]]; if (!list.length) return;
+      var tot = 0, ok = true; list.forEach(function(x){ if (isNaN(x.a)) ok = false; else tot += x.a; });
+      n.push(g[1] + ': ' + list.map(function(x){ return x.n + (isNaN(x.a) ? '' : ' ' + sg(x.a)); }).join(', ') + (ok && list.length > 1 ? ' (toplam ' + sg(tot) + ')' : '') + '.');
+    });
+  }
   (s.other || []).forEach(function(o){ n.push('Bordroda ek satır: “' + o.l + '” ' + (o.a < 0 ? '−€' : '+€') + f(o.a) + (o.s === 'net' ? ' (hesaba yatana dahil).' : ' (brüt/kesinti içinde).')); });
-  if (s.parts && s.parts.length > 1){ n.push('Bu hafta ' + s.parts.length + ' ayrı bordro: ' + s.parts.map(function(p){ return p.paid != null ? '€' + f(p.paid) : 'ödeme yok'; }).join(' + ') + '.'); }
+  if (s.parts && s.parts.length > 1){ n.push('Bu hafta ' + s.parts.length + ' ayrı bordro: ' + s.parts.map(function(p){ return p.paid != null ? '€' + f(p.paid) : 'ödeme yok'; }).join(' + ') + (s.payable != null ? ' = €' + f(s.payable) + ' yattı' : '') + '.'); }
   return n;
 }
 /* Aynı haftanın yeni bordrosunu mevcut kayıtla birleştirir: son numaralı bordro haftanın toplamıdır */
 function mergeSlip(old, nw){
   if (!old || old.source === 'elle' || !old.parts) return nw;
   var parts = old.parts.filter(function(p){ return !nw.parts.some(function(q){ return q.num === p.num; }); }).concat(nw.parts).sort(function(a, b){ return a.num - b.num; });
-  var main = (nw.num >= (old.num || 0)) ? nw : old;
-  var out = JSON.parse(JSON.stringify(main)); out.parts = parts; out.notes = (old.notes || []).concat(nw.notes || []).filter(function(x, i, a){ return a.indexOf(x) === i; });
+  var wages = function(x){ var L = x.lines || {}; return (+L.wN || 0) + (+L.wI || 0) + (+L.wO || 0) + (+L.vacPay || 0) + (+L.leer || 0); };
+  var out;
+  /* Önce ek bordro (park) yüklendiyse, sonra gelen asıl bordro temel olur ve ek bordro üstüne eklenir */
+  if (wages(old) === 0 && wages(nw) > 0 && (+(old.lines || {}).extraTravel || 0) > 0 && (+old.num || 0) > (+nw.num || 0) && !(old.corr && old.corr.length)){
+    var base = JSON.parse(JSON.stringify(nw)); base.parts = [];
+    var adds0 = (old.addOn || [{ num: +old.num || 0, extraTravel: +old.lines.extraTravel || 0, driver: +old.lines.driver || 0, payable: +old.payable || 0 }]);
+    base.addOn = adds0; base.parts = parts;
+    adds0.forEach(function(a){ base.lines.extraTravel = Math.round(((+base.lines.extraTravel || 0) + a.extraTravel) * 100) / 100; base.lines.driver = Math.round(((+base.lines.driver || 0) + a.driver) * 100) / 100; base.payable = base.lines.payable = Math.round(((+base.payable || 0) + a.payable) * 100) / 100; });
+    base.notes = (old.notes || []).concat(nw.notes || []).filter(function(x, i, a){ return a.indexOf(x) === i; });
+    return base;
+  }
+  var maxNum = Math.max.apply(null, old.parts.map(function(q){ return +q.num || 0; }).concat([+old.num || 0]));
+  if (wages(nw) === 0 && wages(old) > 0 && (+nw.num || 0) > maxNum && !(nw.corr && nw.corr.length) && (+(nw.lines || {}).extraTravel || 0) > 0){
+    /* Ek bordro (ör. sadece park ödemesi): haftanın asıl bordrosuna eklenir, onu ezmez */
+    out = JSON.parse(JSON.stringify(old));
+    ['extraTravel', 'driver'].forEach(function(k){ out.lines[k] = Math.round(((+out.lines[k] || 0) + (+nw.lines[k] || 0)) * 100) / 100; });
+    out.payable = out.lines.payable = Math.round(((+old.payable || 0) + (+nw.payable || 0)) * 100) / 100;
+    out.other = (old.other || []).concat(nw.other || []); out.corr = (old.corr || []).concat(nw.corr || []);
+    out.addOn = (old.addOn || []).concat([{ num: +nw.num || 0, extraTravel: +nw.lines.extraTravel || 0, driver: +nw.lines.driver || 0, payable: +nw.payable || 0 }]);
+    out.parts = parts;
+  } else if (wages(nw) === 0 && wages(old) > 0 && (+(nw.lines || {}).extraTravel || 0) > 0 && old.parts.some(function(q){ return q.num === nw.num; })){
+    /* Aynı ek bordro tekrar yüklendi: değişiklik yok */
+    out = JSON.parse(JSON.stringify(old)); out.parts = parts;
+  } else {
+    var main = (nw.num >= (old.num || 0)) ? nw : old; out = JSON.parse(JSON.stringify(main)); out.parts = parts;
+    /* Daha önce eklenmiş ek bordrolar (park vb.) asıl bordro yeniden yüklense de korunur */
+    var adds = (old.addOn || []).filter(function(a){ return a.num > (+out.num || 0); });
+    if (adds.length){
+      out.addOn = adds;
+      adds.forEach(function(a){ out.lines.extraTravel = Math.round(((+out.lines.extraTravel || 0) + a.extraTravel) * 100) / 100; out.lines.driver = Math.round(((+out.lines.driver || 0) + a.driver) * 100) / 100; out.payable = out.lines.payable = Math.round(((+out.payable || 0) + a.payable) * 100) / 100; });
+    }
+  } out.notes = (old.notes || []).concat(nw.notes || []).filter(function(x, i, a){ return a.indexOf(x) === i; });
   return out;
 }
-if (typeof module !== 'undefined') module.exports = { parseSlipPages: parseSlipPages, slipAutoNotes: slipAutoNotes, mergeSlip: mergeSlip, isoWeekOf: isoWeekOf };
+if (typeof module !== 'undefined') module.exports = { parseSlipPages: parseSlipPages, slipAutoNotes: slipAutoNotes, mergeSlip: mergeSlip, isoWeekOf: isoWeekOf, corrTR: corrTR };
 
 function applySlip(r){
   var old = state.slips[r.ws];
@@ -2107,7 +2163,7 @@ async function importFiles(files){
     try { var r = parseSlipPages(await pdfLines(f)); if (r.err) errPush('Bordro okunamadı: ' + r.err, 'pdf'); res.push(r.err ? { name: f.name, err: r.err } : { name: f.name, r: r }); }
     catch (e) { errPush('PDF açılamadı: ' + (e && e.message), 'pdf'); res.push({ name: f.name, err: 'PDF okunamadı: ' + (e && e.message ? e.message : 'bilinmeyen hata') + '. Dosyayı elle yazabilir ya da bana gönderebilirsin.' }); }
   }
-  var ok = res.filter(function(x){ return x.r; }).sort(function(a, b){ return a.r.ws.localeCompare(b.r.ws); });
+  var ok = res.filter(function(x){ return x.r; }).sort(function(a, b){ return a.r.ws.localeCompare(b.r.ws) || ((+a.r.slip.num || 0) - (+b.r.slip.num || 0)); });
   ok.forEach(function(x){ applySlip(x.r); });
   var drvMsg = [];
   ok.forEach(function(x){ var m = drvFromSlip(x.r.ws); if (m) drvMsg.push(m); });
