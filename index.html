@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' https://firestore.googleapis.com; worker-src 'self' blob:; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="strict-origin">
 <title>Maaş Takip</title>
 <meta name="theme-color" content="#3d4fd6">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -93,7 +95,7 @@ input,select,textarea{font:inherit;color:inherit}
 .hello{margin:0 0 14px;padding:14px 16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 12%,var(--surface)),var(--surface));box-shadow:0 4px 18px rgba(0,0,0,.06)}.hello[hidden]{display:none}.hl-top{display:flex;align-items:center;gap:12px}.hl-av{flex:0 0 44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:19px;background:var(--accent);color:var(--accent-ink)}
 .hl-tx{flex:1;min-width:0}.hl-hi{font-family:var(--display);font-weight:700;font-size:19px;line-height:1.2}
 .hl-st{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-top:2px}.hl-st i{width:8px;height:8px;border-radius:50%;background:var(--good);flex:0 0 8px}.hl-st.bad{color:var(--bad);font-weight:600}.hl-st.bad i{background:var(--bad)}
-.hl-tips{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13.5px;line-height:1.5}.hl-tips[hidden]{display:none}.hl-tips ul{margin:6px 0 0;padding-left:18px}.hl-tips li{margin:3px 0}.syncbox{display:grid;gap:6px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);margin:10px 0}.syncbox.on{border-color:color-mix(in srgb,var(--good) 45%,var(--line))}.syncbox .btn{justify-self:start}.syncjoin{display:flex;gap:8px}.syncjoin input{flex:1;min-width:0;font:inherit;font-size:16px;letter-spacing:.06em;text-transform:uppercase;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}.synccode{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.synccode .num{flex:1 0 100%;font-size:18px;font-weight:700;letter-spacing:.06em}.syncmsg{font-weight:500}
+.hl-tips{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13.5px;line-height:1.5}.hl-tips[hidden]{display:none}.hl-tips ul{margin:6px 0 0;padding-left:18px}.hl-tips li{margin:3px 0}.syncbox{display:grid;gap:6px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);margin:10px 0}.syncbox.on{border-color:color-mix(in srgb,var(--good) 45%,var(--line))}.syncbox>*{min-width:0}.syncbox .btn{justify-self:start}.syncjoin{display:flex;gap:8px}.syncjoin input{flex:1;min-width:0;font:inherit;font-size:16px;letter-spacing:.06em;text-transform:uppercase;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}.synccode{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.synccode .num{flex:1 0 100%;font-size:18px;font-weight:700;letter-spacing:.06em}.syncmsg{font-weight:500}
 .hl-bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;margin-top:12px;font-size:13.5px}.hl-bk span{flex:1 1 200px}.bkbtns{margin:10px 0 6px}
 .hl-warn{margin:12px 0 0;font-weight:600;color:var(--bad)}
 .nowr{white-space:nowrap}
@@ -1199,7 +1201,7 @@ function renderHol(){
    Belge adı kodun SHA-256 özetidir; kod bilinmeden ne bulunabilir ne okunabilir. */
 var FB = { project: 'maas-takip-sync', key: 'AIzaSyCSTmFZHJFZAf4qXdmhRtc9Srv5VpB-CBY' };
 var SYNC_ALPHA = 'ABCDEFGHJKLMNPRSTUVYZ23456789';
-var sync = { code: '', id: '', key: null, upd: '', last: 0, busy: false, err: '', timer: 0, show: false, msg: '' };
+var sync = { code: '', id: '', key: null, upd: '', last: 0, busy: false, err: '', timer: 0, show: false, msg: '', ask: '' };
 function syncOn(){ return !!sync.key; }
 function syncReady(){ return STANDALONE && FB.project && FB.project.indexOf('FBPROJECT') < 0 && !!(window.crypto && crypto.subtle); }
 function syncNorm(c){ return String(c || '').toUpperCase().replace(/[^A-Z0-9]/g, ''); }
@@ -1218,14 +1220,17 @@ async function syncSetCode(c){
 }
 async function syncEnc(obj){ var iv = crypto.getRandomValues(new Uint8Array(12)); var ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, sync.key, new TextEncoder().encode(JSON.stringify(obj)))); var all = new Uint8Array(12 + ct.length); all.set(iv); all.set(ct, 12); return b64(all); }
 async function syncDec(t){ var all = unb64(t); var pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: all.subarray(0, 12) }, sync.key, all.subarray(12)); return JSON.parse(new TextDecoder().decode(pt)); }
-function fbUrl(){ return (window.MT_FB_BASE || 'https://firestore.googleapis.com/v1/projects/') + FB.project + '/databases/(default)/documents/sync/' + sync.id + '?key=' + encodeURIComponent(FB.key); }
+function fbUrl(id){ return (window.MT_FB_BASE || 'https://firestore.googleapis.com/v1/projects/') + FB.project + '/databases/(default)/documents/sync/' + (id || sync.id) + '?key=' + encodeURIComponent(FB.key); }
+var SYNC_GONE = 'Bu eşitleme kodu iptal edilmiş (başka cihazda kod yenilendi ya da eşitleme silindi). Yeni kodu gir.';
 async function syncGet(){
   var r = await fetch(fbUrl(), { cache: 'no-store' });
   if (r.status === 404){ sync.upd = ''; return null; }
   if (!r.ok) throw new Error('Sunucu yanıtı ' + r.status);
   var j = await r.json(); sync.upd = j.updateTime || '';
+  var c0 = j.fields && j.fields.c ? j.fields.c.stringValue : '';
+  if (!c0){ var g = new Error(SYNC_GONE); g.gone = true; throw g; }
   var st;
-  try { st = await syncDec(j.fields.c.stringValue); } catch (e) { throw new Error('Veri çözülemedi: kod yanlış olabilir.'); }
+  try { st = await syncDec(c0); } catch (e) { throw new Error('Veri çözülemedi: kod yanlış olabilir.'); }
   return st;
 }
 async function syncPut(){
@@ -1255,7 +1260,10 @@ async function syncNow(){
     }
     sync.err = '';
     try { localStorage.setItem(LS + '-synclast', String(sync.last)); } catch (e) {}
-  } catch (e) { sync.err = String((e && e.message) || e); }
+  } catch (e) {
+    sync.err = String((e && e.message) || e);
+    if (e && e.gone){ sync.busy = false; syncOff(SYNC_GONE); return; }
+  }
   sync.busy = false; setSync(syncMode);
   if (setTabSel === 'sync' && !$('ov2').hidden) renderSettings();
 }
@@ -1276,32 +1284,71 @@ async function syncJoin(code){
     localStorage.setItem(LS + '-sync', sync.code);
     state = normalize(mergeStates(state, normalize(rem))); snapTake(); saveLocal(); renderAll();
     await syncNow(); sync.msg = sync.err ? 'Bağlandı ama eşitlenemedi: ' + sync.err : 'Bu cihaz bağlandı, veriler eşitlendi.';
-  } catch (e) { sync.key = null; sync.code = ''; sync.msg = String(e.message || e); try { localStorage.removeItem(LS + '-sync'); } catch (x) {} }
+  } catch (e) {
+    sync.key = null; sync.code = ''; sync.id = ''; sync.msg = String(e.message || e);
+    if (keepCode){ try { await syncSetCode(keepCode); localStorage.setItem(LS + '-sync', keepCode); } catch (x) {} }
+    else { try { localStorage.removeItem(LS + '-sync'); } catch (x) {} }
+  }
   renderSettings(); renderHello();
 }
-function syncOff(){ try { localStorage.removeItem(LS + '-sync'); } catch (e) {} sync.key = null; sync.code = ''; sync.id = ''; sync.upd = ''; sync.msg = 'Bu cihazda eşitleme kapatıldı. Veriler bu cihazda duruyor.'; setSync(syncMode); renderSettings(); renderHello(); }
+/* Sunucudaki şifreli kopyayı boş bir işaretle değiştirir: o kodu kullanan cihazlar eşitlemeyi bırakır. */
+async function syncWipe(id){
+  var body = { fields: { c: { stringValue: '' }, u: { integerValue: String(Date.now()) }, v: { integerValue: '1' } } };
+  var r = await fetch(fbUrl(id), { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  if (!r.ok) throw new Error('Sunucu yanıtı ' + r.status);
+}
+async function syncRotate(){
+  sync.msg = '';
+  var oldId = sync.id, oldCode = sync.code;
+  try {
+    await syncNow(); if (sync.err) throw new Error(sync.err);
+    await syncSetCode(syncNewCode()); sync.fresh = true; await syncNow();
+    if (sync.err){ var er = sync.err; await syncSetCode(oldCode); throw new Error(er); }
+    localStorage.setItem(LS + '-sync', sync.code);
+    await syncWipe(oldId);
+    sync.show = true; sync.msg = 'Yeni kod oluşturuldu, eski kod artık çalışmıyor. Diğer cihazlarında yeni kodu gir.';
+  } catch (e) { sync.msg = 'Kod yenilenemedi: ' + String(e.message || e); }
+  sync.ask = ''; renderSettings();
+}
+async function syncDelete(){
+  sync.msg = '';
+  try { await syncWipe(sync.id); syncOff('Eşitleme silindi: sunucudaki şifreli kopya temizlendi. Veriler bu cihazda duruyor; diğer cihazlar eşitlemeyi bırakır.'); }
+  catch (e) { sync.msg = 'Silinemedi: ' + String(e.message || e); renderSettings(); }
+  sync.ask = '';
+}
+function syncOff(msg){ try { localStorage.removeItem(LS + '-sync'); } catch (e) {} sync.key = null; sync.code = ''; sync.id = ''; sync.upd = ''; sync.show = false; sync.ask = ''; sync.msg = msg || 'Bu cihazda eşitleme kapatıldı. Veriler bu cihazda duruyor.'; setSync(syncMode); renderSettings(); renderHello(); }
 function syncBoot(){
   if (!syncReady()) return;
   var c = ''; try { c = localStorage.getItem(LS + '-sync') || ''; sync.last = +localStorage.getItem(LS + '-synclast') || 0; } catch (e) {}
   if (c) syncSetCode(c).then(function(){ setSync(syncMode); renderHello(); syncNow(); }).catch(function(){});
   document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible') syncNow(); });
   window.addEventListener('online', function(){ syncNow(); });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Enter' && e.target && e.target.id === 'syncCode'){ e.preventDefault(); var b = document.querySelector('[data-act=syncJoin]'); if (b && !b.disabled) b.click(); } });
   setInterval(function(){ if (document.visibilityState === 'visible') syncNow(); }, 60000);
 }
 if (window.MT_TEST) window.MT_EVAL = function(x){ return eval(x); }; /* yalnız otomatik testler için */
+function syncJoinBox(title, note, btn){
+  return '<div class="syncbox"><b>' + title + '</b><small class="fh">' + note + '</small><div class="syncjoin"><input id="syncCode" type="text" size="8" inputmode="text" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false" maxlength="24" placeholder="ABCD-EFGH-JKLM-NPRS" aria-label="Eşitleme kodu"><button class="btn small primary" data-act="syncJoin">' + btn + '</button></div></div>';
+}
 function syncSettingsHTML(){
   var h = '<div class="subhead">Cihazlar arası eşitleme</div>';
-  if (!syncReady()){ return h + '<small class="fh">Eşitleme bu tarayıcıda kullanılamıyor.</small>'; }
+  if (!syncReady()){ return h + '<small class="fh">Eşitleme bu tarayıcıda kullanılamıyor (güvenli bağlantı ya da şifreleme desteği yok). Tarayıcını güncelle ya da siteyi https:// ile aç.</small>'; }
   if (!syncOn()){
     h += '<small class="fh">Telefon ve bilgisayarda aynı verileri görmek için eşitlemeyi aç. Veriler cihazından çıkmadan önce sana özel kodla şifrelenir; sunucu içeriği okuyamaz. Hesap ya da e-posta gerekmez.</small>';
-    h += '<div class="syncbox"><b>Bu ilk cihazın mı?</b><small class="fh">Yeni bir eşitleme kodu oluştur, sonra diğer cihazlarına bu kodu gir.</small><button class="btn small primary" data-act="syncStart">Eşitlemeyi başlat</button></div>';
-    h += '<div class="syncbox"><b>Başka cihazda eşitleme açık mı?</b><small class="fh">Oradaki kodu buraya yaz. Bu cihazdaki kayıtlar da birleştirilir.</small><div class="syncjoin"><input id="syncCode" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="ABCD-EFGH-JKLM-NPRS" aria-label="Eşitleme kodu"><button class="btn small" data-act="syncJoin">Bağla</button></div></div>';
+    h += syncJoinBox('Kodun var mı?', 'Başka cihazında eşitleme açtıysan oradaki kodu buraya yaz. Bu cihazdaki kayıtlar da birleştirilir.', 'Bağla');
+    h += '<div class="syncbox"><b>İlk cihazın mı?</b><small class="fh">Yeni bir eşitleme kodu oluştur, sonra diğer cihazlarına bu kodu gir.</small><button class="btn small" data-act="syncStart">Yeni kod oluştur</button></div>';
   } else {
     var ago = sync.last ? Math.max(0, Math.round((Date.now() - sync.last) / 60000)) : -1;
     h += '<div class="syncbox on"><b>Eşitleme açık</b><small class="fh">' + (sync.busy ? 'Eşitleniyor…' : sync.err === 'offline' ? 'İnternet yok; bağlantı gelince eşitlenecek.' : sync.err ? 'Son deneme başarısız: ' + esc(sync.err) : ago < 0 ? 'Henüz eşitlenmedi.' : 'Son eşitleme: ' + (ago < 1 ? 'az önce' : ago + ' dakika önce') + '.') + '</small>';
     h += '<div class="synccode"><span class="num">' + (sync.show ? esc(syncFmt(sync.code)) : '••••-••••-••••-' + esc(sync.code.slice(-4))) + '</span><button class="btn small" data-act="syncShow">' + (sync.show ? 'Gizle' : 'Kodu göster') + '</button><button class="btn small" data-act="syncCopy">Kopyala</button></div>';
     h += '<small class="fh">Diğer cihazında bu siteyi aç, Ayarlar › Eşitleme’de bu kodu gir. Kodu kimseyle paylaşma: kodu bilen verilerini görebilir. Kodu bir yere not et; kaybedersen yeni cihaz bağlayamazsın (bağlı cihazlar çalışmaya devam eder).</small>';
     h += '<div class="two bkbtns"><button class="btn small primary" data-act="syncNowBtn">Şimdi eşitle</button><button class="btn small" data-act="syncOff">Bu cihazda kapat</button></div></div>';
+    h += syncJoinBox('Başka bir kodla birleştir', 'Diğer cihazında farklı bir kod oluşturduysan o kodu buraya yaz; bu cihaz o koda geçer ve kayıtlar birleşir.', 'Bu koda geç');
+    h += '<div class="syncbox"><b>Güvenlik</b>';
+    if (sync.ask === 'rotate') h += '<small class="fh">Yeni kod oluşturulur, eski kod iptal edilir. Diğer cihazlarında yeni kodu tekrar girmen gerekir. Emin misin?</small><div class="two bkbtns"><button class="btn small primary" data-act="syncRotateYes">Evet, kodu yenile</button><button class="btn small" data-act="syncAskNo">Vazgeç</button></div>';
+    else if (sync.ask === 'delete') h += '<small class="fh">Sunucudaki şifreli kopya temizlenir ve tüm cihazlarda eşitleme durur. Bu cihazdaki veriler silinmez. Emin misin?</small><div class="two bkbtns"><button class="btn small danger" data-act="syncDeleteYes">Evet, sil</button><button class="btn small" data-act="syncAskNo">Vazgeç</button></div>';
+    else h += '<small class="fh">Kodunu biri gördüyse kodu yenile: eski kod hemen çalışmaz olur. Eşitlemeyi bırakmak istersen sunucudaki kopyayı da silebilirsin.</small><div class="two bkbtns"><button class="btn small" data-act="syncRotate">Kodu yenile</button><button class="btn small danger" data-act="syncDelete">Eşitlemeyi sil</button></div>';
+    h += '</div>';
   }
   if (sync.msg) h += '<p class="okn syncmsg">' + esc(sync.msg) + '</p>';
   return h;
@@ -1406,7 +1453,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-15b';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-15c';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2061,7 +2108,7 @@ function loadPdfJs(){
 async function pdfLines(file){
   await loadPdfJs();
   var buf = await file.arrayBuffer();
-  var doc = await window.pdfjsLib.getDocument({ data: buf }).promise;
+  var doc = await window.pdfjsLib.getDocument({ data: buf, isEvalSupported: false }).promise;
   var pages = [];
   for (var i = 1; i <= doc.numPages; i++){
     var pg = await doc.getPage(i), tc = await pg.getTextContent();
@@ -3130,10 +3177,14 @@ document.addEventListener('click', function(ev){
   else if (a === 'bkDownload'){ bkDownload(); }
   else if (a === 'syncStart'){ el.disabled = true; el.textContent = 'Başlatılıyor…'; syncStart(); }
   else if (a === 'syncJoin'){ var cv = $('syncCode') ? $('syncCode').value : ''; el.disabled = true; el.textContent = 'Bağlanıyor…'; syncJoin(cv); }
-  else if (a === 'syncShow'){ sync.show = !sync.show; renderSettings(); }
+  else if (a === 'syncShow'){ sync.show = !sync.show; renderSettings(); clearTimeout(sync.hideT); if (sync.show) sync.hideT = setTimeout(function(){ sync.show = false; if (setTabSel === 'sync' && !$('ov2').hidden) renderSettings(); }, 60000); }
   else if (a === 'syncCopy'){ try { navigator.clipboard.writeText(syncFmt(sync.code)).then(function(){ sync.msg = 'Kod kopyalandı.'; renderSettings(); }, function(){ sync.show = true; sync.msg = 'Kopyalanamadı; kodu göster ve elle yaz.'; renderSettings(); }); } catch (e) { sync.show = true; renderSettings(); } }
   else if (a === 'syncNowBtn'){ syncNow(); }
   else if (a === 'syncOff'){ syncOff(); }
+  else if (a === 'syncRotate' || a === 'syncDelete'){ sync.ask = a === 'syncRotate' ? 'rotate' : 'delete'; sync.msg = ''; renderSettings(); }
+  else if (a === 'syncAskNo'){ sync.ask = ''; renderSettings(); }
+  else if (a === 'syncRotateYes'){ el.disabled = true; el.textContent = 'Yenileniyor…'; syncRotate(); }
+  else if (a === 'syncDeleteYes'){ el.disabled = true; el.textContent = 'Siliniyor…'; syncDelete(); }
   else if (a === 'copyBk'){ try { navigator.clipboard.writeText(JSON.stringify(state)).then(function(){ $('bkMsg').textContent = 'Kopyalandı'; }, function(){ $('bkMsg').textContent = 'Kopyalanamadı, metni elle seç'; }); } catch (e) { $('bkMsg').textContent = 'Kopyalanamadı, metni elle seç'; } }
   else if (a === 'importBk'){ try { var o = JSON.parse($('imp').value); if (!o || !Array.isArray(o.entries)) throw 0; state = normalize(o); commit(); renderSettings(); $('impMsg').textContent = 'Geri yüklendi'; } catch (e) { $('impMsg').textContent = 'Yedek okunamadı'; } }
 });
