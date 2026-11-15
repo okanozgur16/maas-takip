@@ -94,7 +94,7 @@ input,select,textarea{font:inherit;color:inherit}
 .sync.bad{background:var(--bad);color:var(--bad-ink);border-color:transparent}
 .note.credit{margin-top:6px;font-style:italic;opacity:.85}
 .hello{margin:0 0 14px;padding:14px 16px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 12%,var(--surface)),var(--surface));box-shadow:0 4px 18px rgba(0,0,0,.06)}.hello[hidden]{display:none}.hl-top{display:flex;align-items:center;gap:12px}.hl-av{flex:0 0 44px;height:44px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:19px;background:var(--accent);color:var(--accent-ink)}
-.hl-tx{flex:1;min-width:0}.hl-hi{font-family:var(--display);font-weight:700;font-size:19px;line-height:1.2}
+.hl-tx{flex:1;min-width:0}.hl-dt{font-family:var(--display);font-weight:600;font-size:13.5px;letter-spacing:.01em;color:var(--muted);margin:1px 0 3px;font-variant-numeric:tabular-nums}.hl-dt b{color:var(--accent);font-weight:700;margin-left:2px}.hl-hi{font-family:var(--display);font-weight:700;font-size:19px;line-height:1.2}
 .hl-st{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-top:2px}.hl-st i{width:8px;height:8px;border-radius:50%;background:var(--good);flex:0 0 8px}.hl-st.bad{color:var(--bad);font-weight:600}.hl-st.bad i{background:var(--bad)}
 .hl-tips{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13.5px;line-height:1.5}.hl-tips[hidden]{display:none}.hl-tips ul{margin:6px 0 0;padding-left:18px}.hl-tips li{margin:3px 0}.syncbox{display:grid;gap:6px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2);margin:10px 0}.syncbox.on{border-color:color-mix(in srgb,var(--good) 45%,var(--line))}.syncbox>*{min-width:0}.syncbox .btn{justify-self:start}.syncjoin{display:flex;gap:8px}.syncjoin input{flex:1;min-width:0;font:inherit;font-size:16px;letter-spacing:.06em;text-transform:uppercase;padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--ink)}.synccode{display:flex;flex-wrap:wrap;gap:8px;align-items:center}.synccode .num{flex:1 0 100%;font-size:18px;font-weight:700;letter-spacing:.06em}.syncmsg{font-weight:500}
 .hl-bk{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;margin-top:12px;font-size:13.5px}.hl-bk span{flex:1 1 200px}.bkbtns{margin:10px 0 6px}
@@ -1433,7 +1433,7 @@ function renderHelloLocal(el){
   var tipsOpen = READ_OPEN;
   var bd = lastBkDays(), needBk = hasData() && (bd < 0 || bd >= 7) && !(syncOn() && sync.last && Date.now() - sync.last < 7 * 86400000);
   if (!localOk){ el.innerHTML = '<div class="hl-top"><div class="hl-av" aria-hidden="true">!</div><div class="hl-tx"><div class="hl-hi">Kayıt yapılamıyor</div><div class="hl-st bad"><i></i>Girdiklerin bu sayfayı kapatınca silinir</div></div></div><p class="hl-warn">Tarayıcın bu siteye veri kaydetmeye izin vermiyor. Gizli/özel sekmedeysen normal sekmede aç; tarayıcı ayarlarında bu site için çerez ve site verilerine izin ver.</p>'; el.classList.add('warn'); el.hidden = false; return; }
-  var h = '<div class="hl-top"><div class="hl-av" aria-hidden="true"></div><div class="hl-tx"><div class="hl-hi"></div><div class="hl-st' + (needBk ? ' bad' : '') + '"><i></i>' + (needBk ? (bd < 0 ? 'Henüz yedek almadın' : 'Son yedeğin ' + bd + ' gün önce') : (syncOn() ? 'Cihazların arasında şifreli eşitleniyor' : 'Verilerin sadece bu cihazda, hiçbir yere gönderilmiyor')) + '</div></div><button class="btn small hl-tg hl-read' + (readSeen() ? ' seen' : ' pulse') + '" data-act="helloTips" aria-expanded="' + tipsOpen + '" aria-controls="helloTipsBox">' + (tipsOpen ? 'Kapat' : 'Burayı oku') + '</button></div>';
+  var h = '<div class="hl-top"><div class="hl-av" aria-hidden="true"></div><div class="hl-tx"><div class="hl-hi"></div><div class="hl-dt"></div><div class="hl-st' + (needBk ? ' bad' : '') + '"><i></i>' + (needBk ? (bd < 0 ? 'Henüz yedek almadın' : 'Son yedeğin ' + bd + ' gün önce') : (syncOn() ? 'Cihazların arasında şifreli eşitleniyor' : 'Verilerin sadece bu cihazda, hiçbir yere gönderilmiyor')) + '</div></div><button class="btn small hl-tg hl-read' + (readSeen() ? ' seen' : ' pulse') + '" data-act="helloTips" aria-expanded="' + tipsOpen + '" aria-controls="helloTipsBox">' + (tipsOpen ? 'Kapat' : 'Burayı oku') + '</button></div>';
   if (needBk) h += '<div class="hl-bk"><span>Telefonun değişirse ya da tarayıcı verileri silinirse kayıtların kaybolmasın diye yedek dosyası indir' + (syncReady() && !syncOn() ? ' ya da Ayarlar › Eşitleme’yi aç' : '') + '.</span><button class="btn small primary" data-act="bkDownload">Yedeği indir</button></div>';
   h += '<div class="hl-tips" id="helloTipsBox"' + (tipsOpen ? '' : ' hidden') + '>' + USE_TIPS
     + '<h4>🔒 Verilerin nasıl korunuyor?</h4><ul>'
@@ -1453,7 +1453,7 @@ function renderHelloLocal(el){
   el.innerHTML = h;
   var av = el.querySelector('.hl-av'); if (first) av.textContent = first.charAt(0).toLocaleUpperCase('tr-TR'); else av.innerHTML = '<svg viewBox="0 0 48 48" width="30" height="30" aria-hidden="true"><rect x="7" y="14" width="34" height="24" rx="5" fill="#fff" opacity=".95"/><path d="M11 14l17-6.5c2-.7 3.6.2 4 2.2L33.5 14" fill="none" stroke="#fff" stroke-width="2.6" stroke-linejoin="round" opacity=".75"/><rect x="29" y="21.5" width="12" height="9" rx="3" fill="#ffd166"/><circle cx="33.5" cy="26" r="1.8" fill="#3d4fd6"/><path d="M14 22.5h9M14 28h6" stroke="#3d4fd6" stroke-width="2.4" stroke-linecap="round" opacity=".55"/></svg>';
   el.querySelector('.hl-hi').textContent = first ? 'Merhaba ' + first : 'Merhaba';
-  el.classList.toggle('warn', needBk); el.hidden = false;
+  el.classList.toggle('warn', needBk); el.hidden = false; helloClock();
 }
 function bkDownload(){
   try {
@@ -1473,7 +1473,15 @@ function bkFromFile(f){
   };
   rd.readAsText(f);
 }
-var READ_NOW = false, READ_OPEN = false;
+var READ_NOW = false, READ_OPEN = false, CLK_T = 0;
+function helloClock(){
+  var loc = LANG === 'en' ? 'en-GB' : 'tr-TR', d = new Date(), els = document.querySelectorAll('.hl-dt');
+  var wd = d.toLocaleDateString(loc, { weekday: 'long' }), p2 = function(n){ return ('0' + n).slice(-2); };
+  var dt = LANG === 'en' ? p2(d.getDate()) + '/' + p2(d.getMonth() + 1) + '/' + d.getFullYear() : p2(d.getDate()) + '.' + p2(d.getMonth() + 1) + '.' + d.getFullYear();
+  var html = '<span class="nowr">' + wd + ' ·</span> <span class="nowr">' + dt + ' · <b>' + p2(d.getHours()) + ':' + p2(d.getMinutes()) + '</b></span>';
+  for (var i = 0; i < els.length; i++){ if (els[i].__h !== html){ els[i].innerHTML = html; els[i].__h = html; } }
+  if (!CLK_T){ CLK_T = setInterval(helloClock, 10000); document.addEventListener('visibilitychange', function(){ if (!document.hidden) helloClock(); }); }
+}
 function readSeen(){ return READ_NOW; }
 function renderHello(){
   var el = $('hello'); if (!el) return;
@@ -1483,7 +1491,7 @@ function renderHello(){
   var first = String(meName || '').trim().split(/\s+/)[0], bad = noWrite || cloudFail;
   var tipsOpen = READ_OPEN;
   var stx = noWrite ? 'Kaydedilmiyor: sadece görüntüleme yetkin var' : cloudFail ? 'Şu an buluta kaydedilemiyor' : 'Verilerin sadece sana ait, sadece senin hesabına kaydediliyor';
-  var h = '<div class="hl-top"><div class="hl-av" aria-hidden="true"></div><div class="hl-tx"><div class="hl-hi"></div><div class="hl-st' + (bad ? ' bad' : '') + '"><i></i>' + stx + '</div></div><button class="btn small hl-tg hl-read' + (readSeen() ? ' seen' : ' pulse') + '" data-act="helloTips" aria-expanded="' + tipsOpen + '" aria-controls="helloTipsBox">' + (tipsOpen ? 'Kapat' : 'Burayı oku') + '</button></div>';
+  var h = '<div class="hl-top"><div class="hl-av" aria-hidden="true"></div><div class="hl-tx"><div class="hl-hi"></div><div class="hl-dt"></div><div class="hl-st' + (bad ? ' bad' : '') + '"><i></i>' + stx + '</div></div><button class="btn small hl-tg hl-read' + (readSeen() ? ' seen' : ' pulse') + '" data-act="helloTips" aria-expanded="' + tipsOpen + '" aria-controls="helloTipsBox">' + (tipsOpen ? 'Kapat' : 'Burayı oku') + '</button></div>';
   if (noWrite) h += '<p class="hl-warn">Girdiğin vardiyalar ve bordrolar sayfayı kapatınca silinir. Okan’dan “Düzenleyebilir” yetkisi iste; sonra her şey kendi hesabına kaydedilir ve kimse göremez.</p>';
   else if (cloudFail) h += '<p class="hl-warn">İnternet bağlantını kontrol et. Girdiklerin bu cihazda bekliyor, bağlantı gelince kaydedilecek.</p>';
   h += '<div class="hl-tips" id="helloTipsBox"' + (tipsOpen ? '' : ' hidden') + '>' + USE_TIPS
@@ -1502,7 +1510,7 @@ function renderHello(){
   el.innerHTML = h;
   el.querySelector('.hl-av').textContent = (first || '?').charAt(0).toLocaleUpperCase('tr-TR');
   el.querySelector('.hl-hi').textContent = first ? 'Merhaba ' + first : 'Merhaba';
-  el.classList.toggle('warn', bad); el.hidden = false;
+  el.classList.toggle('warn', bad); el.hidden = false; helloClock();
 }
 /* ---------- Otomatik günlük yedek (kendi hesabında, sadece sen görürsün) ---------- */
 async function bkLoad(){ if (!bkRef) return []; var sn = await withTimeout(bkRef.get()); if (!sn) return []; var ex = typeof sn.exists === 'function' ? sn.exists() : sn.exists; if (ex === false) return []; var d = typeof sn.data === 'function' ? sn.data() : sn.data; return d && Array.isArray(d.snaps) ? d.snaps : []; }
@@ -1540,7 +1548,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-15k';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-15l';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
