@@ -17,4 +17,6 @@ Web sürümünde PC planı varsayılan olarak gizlidir. Sayfa altındaki yazıya
 - PC planı, maaş verisinden ayrı olarak kişinin **özel şifresiyle** AES-GCM ile şifrelenir (PBKDF2-SHA256, 250 bin tur). Sunucudaki belge adı da şifreden türetilir; şifre bilinmeden bulunamaz ve okunamaz. Maaş eşitleme kodu bunu açamaz.
 - PC planı ana veriye (yedek, maaş eşitleme) girmez; sadece kasada durur.
 - "Bu cihazda hatırla" seçilirse anahtar o cihazın localStorage'ında saklanır; "Kilitle ve gizle" bunu siler.
+- Uygulama her açıldığında PC planı gizlidir; 5 dokunuşla tekrar gösterilir (hatırlanan cihazda şifre sorulmaz). "Gizle" planı yalnızca bu oturumda gizler, "Kilitle ve gizle" anahtarı da cihazdan siler.
+- Fiyat takibi bir kez bağlanınca (kasadaki bayrak cihazlara eşitlenir) bağlama düğmesi bir daha gösterilmez.
 - Fiyat takibi: günlük görev fiyat verisini kasanın **genel anahtarıyla** şifreleyip `watch.enc.json` olarak yayınlar; sadece kasanın özel anahtarı açabilir (ECDH P-256 + AES-GCM).
