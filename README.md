@@ -10,3 +10,11 @@ Haftalık vardiya ve maaş takibi. **Hesap, e-posta ya da yapay zeka gerekmez.**
 - Telefon değişirse: eşitleme kodunu yeni cihaza gir ya da Ayarlar › Yedek › "Yedeği indir" / "Dosyadan geri yükle".
 
 Kullanmak için: https://okanozgur16.github.io/maas-takip/
+
+## PC planı kasası (gizli)
+
+Web sürümünde PC planı varsayılan olarak gizlidir. Sayfa altındaki yazıya 2,5 saniye içinde 5 kez basınca "PC planı" penceresi açılır.
+- PC planı, maaş verisinden ayrı olarak kişinin **özel şifresiyle** AES-GCM ile şifrelenir (PBKDF2-SHA256, 250 bin tur). Sunucudaki belge adı da şifreden türetilir; şifre bilinmeden bulunamaz ve okunamaz. Maaş eşitleme kodu bunu açamaz.
+- PC planı ana veriye (yedek, maaş eşitleme) girmez; sadece kasada durur.
+- "Bu cihazda hatırla" seçilirse anahtar o cihazın localStorage'ında saklanır; "Kilitle ve gizle" bunu siler.
+- Fiyat takibi: günlük görev fiyat verisini kasanın **genel anahtarıyla** şifreleyip `watch.enc.json` olarak yayınlar; sadece kasanın özel anahtarı açabilir (ECDH P-256 + AES-GCM).
