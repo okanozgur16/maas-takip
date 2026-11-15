@@ -1,0 +1,24 @@
+# notify.json değişince (günlük fiyat kontrolü haber bulduğunda) telefona bildirim gönderir.
+# Bildirimde fiyat ya da ürün adı yoktur, sadece "yenilik var" yazar.
+name: Telefon bildirimi
+on:
+  push:
+    paths:
+      - 'notify.json'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --no-audit --no-fund web-push@4.0.0
+      - run: node .github/send-push.mjs
+        env:
+          VAPID_PRIVATE: ${{ secrets.VAPID_PRIVATE }}
+          PUSH_SUB: ${{ secrets.PUSH_SUB }}
+          MANUAL: ${{ github.event_name == 'workflow_dispatch' }}
