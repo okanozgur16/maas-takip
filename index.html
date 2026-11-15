@@ -109,8 +109,9 @@ input,select,textarea{font:inherit;color:inherit}
 .synccard.sel{box-shadow:0 0 0 2px var(--accent, #3d4fd6)}
 .hl-read{border-color:var(--bad)!important;color:var(--bad)!important;font-weight:700}
 .hl-read.pulse{background:var(--bad)!important;color:#fff!important}
-@media (prefers-reduced-motion:no-preference){.hl-read.pulse{animation:readp 1.2s ease-in-out infinite}}
-@keyframes readp{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--bad) 60%,transparent);opacity:1}50%{box-shadow:0 0 0 7px transparent;opacity:.55}}
+.hl-read.seen{border-color:var(--good)!important;color:var(--good)!important;background:color-mix(in srgb,var(--good) 14%,transparent)!important}
+@media (prefers-reduced-motion:no-preference){.hl-read.pulse{animation:readp 1s ease-in-out infinite}}
+@keyframes readp{0%,100%{transform:scale(1);box-shadow:0 0 0 0 color-mix(in srgb,var(--bad) 75%,transparent),0 0 0 0 color-mix(in srgb,var(--bad) 35%,transparent);filter:brightness(1)}50%{transform:scale(1.09);box-shadow:0 0 0 6px color-mix(in srgb,var(--bad) 30%,transparent),0 0 18px 6px color-mix(in srgb,var(--bad) 45%,transparent);filter:brightness(1.25)}}
 :root[data-theme="dark"] .synccard.new b{color:#f5a54a}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .synccard.new b{color:#f5a54a}}
 .hl-tips h4{margin:10px 0 2px;font-size:14px}.hl-tips h4:first-child{margin-top:0}
 .settabs{display:flex;flex-wrap:wrap;margin-bottom:12px}.settabs button{flex:1 1 auto}.settabs.six{display:grid;grid-template-columns:repeat(3,1fr)}
@@ -1429,10 +1430,10 @@ var FB_NOTE_SHARED = '<p class="note credit">Hata ve geri bildirimler için Okan
 function renderHelloLocal(el){
   var USE_TIPS = USE_TIPS_SHARED(), FB_NOTE = FB_NOTE_SHARED;
   var first = String((state.settings && state.settings.myName) || '').trim().split(/\s+/)[0];
-  var tipsOpen = false; try { tipsOpen = localStorage.getItem(LS + '-tips') === '1'; } catch (e) {}
+  var tipsOpen = READ_OPEN;
   var bd = lastBkDays(), needBk = hasData() && (bd < 0 || bd >= 7) && !(syncOn() && sync.last && Date.now() - sync.last < 7 * 86400000);
   if (!localOk){ el.innerHTML = '<div class="hl-top"><div class="hl-av" aria-hidden="true">!</div><div class="hl-tx"><div class="hl-hi">Kayıt yapılamıyor</div><div class="hl-st bad"><i></i>Girdiklerin bu sayfayı kapatınca silinir</div></div></div><p class="hl-warn">Tarayıcın bu siteye veri kaydetmeye izin vermiyor. Gizli/özel sekmedeysen normal sekmede aç; tarayıcı ayarlarında bu site için çerez ve site verilerine izin ver.</p>'; el.classList.add('warn'); el.hidden = false; return; }
-  var h = '<div class="hl-top"><div class="hl-av" aria-hidden="true"></div><div class="hl-tx"><div class="hl-hi"></div><div class="hl-st' + (needBk ? ' bad' : '') + '"><i></i>' + (needBk ? (bd < 0 ? 'Henüz yedek almadın' : 'Son yedeğin ' + bd + ' gün önce') : (syncOn() ? 'Cihazların arasında şifreli eşitleniyor' : 'Verilerin sadece bu cihazda, hiçbir yere gönderilmiyor')) + '</div></div><button class="btn small hl-tg hl-read' + (readSeen() ? '' : ' pulse') + '" data-act="helloTips" aria-expanded="' + tipsOpen + '" aria-controls="helloTipsBox">' + (tipsOpen ? 'Kapat' : 'Burayı oku') + '</button></div>';
+  var h = '<div class="hl-top"><div class="hl-av" aria-hidden="true"></div><div class="hl-tx"><div class="hl-hi"></div><div class="hl-st' + (needBk ? ' bad' : '') + '"><i></i>' + (needBk ? (bd < 0 ? 'Henüz yedek almadın' : 'Son yedeğin ' + bd + ' gün önce') : (syncOn() ? 'Cihazların arasında şifreli eşitleniyor' : 'Verilerin sadece bu cihazda, hiçbir yere gönderilmiyor')) + '</div></div><button class="btn small hl-tg hl-read' + (readSeen() ? ' seen' : ' pulse') + '" data-act="helloTips" aria-expanded="' + tipsOpen + '" aria-controls="helloTipsBox">' + (tipsOpen ? 'Kapat' : 'Burayı oku') + '</button></div>';
   if (needBk) h += '<div class="hl-bk"><span>Telefonun değişirse ya da tarayıcı verileri silinirse kayıtların kaybolmasın diye yedek dosyası indir' + (syncReady() && !syncOn() ? ' ya da Ayarlar › Eşitleme’yi aç' : '') + '.</span><button class="btn small primary" data-act="bkDownload">Yedeği indir</button></div>';
   h += '<div class="hl-tips" id="helloTipsBox"' + (tipsOpen ? '' : ' hidden') + '>' + USE_TIPS
     + '<h4>🔒 Verilerin nasıl korunuyor?</h4><ul>'
@@ -1472,16 +1473,17 @@ function bkFromFile(f){
   };
   rd.readAsText(f);
 }
-function readSeen(){ try { return localStorage.getItem(LS + '-readseen') === '1'; } catch (e) { return true; } }
+var READ_NOW = false, READ_OPEN = false;
+function readSeen(){ return READ_NOW; }
 function renderHello(){
   var el = $('hello'); if (!el) return;
   if (STANDALONE){ renderHelloLocal(el); return; }
   var USE_TIPS = USE_TIPS_SHARED(), FB_NOTE = FB_NOTE_SHARED;
   if (!myId){ el.hidden = true; return; }
   var first = String(meName || '').trim().split(/\s+/)[0], bad = noWrite || cloudFail;
-  var tipsOpen = false; try { tipsOpen = localStorage.getItem(LS + '-tips') === '1'; } catch (e) {}
+  var tipsOpen = READ_OPEN;
   var stx = noWrite ? 'Kaydedilmiyor: sadece görüntüleme yetkin var' : cloudFail ? 'Şu an buluta kaydedilemiyor' : 'Verilerin sadece sana ait, sadece senin hesabına kaydediliyor';
-  var h = '<div class="hl-top"><div class="hl-av" aria-hidden="true"></div><div class="hl-tx"><div class="hl-hi"></div><div class="hl-st' + (bad ? ' bad' : '') + '"><i></i>' + stx + '</div></div><button class="btn small hl-tg hl-read' + (readSeen() ? '' : ' pulse') + '" data-act="helloTips" aria-expanded="' + tipsOpen + '" aria-controls="helloTipsBox">' + (tipsOpen ? 'Kapat' : 'Burayı oku') + '</button></div>';
+  var h = '<div class="hl-top"><div class="hl-av" aria-hidden="true"></div><div class="hl-tx"><div class="hl-hi"></div><div class="hl-st' + (bad ? ' bad' : '') + '"><i></i>' + stx + '</div></div><button class="btn small hl-tg hl-read' + (readSeen() ? ' seen' : ' pulse') + '" data-act="helloTips" aria-expanded="' + tipsOpen + '" aria-controls="helloTipsBox">' + (tipsOpen ? 'Kapat' : 'Burayı oku') + '</button></div>';
   if (noWrite) h += '<p class="hl-warn">Girdiğin vardiyalar ve bordrolar sayfayı kapatınca silinir. Okan’dan “Düzenleyebilir” yetkisi iste; sonra her şey kendi hesabına kaydedilir ve kimse göremez.</p>';
   else if (cloudFail) h += '<p class="hl-warn">İnternet bağlantını kontrol et. Girdiklerin bu cihazda bekliyor, bağlantı gelince kaydedilecek.</p>';
   h += '<div class="hl-tips" id="helloTipsBox"' + (tipsOpen ? '' : ' hidden') + '>' + USE_TIPS
@@ -1538,7 +1540,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-15i';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-15j';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3291,7 +3293,7 @@ document.addEventListener('click', function(ev){
   else if (a === 'bkNo'){ bkAsk = -1; var q = document.querySelector('.bkask'); if (q) q.remove(); }
   else if (a === 'bkRestore'){ bkRestore(+el.getAttribute('data-i')); }
   else if (a === 'lang'){ var lv = el.getAttribute('data-v'); if (lv !== LANG){ try { localStorage.setItem(LS + '-lang', lv); } catch (e) {} location.reload(); } }
-  else if (a === 'helloTips'){ var tp = $('helloTipsBox'); if (tp){ tp.hidden = !tp.hidden; el.setAttribute('aria-expanded', String(!tp.hidden)); el.textContent = tp.hidden ? 'Burayı oku' : 'Kapat'; el.classList.remove('pulse'); try { localStorage.setItem(LS + '-tips', tp.hidden ? '0' : '1'); localStorage.setItem(LS + '-readseen', '1'); } catch (e) {} } }
+  else if (a === 'helloTips'){ var tp = $('helloTipsBox'); if (tp){ tp.hidden = !tp.hidden; el.setAttribute('aria-expanded', String(!tp.hidden)); el.textContent = tp.hidden ? 'Burayı oku' : 'Kapat'; el.classList.remove('pulse'); el.classList.add('seen'); READ_NOW = true; READ_OPEN = !tp.hidden; } }
   else if (a === 'bkDownload'){ bkDownload(); }
   else if (a === 'syncStart'){ el.disabled = true; el.textContent = 'Başlatılıyor…'; syncStart(); }
   else if (a === 'syncJoin'){ var cv = $('syncCode') ? $('syncCode').value : ''; el.disabled = true; el.textContent = 'Bağlanıyor…'; syncJoin(cv); }
