@@ -57,8 +57,8 @@ function cleanSync(b, env) {
   if (!b || !okId(b.id) || !b.sub || !okEndpoint(b.sub.endpoint, env) || !b.sub.keys || typeof b.sub.keys.p256dh !== 'string' || typeof b.sub.keys.auth !== 'string') return null;
   if (b.sub.keys.p256dh.length > 100 || b.sub.keys.auth.length > 40 || b.sub.endpoint.length > 600 || !okTz(b.tz)) return null;
   const days = Array.isArray(b.days) ? [...new Set(b.days.map(Number).filter(n => n >= 0 && n <= 6))] : [1, 2, 3, 4, 5, 6];
-  const plan = (Array.isArray(b.plan) ? b.plan : []).slice(0, 8).filter(p => p && rxD.test(p.d)).map(p => ({ d: p.d, s: p.s ? 1 : 0, e: typeof p.e === 'string' && rxDT.test(p.e) ? p.e : null }));
-  return { sub: { endpoint: b.sub.endpoint, keys: { p256dh: b.sub.keys.p256dh, auth: b.sub.keys.auth } }, tz: b.tz, lang: b.lang === 'en' ? 'en' : 'tr', days, at: rxT.test(b.at) ? b.at : '07:00', plan };
+  const plan = (Array.isArray(b.plan) ? b.plan : []).slice(0, 8).filter(p => p && rxD.test(p.d)).map(p => ({ d: p.d, s: p.s ? 1 : 0, e: typeof p.e === 'string' && rxDT.test(p.e) ? p.e : null, b: typeof p.b === 'string' && rxDT.test(p.b) ? p.b : null }));
+  return { sub: { endpoint: b.sub.endpoint, keys: { p256dh: b.sub.keys.p256dh, auth: b.sub.keys.auth } }, tz: b.tz, lang: b.lang === 'en' ? 'en' : 'tr', days, at: rxT.test(b.at) ? b.at : '07:00', rel: b.rel ? 1 : 0, plan };
 }
 
 /* ---------- Zaman ---------- */
@@ -70,8 +70,8 @@ const addMin = (dt, m) => { const t = Date.UTC(+dt.slice(0, 4), +dt.slice(5, 7) 
 
 /* ---------- Metinler ---------- */
 const TXT = {
-  tr: { a: ['Vardiyanı ayarla', 'Bugün için vardiya girilmemiş. Vardiyanı ayarla ki tahmin doğru çıksın.'], e: t => ['Bu saatte mi çıktın?', 'Vardiyan ' + t + ' gibi bitiyordu. Gerçek çıkış saatini güncelle, tahmin doğru çıksın.'], t: ['Deneme bildirimi', 'Vardiya bildirimleri çalışıyor.'] },
-  en: { a: ['Set your shift', 'No shift is set for today. Set it so your estimate stays accurate.'], e: t => ['Did you leave at this time?', 'Your shift was due to end around ' + t + '. Update the real finishing time so your estimate stays accurate.'], t: ['Test notification', 'Shift notifications are working.'] }
+  tr: { a: ['Vardiyanı ayarla', 'Bugün için vardiya girilmemiş. Vardiyanı ayarla ki tahmin doğru çıksın.'], b: t => ['Vardiyan 1 saat sonra başlıyor', 'Planlanan vardiyan ' + t + ' gibi başlıyor. Saat değiştiyse uygulamada güncelle.'], e: t => ['Bu saatte mi çıktın?', 'Vardiyan ' + t + ' gibi bitiyordu. Gerçek çıkış saatini güncelle, tahmin doğru çıksın.'], t: ['Deneme bildirimi', 'Vardiya bildirimleri çalışıyor.'] },
+  en: { a: ['Set your shift', 'No shift is set for today. Set it so your estimate stays accurate.'], b: t => ['Your shift starts in 1 hour', 'Your planned shift starts around ' + t + '. If the time changed, update it in the app.'], e: t => ['Did you leave at this time?', 'Your shift was due to end around ' + t + '. Update the real finishing time so your estimate stays accurate.'], t: ['Test notification', 'Shift notifications are working.'] }
 };
 
 /* ---------- Karar ---------- */
@@ -84,8 +84,12 @@ function due(u, nowMs) {
     if (now >= from && now <= to && !sent['a' + today] && !(seen && seen >= from)) out.push({ k: 'a' + today, kind: 'a' });
   }
   for (const p of u.plan) {
+    if (u.rel && p.b) {
+      const bf = addMin(p.b, -60);
+      if (now >= bf && now < p.b && !sent['b' + p.b]) out.push({ k: 'b' + p.b, kind: 'b', t: p.b.slice(11) });
+    }
     if (!p.e) continue;
-    const from = addMin(p.e, 10), to = addMin(p.e, 240);
+    const from = addMin(p.e, u.rel ? 60 : 10), to = addMin(p.e, 240);
     if (now >= from && now <= to && !sent['e' + p.e] && !(seen && seen >= p.e)) out.push({ k: 'e' + p.e, kind: 'e', t: p.e.slice(11) });
   }
   return out;
@@ -134,8 +138,8 @@ async function scan(env, nowMs) {
       const todo = due(u, nowMs); if (!todo.length) continue;
       u.sent = u.sent || {};
       for (const x of todo) {
-        const T = TXT[u.lang], m = x.kind === 'a' ? T.a : T.e(x.t);
-        let st = 0; try { st = await sendPush(u.sub, { title: m[0], body: m[1], tag: x.kind === 'a' ? 'shift-a' : 'shift-e' }, env); } catch (e) {}
+        const T = TXT[u.lang], m = x.kind === 'a' ? T.a : T[x.kind](x.t);
+        let st = 0; try { st = await sendPush(u.sub, { title: m[0], body: m[1], tag: 'shift-' + x.kind }, env); } catch (e) {}
         if (st === 404 || st === 410) { await env.KV.delete(k.name); u.sent = null; break; }
         if (st >= 200 && st < 300) { u.sent[x.k] = 1; n++; }
       }
