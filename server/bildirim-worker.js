@@ -1,10 +1,16 @@
-/* Maaş Takip bildirim sunucusu (Cloudflare Worker).
-   Sakladığı: telefonun bildirim adresi, saat dilimi, bildirim saati/günleri ve önümüzdeki günler için
-   "vardiya girilmiş mi" + vardiya bitiş saati. Maaş, tutar, bordro ve PC planı hiç gelmez. */
+/* ShiftPay Bulut Bildirim & Otomasyon Sunucusu (Cloudflare Worker - %0 AI Token, 7/24 Aktif).
+   Görevleri:
+   1. Vardiya bildirimleri (/api/sync, /api/test, /api/off)
+   2. Planbition canlı vardiya ve bölüm çekme + onay bekleyen vardiya bildirimi (/api/planbition)
+   3. PC Planı (İtopya & Gaming.Gen.TR) canlı fiyat/stok kontrolü + kur bilgisi (/api/pc-watch)
+   4. Arka plan zamanlayıcı (Cron): PC kapalıyken bile vardiya hatırlatmalarını, Planbition değişikliklerini ve PC fiyat indirimlerini kontrol edip telefona Push bildirim gönderir. */
+
 const VAPID_PUBLIC = 'BNC8z6r6nw5KHuX-BHUvS_UtDme9G0J8InlDAtPo8mq38-Uz0ugRnoEia5FSJ5POcQOuuKW3IBDUl45T-WVCd_Y';
-const SUBJECT = 'https://okanozgur16.github.io/maas-takip/';
+const SUBJECT = 'https://shiftpay-app.pages.dev/';
 const PUSH_HOSTS = [/(^|\.)push\.apple\.com$/, /(^|\.)googleapis\.com$/, /(^|\.)push\.services\.mozilla\.com$/, /(^|\.)notify\.windows\.com$/];
 const MAX_USERS = 300;
+const OWNER_SYNC_ID = '334e83e9dfc83510848bfa0982e0b0d3e78958182732d79bc69025135cfe8612';
+const PB_API = 'https://planbition.herokuapp.com';
 const enc = new TextEncoder();
 
 const b64u = {
@@ -58,7 +64,7 @@ function cleanSync(b, env) {
   if (b.sub.keys.p256dh.length > 100 || b.sub.keys.auth.length > 40 || b.sub.endpoint.length > 600 || !okTz(b.tz)) return null;
   const days = Array.isArray(b.days) ? [...new Set(b.days.map(Number).filter(n => n >= 0 && n <= 6))] : [1, 2, 3, 4, 5, 6];
   const plan = (Array.isArray(b.plan) ? b.plan : []).slice(0, 8).filter(p => p && rxD.test(p.d)).map(p => ({ d: p.d, s: p.s ? 1 : 0, e: typeof p.e === 'string' && rxDT.test(p.e) ? p.e : null, b: typeof p.b === 'string' && rxDT.test(p.b) ? p.b : null }));
-  return { sub: { endpoint: b.sub.endpoint, keys: { p256dh: b.sub.keys.p256dh, auth: b.sub.keys.auth } }, tz: b.tz, lang: b.lang === 'en' ? 'en' : 'tr', days, at: rxT.test(b.at) ? b.at : '07:00', rel: b.rel ? 1 : 0, plan };
+  return { sub: { endpoint: b.sub.endpoint, keys: { p256dh: b.sub.keys.p256dh, auth: b.sub.keys.auth } }, tz: b.tz, lang: b.lang === 'en' ? 'en' : 'tr', days, at: rxT.test(b.at) ? b.at : '07:00', rel: b.rel ? 1 : 0, plan, pcWatch: (b.pcWatch === 0 || b.pcWatch === false) ? 0 : 1, pcBudget: Number(b.pcBudget) || 0 };
 }
 
 /* ---------- Zaman ---------- */
@@ -67,11 +73,12 @@ function localNow(tz, ms) {
   return f.replace(/T24:/, 'T00:');
 }
 const addMin = (dt, m) => { const t = Date.UTC(+dt.slice(0, 4), +dt.slice(5, 7) - 1, +dt.slice(8, 10), +dt.slice(11, 13), +dt.slice(14, 16)) + m * 60000; return new Date(t).toISOString().slice(0, 16); };
+const addDaysISO = (iso, n) => { const p = iso.split('-').map(Number); const d = new Date(Date.UTC(p[0], p[1] - 1, p[2] + n)); return d.toISOString().slice(0, 10); };
 
 /* ---------- Metinler ---------- */
 const TXT = {
-  tr: { a: ['Vardiyanı ayarla', 'Bugün için vardiya girilmemiş. Vardiyanı ayarla ki tahmin doğru çıksın.'], b: t => ['Vardiyan 1 saat sonra başlıyor', 'Planlanan vardiyan ' + t + ' gibi başlıyor. Saat değiştiyse uygulamada güncelle.'], e: t => ['Bu saatte mi çıktın?', 'Vardiyan ' + t + ' gibi bitiyordu. Gerçek çıkış saatini güncelle, tahmin doğru çıksın.'], t: ['Deneme bildirimi', 'Vardiya bildirimleri çalışıyor.'] },
-  en: { a: ['Set your shift', 'No shift is set for today. Set it so your estimate stays accurate.'], b: t => ['Your shift starts in 1 hour', 'Your planned shift starts around ' + t + '. If the time changed, update it in the app.'], e: t => ['Did you leave at this time?', 'Your shift was due to end around ' + t + '. Update the real finishing time so your estimate stays accurate.'], t: ['Test notification', 'Shift notifications are working.'] }
+  tr: { a: ['Vardiyanı ayarla', 'Bugün için vardiya girilmemiş. Vardiyanı ayarla ki tahmin doğru çıksın.'], b: t => ['Vardiyan 1 saat sonra başlıyor', 'Planlanan vardiyan ' + t + ' gibi başlıyor. Saat değiştiyse uygulamada güncelle.'], e: t => ['Bu saatte mi çıktın?', 'Vardiyan ' + t + ' gibi bitiyordu. Gerçek çıkış saatini güncelle, tahmin doğru çıksın.'], t: ['Deneme bildirimi', 'ShiftPay vardiya ve fiyat bildirimleri aktif!'] },
+  en: { a: ['Set your shift', 'No shift is set for today. Set it so your estimate stays accurate.'], b: t => ['Your shift starts in 1 hour', 'Your planned shift starts around ' + t + '. If the time changed, update it in the app.'], e: t => ['Did you leave at this time?', 'Your shift was due to end around ' + t + '. Update the real finishing time so your estimate stays accurate.'], t: ['Test notification', 'ShiftPay notifications are working!'] }
 };
 
 /* ---------- Karar ---------- */
@@ -95,18 +102,242 @@ function due(u, nowMs) {
   return out;
 }
 
+/* ---------- Planbition Bulut Entegrasyonu (%0 Token) ---------- */
+function normalizeDept(day) {
+  const clean = (v) => { v = (typeof v === 'string') ? v.replace(/\s+/g, ' ').trim() : ''; return v === '-' ? '' : v; };
+  const n1 = clean(day && day.ScheduledName1), n2 = clean(day && day.ScheduledName2);
+  if (n1 || n2) return [n1, n2].filter(Boolean).join(' · ').slice(0, 40);
+  for (const k of ['ScheduledFunctionName', 'FunctionName', 'SkillName', 'TaskName', 'ActivityName', 'ShiftName']) {
+    const v = clean(day && day[k]); if (v) return v.slice(0, 40);
+  }
+  return clean(day && day.CustomerStructureName) || 'Houdbaar';
+}
+
+async function fetchPlanbitionSchedule(user, pass, customer, baseWeek) {
+  const authRes = await fetch(PB_API + '/soap/auth', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ sCustomer: customer || 'Carriere', sUsername: user, sPassword: pass, sLanguage: 'en' })
+  });
+  const auth = await authRes.json();
+  if (!auth || auth.AuthenticationSuccessful !== 'true') {
+    const err = (auth && auth.MobileUser && auth.MobileUser.MobileException) || 'Planbition girişi başarısız.';
+    return { ok: false, err };
+  }
+  const personGuid = auth.MobileUser.PersonGuid;
+  const dbName = auth.DatabaseName;
+  const serverUrl = auth.ServerURL;
+
+  let totalConfirm = 0;
+  try {
+    const cUrl = `${PB_API}/soap/dashboard_confirm_shifts?serverURL=${encodeURIComponent(serverUrl + '?wsdl')}&sDatabase=${encodeURIComponent(dbName)}&lPersonID=${encodeURIComponent(personGuid)}`;
+    const cRes = await fetch(cUrl).then(r => r.json());
+    totalConfirm = parseInt((cRes && cRes.DashBoard_ConfirmShiftsResult && cRes.DashBoard_ConfirmShiftsResult.TotalConfirm) || '0', 10) || 0;
+  } catch (e) {}
+
+  const w1 = rxD.test(baseWeek || '') ? baseWeek : new Date().toISOString().slice(0, 10);
+  const w2 = addDaysISO(w1, 7);
+  const shifts = [];
+  for (const wk of [w1, w2]) {
+    try {
+      const wUrl = `${PB_API}/soap/schedule_show_week?serverURL=${encodeURIComponent(serverUrl + '?wsdl')}&sDatabase=${encodeURIComponent(dbName)}&lPersonID=${encodeURIComponent(personGuid)}&dtDayOfWeek=${encodeURIComponent(wk)}`;
+      const wRes = await fetch(wUrl).then(r => r.json());
+      const days = (wRes && wRes.Schedule_ShowWeekResult && wRes.Schedule_ShowWeekResult.ScheduleDay) || [];
+      for (const day of (Array.isArray(days) ? days : [days])) {
+        if (!day || !day.ScheduledDate) continue;
+        const dDate = String(day.ScheduledDate).split('T')[0];
+        const sTime = String(day.ScheduledStartTime || '');
+        const eTime = String(day.ScheduledEndTime || '');
+        if (sTime && eTime && !sTime.includes('0001-01-01')) {
+          const sHm = (sTime.split('T')[1] || '').slice(0, 5);
+          const eHm = (eTime.split('T')[1] || '').slice(0, 5);
+          if (rxT.test(sHm) && rxT.test(eHm)) {
+            shifts.push({
+              date: dDate,
+              start: sHm,
+              end: eHm,
+              dept: normalizeDept(day),
+              confirmed: day.IsConfirmed === 'true'
+            });
+          }
+        }
+      }
+    } catch (e) {}
+  }
+  return { ok: true, shifts, totalConfirm, weeks: [w1, w2] };
+}
+
+/* ---------- İtopya & Gaming.Gen.TR Canlı Fiyat/Stok Çekici (%0 Token) ---------- */
+function parsePriceTL(raw) {
+  if (typeof raw === 'number') return raw > 1000 ? Math.round(raw) : 0;
+  let s = String(raw || '').trim().replace(/[^\d.,]/g, '');
+  if (!s) return 0;
+  if (s.includes(',') && s.includes('.')) {
+    if (s.lastIndexOf(',') > s.lastIndexOf('.')) s = s.replace(/\./g, '').replace(',', '.');
+    else s = s.replace(/,/g, '');
+  } else if (s.includes(',')) {
+    const parts = s.split(',');
+    if (parts[parts.length - 1].length === 2) s = parts.slice(0, -1).join('') + '.' + parts[parts.length - 1];
+    else s = s.replace(/,/g, '');
+  } else if (s.includes('.')) {
+    const parts = s.split('.');
+    if (parts[parts.length - 1].length === 3) s = s.replace(/\./g, '');
+  }
+  const n = Math.round(parseFloat(s));
+  return n >= 15000 && n <= 500000 ? n : 0;
+}
+
+async function scrapeProductPage(url) {
+  try {
+    const r = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'tr-TR,tr;q=0.9,en-US;q=0.8,en;q=0.7'
+      }
+    });
+    if (r.status === 404 || r.status === 410) return { ok: true, stock: 'yok', price: 0 };
+    if (!r.ok) return { ok: false, status: r.status };
+    const html = await r.text();
+
+    let price = 0, stock = 'var';
+    if (/Stokta Yok|Tükendi|Satış Dışı|Üretimden Kalktı/i.test(html) && !/Sepete Ekle|Hemen Al/i.test(html)) {
+      stock = 'yok';
+    }
+    const ldMatches = html.match(/<script[^>]*type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) || [];
+    for (const block of ldMatches) {
+      const inner = block.replace(/^<script[^>]*>|<\/script>$/gi, '').trim();
+      try {
+        const j = JSON.parse(inner);
+        const nodes = Array.isArray(j) ? j : (j['@graph'] ? j['@graph'] : [j]);
+        for (const node of nodes) {
+          if (node && (node['@type'] === 'Product' || node.offers)) {
+            const off = Array.isArray(node.offers) ? node.offers[0] : node.offers;
+            if (off) {
+              const p = parsePriceTL(off.price || off.lowPrice);
+              if (p > 0) price = p;
+              if (typeof off.availability === 'string' && /OutOfStock|SoldOut|Discontinued/i.test(off.availability)) stock = 'yok';
+              if (typeof off.availability === 'string' && /InStock/i.test(off.availability)) stock = 'var';
+            }
+          }
+        }
+      } catch (e) {}
+    }
+    if (!price) {
+      const metaP = html.match(/property=["'](?:product|og):price:amount["']\s+content=["']([^"']+)["']/i) ||
+                    html.match(/content=["']([^"']+)["']\s+property=["'](?:product|og):price:amount["']/i);
+      if (metaP) price = parsePriceTL(metaP[1]);
+    }
+    if (!price) {
+      const insM = html.match(/<ins[\s\S]{0,250}?([\d.]{5,10}(?:,\d{2})?)\s*(?:TL|₺)/i) ||
+                   html.match(/class=["'][^"']*newPrice[^"']*["'][\s\S]{0,180}?([\d.]{5,10}(?:,\d{2})?)/i);
+      if (insM) price = parsePriceTL(insM[1]);
+    }
+    return price > 0 ? { ok: true, price, stock } : { ok: false };
+  } catch (e) {
+    return { ok: false };
+  }
+}
+
 /* ---------- Giriş noktaları ---------- */
-const cors = (env, req) => ({ 'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN || 'https://okanozgur16.github.io', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Vary': 'Origin' });
+const isAllowedOrigin = (origin, env) => {
+  if (!origin) return true;
+  if (env.ALLOWED_ORIGIN && origin === env.ALLOWED_ORIGIN) return true;
+  return /^https:\/\/(okanozgur16\.github\.io|([a-z0-9-]+\.)?shiftpay(-app)?\.pages\.dev)$/i.test(origin);
+};
+const cors = (env, req) => {
+  const origin = req && req.headers ? req.headers.get('Origin') : '';
+  const allow = isAllowedOrigin(origin, env) ? (origin || 'https://shiftpay-app.pages.dev') : 'https://shiftpay-app.pages.dev';
+  return { 'Access-Control-Allow-Origin': allow, 'Access-Control-Allow-Methods': 'POST, GET, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type', 'Vary': 'Origin' };
+};
 const json = (o, s, env, req) => new Response(JSON.stringify(o), { status: s || 200, headers: Object.assign({ 'Content-Type': 'application/json' }, cors(env, req)) });
 
 async function handle(req, env) {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(env, req) });
   const url = new URL(req.url);
-  if (req.method !== 'POST') return json({ ok: true, name: 'maas-takip-bildirim' }, 200, env, req);
+  if (req.method !== 'POST') return json({ ok: true, name: 'shiftpay-bildirim-ve-otomasyon' }, 200, env, req);
   const origin = req.headers.get('Origin');
-  if (origin && origin !== (env.ALLOWED_ORIGIN || 'https://okanozgur16.github.io')) return json({ ok: false }, 403, env, req);
-  const raw = await req.text(); if (raw.length > 8192) return json({ ok: false }, 413, env, req);
+  if (origin && !isAllowedOrigin(origin, env)) return json({ ok: false }, 403, env, req);
+  const raw = await req.text(); if (raw.length > 65536) return json({ ok: false }, 413, env, req);
   let b; try { b = JSON.parse(raw); } catch (e) { return json({ ok: false }, 400, env, req); }
+
+  /* 1. Planbition Canlı Vardiya Çekme Endpoint'i */
+  if (url.pathname === '/api/planbition') {
+    let pbUser = (b && b.user) ? String(b.user).trim() : '';
+    let pbPass = (b && b.pass) ? String(b.pass).trim() : '';
+    const pbCust = (b && b.customer) ? String(b.customer).trim() : 'Carriere';
+    if (!pbUser && b && b.syncId === OWNER_SYNC_ID && env.PB_USER && env.PB_PASS) {
+      pbUser = env.PB_USER;
+      pbPass = env.PB_PASS;
+    }
+    if (!pbUser || !pbPass) return json({ ok: false, needCreds: true, err: 'Planbition kullanıcı adı ve şifresi gerekli.' }, 200, env, req);
+    try {
+      const res = await fetchPlanbitionSchedule(pbUser, pbPass, pbCust, b.week);
+      return json(res, 200, env, req);
+    } catch (e) {
+      return json({ ok: false, err: 'Planbition sunucusuna ulaşılamadı.' }, 200, env, req);
+    }
+  }
+
+  /* 2. PC Planı (İtopya & Gaming.Gen.TR) Canlı Fiyat ve Kur Kontrolü Endpoint'i */
+  if (url.pathname === '/api/pc-watch') {
+    let eurRate = null;
+    try {
+      const er = await fetch('https://open.er-api.com/v6/latest/EUR').then(r => r.json());
+      if (er && er.rates && er.rates.TRY) eurRate = Math.round(er.rates.TRY * 100) / 100;
+    } catch (e) {}
+
+    const items = Array.isArray(b && b.items) ? b.items.slice(0, 30) : [];
+    if (items.length && env.KV) {
+      try { await env.KV.put('pc:items', JSON.stringify(items.map(x => ({ id: x.id, name: x.name, url: x.url, price: x.price, stock: x.stock })))); } catch (e) {}
+    }
+
+    const force = !!(b && b.force);
+    if (!force && env.KV) {
+      try {
+        const cached = await env.KV.get('pc:live', 'json');
+        if (cached && cached.ts && Date.now() - cached.ts < 1800000) {
+          return json({ ok: true, cached: true, checkedAt: cached.checkedAt, eurRate: eurRate || cached.eurRate, updates: cached.updates || {} }, 200, env, req);
+        }
+      } catch (e) {}
+    }
+
+    const updates = {};
+    const toCheck = items.filter(x => x && x.id && typeof x.url === 'string' && /^https:\/\/(www\.)?(itopya\.com|gaming\.gen\.tr|gamegaraj\.com)\//i.test(x.url)).slice(0, 16);
+    await Promise.all(toCheck.map(async (item) => {
+      const r = await scrapeProductPage(item.url);
+      if (r && r.ok) updates[item.id] = { price: r.price || item.price, stock: r.stock };
+    }));
+
+    const checkedAt = new Date().toISOString().slice(0, 16).replace('T', ' ');
+    if (env.KV && Object.keys(updates).length > 0) {
+      try { await env.KV.put('pc:live', JSON.stringify({ ts: Date.now(), checkedAt, eurRate, updates })); } catch (e) {}
+    }
+    return json({ ok: true, checkedAt, eurRate, updates }, 200, env, req);
+  }
+
+  /* 3. PC Fiyat & Stok Anlık Bildirim Endpoint'i */
+  if (url.pathname === '/api/pc-notify') {
+    const title = (b && b.title) || 'ShiftPay · PC Fiyat Güncellemesi 🎯';
+    const body = (b && b.body) || 'Takip ettiğin sistemlerde fiyat değişikliği var!';
+    const tag = (b && b.tag) || 'pc-watch';
+    let count = 0, cur = null;
+    do {
+      const list = await env.KV.list({ prefix: 'u:', cursor: cur });
+      for (const k of list.keys) {
+        const u = await env.KV.get(k.name, 'json');
+        if (!u || !u.sub || u.pcWatch === 0) continue;
+        try {
+          const st = await sendPush(u.sub, { title, body, tag }, env);
+          if (st >= 200 && st < 300) count++;
+        } catch (e) {}
+      }
+      cur = list.list_complete ? null : list.cursor;
+    } while (cur);
+    return json({ ok: true, sent: count }, 200, env, req);
+  }
+
+  /* 4. Vardiya Bildirimleri Endpoint'leri */
   if (!b || !okId(b.id)) return json({ ok: false }, 400, env, req);
   const key = 'u:' + b.id;
   if (url.pathname === '/api/off') { await env.KV.delete(key); return json({ ok: true }, 200, env, req); }
@@ -129,11 +360,12 @@ async function handle(req, env) {
 }
 
 async function scan(env, nowMs) {
-  let cursor, n = 0;
+  let cursor, n = 0, firstSub = null;
   do {
     const l = await env.KV.list({ prefix: 'u:', cursor });
     for (const k of l.keys) {
       const u = await env.KV.get(k.name, 'json'); if (!u || !u.sub) continue;
+      if (!firstSub) firstSub = { key: k.name, u };
       if (nowMs - (u.up || 0) > 30 * 86400000) { await env.KV.delete(k.name); continue; }
       const todo = due(u, nowMs); if (!todo.length) continue;
       u.sent = u.sent || {};
@@ -151,6 +383,93 @@ async function scan(env, nowMs) {
     }
     cursor = l.list_complete ? null : l.cursor;
   } while (cursor);
+
+  /* Arka Plan Planbition Onay & Değişiklik Bildirimi (PC kapalıyken bile çalışır, %0 Token) */
+  if (firstSub && env.PB_USER && env.PB_PASS) {
+    try {
+      const lastPb = await env.KV.get('pb:state', 'json') || {};
+      if (!lastPb.ts || nowMs - lastPb.ts >= 3300000) {
+        const todayIso = localNow(firstSub.u.tz || 'Europe/Amsterdam', nowMs).slice(0, 10);
+        const pb = await fetchPlanbitionSchedule(env.PB_USER, env.PB_PASS, 'Carriere', todayIso);
+        if (pb && pb.ok) {
+          const sig = JSON.stringify(pb.shifts);
+          if (pb.totalConfirm > 0 && pb.totalConfirm !== (lastPb.totalConfirm || 0)) {
+            await sendPush(firstSub.u.sub, {
+              title: 'Onay bekleyen vardiya!',
+              body: `Planbition’da ${pb.totalConfirm} adet onay bekleyen yeni vardiyan var.`,
+              tag: 'pb-confirm'
+            }, env);
+          } else if (lastPb.sig && lastPb.sig !== sig) {
+            await sendPush(firstSub.u.sub, {
+              title: 'Planbition vardiyan değişti',
+              body: 'Vardiya saatlerinde veya bölümünde değişiklik var. ShiftPay’i açıp kontrol et.',
+              tag: 'pb-change'
+            }, env);
+          }
+          await env.KV.put('pb:state', JSON.stringify({ ts: nowMs, totalConfirm: pb.totalConfirm, sig }));
+        }
+      }
+    } catch (e) {}
+  }
+
+  /* Arka Plan PC Fiyat & Stok Kontrolü (PC kapalıyken bile 7/24 çalışır, %0 Token) */
+  try {
+    const rawItems = await env.KV.get('pc:items', 'json');
+    if (Array.isArray(rawItems) && rawItems.length > 0) {
+      const pcState = await env.KV.get('pc:state', 'json') || {};
+      const lastCheck = pcState.ts || 0;
+      if (nowMs - lastCheck >= 3600000) {
+        const updates = {};
+        const alertsToSend = [];
+        const toCheck = rawItems.filter(x => x && x.id && typeof x.url === 'string' && /^https:\/\/(www\.)?(itopya\.com|gaming\.gen\.tr|gamegaraj\.com)\//i.test(x.url)).slice(0, 16);
+        for (const item of toCheck) {
+          const r = await scrapeProductPage(item.url);
+          if (r && r.ok) {
+            updates[item.id] = { price: r.price || item.price, stock: r.stock };
+            const oldP = (pcState.prices && pcState.prices[item.id]) || item.price;
+            const oldSt = (pcState.stocks && pcState.stocks[item.id]) || item.stock;
+            if (r.price > 0 && oldP > 0 && r.price < oldP) {
+              const diff = oldP - r.price;
+              alertsToSend.push({
+                title: 'ShiftPay · Fiyat Düştü! 🎯',
+                body: `${item.name} fiyatı ${r.price.toLocaleString('tr-TR')} ₺'ye düştü! (${diff.toLocaleString('tr-TR')} ₺ indirim)`,
+                tag: 'pc-drop-' + item.id
+              });
+            }
+            if (oldSt === 'yok' && r.stock === 'var') {
+              alertsToSend.push({
+                title: 'ShiftPay · Stok Geldi! 📦',
+                body: `${item.name} yeniden stoka girdi (${(r.price || item.price).toLocaleString('tr-TR')} ₺)!`,
+                tag: 'pc-stock-' + item.id
+              });
+            }
+          }
+        }
+        if (alertsToSend.length > 0) {
+          let cur = null;
+          do {
+            const list = await env.KV.list({ prefix: 'u:', cursor: cur });
+            for (const key of list.keys) {
+              const u = await env.KV.get(key.name, 'json');
+              if (!u || !u.sub || u.pcWatch === 0) continue;
+              for (const al of alertsToSend) {
+                try { await sendPush(u.sub, al, env); } catch (e) {}
+              }
+            }
+            cur = list.list_complete ? null : list.cursor;
+          } while (cur);
+        }
+        const newPrices = Object.assign({}, pcState.prices || {});
+        const newStocks = Object.assign({}, pcState.stocks || {});
+        Object.keys(updates).forEach(id => {
+          if (updates[id].price) newPrices[id] = updates[id].price;
+          if (updates[id].stock) newStocks[id] = updates[id].stock;
+        });
+        await env.KV.put('pc:state', JSON.stringify({ ts: nowMs, prices: newPrices, stocks: newStocks }));
+      }
+    }
+  } catch (e) {}
+
   return n;
 }
 
