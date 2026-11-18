@@ -839,7 +839,8 @@ html:not(.ui-classic) .dayhead .d .t-today{background:var(--accent);color:var(--
 .pcsubbar,.maassubbar{display:none;margin:0 0 12px;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .app.pcmode .pcsubbar{display:flex}
 .app:not(.pcmode) .maassubbar{display:flex}
-html.ui-classic .pcsubbar,html.ui-classic .maassubbar,html.ui-classic .sechead{display:none !important}
+html.ui-classic .pcsubtabs,html.ui-classic .maassubbar,html.ui-classic .sechead{display:none !important}
+html.ui-classic .app.pcmode .pcsubbar{display:flex !important;justify-content:flex-end;margin-bottom:10px}
 .pcsubtabs,.maassubtabs{flex:1 1 320px;display:grid;grid-template-columns:repeat(3,1fr);padding:4px}
 .pcsubtabs button,.maassubtabs button{padding:8px 6px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
 html:not(.ui-classic) .pcsubtabs button[aria-pressed="true"],
@@ -872,6 +873,8 @@ html:not(.ui-classic) .grid[data-sub="yr"] [data-card="brk"]{display:none !impor
 @media (min-width:900px){
   html:not(.ui-classic) .grid[data-sub="brk"],
   html:not(.ui-classic) .grid[data-sub="yr"]{grid-template-columns:minmax(0,1fr)}
+  html:not(.ui-classic) .grid[data-sub="brk"] .gcol,
+  html:not(.ui-classic) .grid[data-sub="yr"] .gcol{display:contents}
 }
 
 /* PC Planı Alt-Sekme Kart Görünürlüğü */
@@ -895,6 +898,8 @@ html:not(.ui-classic) .pcgrid[data-sub="cfg"] [data-card="pcWk"]{display:none !i
 @media (min-width:900px){
   html:not(.ui-classic) .pcgrid[data-sub="sum"],
   html:not(.ui-classic) .pcgrid[data-sub="sys"]{grid-template-columns:minmax(0,1fr)}
+  html:not(.ui-classic) .pcgrid[data-sub="sum"] .pccol,
+  html:not(.ui-classic) .pcgrid[data-sub="sys"] .pccol{display:contents}
 }
 
 /* Akıllı Sistem Arama Çubuğu & Hızlı Etiketler */
@@ -1507,15 +1512,24 @@ var view = {
 };
 
 /* ---------- Arayüz Sürümü & Tema Yönetimi (Açık / Koyu / Sistem) ---------- */
-var UI_VER = (function(){ try { return localStorage.getItem(LS + '-uiver') === 'classic' ? 'classic' : 'v2'; } catch (e) { return 'v2'; } })();
+var UI_VER = (function(){
+  try {
+    var saved = localStorage.getItem(LS + '-ui-layout');
+    if (saved === 'classic' || saved === 'v2') return saved;
+    if (state && state.ui && (state.ui.uiVer === 'classic' || state.ui.uiVer === 'v2')) return state.ui.uiVer;
+    return 'v2';
+  } catch (e) { return 'v2'; }
+})();
 function applyUiVer(){
   try { document.documentElement.classList.toggle('ui-classic', UI_VER === 'classic'); } catch (e) {}
 }
 function setUiVer(v){
   UI_VER = v === 'classic' ? 'classic' : 'v2';
-  try { localStorage.setItem(LS + '-uiver', UI_VER); } catch (e) {}
+  try { localStorage.setItem(LS + '-ui-layout', UI_VER); localStorage.setItem(LS + '-uiver', UI_VER); } catch (e) {}
+  if (state && state.ui){ state.ui.uiVer = UI_VER; }
   applyUiVer();
-  if (!$('ov2').hidden) renderSettings();
+  commit();
+  if ($('ov2') && !$('ov2').hidden) renderSettings();
 }
 applyUiVer();
 
@@ -2264,32 +2278,34 @@ function hasData(){ return state.entries.length > 0 || Object.keys(state.slips).
 function USE_TIPS_SHARED(){
   if (LANG === 'en'){
     return '<h4>✨ What can you do with ShiftPay?</h4><ul>'
-      + '<li><b>Log your shifts effortlessly.</b> Mark morning, late, day off, cancelled, and holiday with a single tap. 100%, 150%, and 185% pay rates calculate automatically.</li>'
-      + '<li><b>Get your shifts from Planbition.</b> Tap “Fetch from Planbition” to bring in your shifts for the next two weeks: start and end times and your work position exactly as Planbition shows it (for example “Picken HB · 2. PA”). Everyone gets their own schedule from their own Planbition account. If your shifts change, fetch again and the app shows you which days changed.</li>'
-      + '<li><b>Preview your net pay in advance.</b> Estimated weekly net pay updates with every entry; taxes, deductions, and parking allowances are accurately calculated.</li>'
-      + '<li><b>Set weekly goals.</b> Get an intelligent overtime/shift plan showing exactly which days you need to work to hit your financial goal.</li>'
-      + '<li><b>Upload payslips from email or myHolland.</b> Drag & drop PDF payslips; hours and deductions are matched, and the parking allowance is shown separately from your regular pay and is not counted in your savings.</li>'
-      + '<li><b>Track holiday hours and past history.</b> Yearly cumulatives, accrued holiday balances, and monthly summaries are always ready.</li>'
+      + '<li><b>3-Section Category Layout & Sequential View:</b> Easily switch between <b>🎯 Weekly Plan</b> (summary, daily shifts & weekly goal plan), <b>🧾 Weekly Breakdown</b> (detailed gross/net pay & deductions), and <b>📈 Monthly, Yearly & Savings</b>. Prefer seeing everything on one page? Switch anytime between <b>Category Layout</b> and <b>Sequential Layout</b> in <i>Settings › Backup & More</i>.</li>'
+      + '<li><b>Log your shifts & copy schedules in one tap:</b> Mark morning, late, day off, cancelled, and holiday days with a single tap; 100%, 150%, and 185% pay rates calculate automatically. On an empty week, tap <b>“Copy last week’s shifts”</b> to fill your schedule in one second.</li>'
+      + '<li><b>Smart Planbition Sync & Conflict Protection:</b> Tap “Fetch from Planbition” to pull your shifts and work positions (e.g. “Picken HB · 2. PA”). Past weeks are never overwritten, and if you already entered or edited hours for the current or future weeks, the app asks whether to keep your manual entries or replace all.</li>'
+      + '<li><b>Private Rent & Utilities Guide:</b> Living in your own home or private rental? In <i>Settings › Housing</i>, enter your monthly rent, choose whether bills (Internet, Electricity & Gas, Water, Municipal Tax) are included or extra, and choose whether to deduct them in the <b>Monthly Summary</b> or <b>Weekly (÷ 4.33)</b> from every pay estimate and payslip.</li>'
+      + '<li><b>My Savings & Goal Calculator:</b> In the <i>Monthly, Yearly & Savings</i> section, set or add to your total savings (<b>Edit Savings</b> / <b>+ Add to Savings</b>), name your target goal, and instantly see how many weeks/months it takes at Relaxed (20%), Balanced (35%), or Fast (50%) saving pace.</li>'
+      + '<li><b>Upload payslips (Email or myHolland) & New Payslip Alert:</b> Select PDF payslips to compare real figures with estimates; parking allowances are separated automatically. From Tuesday evening until Wednesday 14:00, a blinking reminder appears next to <i>myHolland ↗</i> when a new weekly payslip may be available.</li>'
+      + '<li><b>Light (White) & Dark (Black) Theme:</b> Switch between Light, Dark, and System themes anytime using the <b>☀️ / 🌙</b> button at the top bar or inside <i>Settings</i>.</li>'
       + '</ul>'
       + '<h4>💡 Best practices</h4><ul>'
-      + '<li><b>Enter shifts in advance as planned.</b> The app calculates your expected weekly pay and target plan ahead of time.</li>'
-      + '<li><b>Plan every day of the week.</b> Mark your days off too; this produces the most balanced goal plan.</li>'
-      + '<li>Update records when your actual finishing time changes to refine the estimate.</li>'
-      + '<li>Upload payslips every Wednesday when they arrive and review the breakdown.</li></ul>';
+      + '<li><b>Enter shifts in advance as planned:</b> The app calculates your expected weekly pay, net hourly rate, and target plan ahead of time.</li>'
+      + '<li><b>Plan every day of the week:</b> Mark your days off too; this produces the most balanced goal plan.</li>'
+      + '<li>Update records when your actual finishing time changes to keep your estimate accurate.</li>'
+      + '<li>Upload payslips when they arrive on Tuesday night or Wednesday and review the breakdown.</li></ul>';
   }
   return '<h4>✨ Bu uygulamada neler yapabilirsin?</h4><ul>'
-    + '<li><b>Vardiyalarını kaydet.</b> Sabah, öğle, izinli, iptal ve tatil günlerini tek dokunuşla işaretle; %100, %150 ve %185 saatler otomatik hesaplanır.</li>'
-    + '<li><b>Vardiyalarını Planbition’dan getir.</b> “Planbition’dan getir” butonuyla önümüzdeki iki haftanın vardiyalarını tek dokunuşla al: başlangıç ve bitiş saati ile çalışma pozisyonun, Planbition’da nasıl yazıyorsa aynen (örneğin “Picken HB · 2. PA”). Herkes kendi Planbition hesabından kendi vardiyasını getirir. Vardiyaların değişirse tekrar getir; hangi günlerin değiştiğini sana gösterir.</li>'
-    + '<li><b>Net maaşını önceden gör.</b> Haftanın tahmini net ücreti her kayıtta güncellenir; vergi, kesintiler ve park ödeneği hesaba katılır.</li>'
-    + '<li><b>Haftalık hedef koy.</b> Hedefine ulaşmak için hangi gün kaça kadar çalışman gerektiğini plan olarak görürsün.</li>'
-    + '<li><b>Bordronu yükle (Mail veya myHolland).</b> PDF’i yükle; tutarlar tahminle karşılaştırılır, park ödeneği normal maaşından ayrı gösterilir ve birikim hesabına katılmaz.</li>'
-    + '<li><b>Tatil hakkını ve geçmiş haftalarını takip et.</b> Aylık ve yıllık toplamlar hazır görünür.</li>'
+    + '<li><b>3 Sekmeli Kategori Düzeni & Sıralamalı Görünüm:</b> <b>🎯 Haftalık Plan</b> (özet, günlük vardiyalar ve önerilen hedef planlama), <b>🧾 Haftalık Döküm</b> (brüt/net maaş ve kesinti dağılımı) ve <b>📈 Aylık, Yıllık & Birikim</b> sekmeleriyle aradığını anında bul. İstersen <i>Ayarlar › Yedek ve Diğerleri</i> bölümünden <b>Kategori Tasarımı</b> ile tüm kartların alt alta dizildiği <b>Sıralamalı Tasarım</b> arasında tek dokunuşla geçiş yapabilirsin.</li>'
+    + '<li><b>Vardiyalarını kaydet veya geçen haftadan kopyala:</b> Sabah, öğle, izinli, iptal ve tatil günlerini tek dokunuşla işaretle; %100, %150 ve %185 saatler ile saatlik net kazancın otomatik hesaplanır. Yeni bir haftaya geçtiğinde <b>“Geçen haftanın planını kopyala”</b> butonuyla tüm haftayı 1 saniyede doldurabilirsin.</li>'
+    + '<li><b>Akıllı Planbition Koruması:</b> “Planbition’dan getir” butonuyla bu hafta ve gelecek haftaların vardiyalarını ve çalışma bölümünü (örn. “Picken HB · 2. PA”) çek. Geçmiş haftalara asla dokunulmaz; kendi elle girdiğin veya değiştirdiğin saatler varsa üzerine yazmadan önce sana <b>Kendi girdiğim hariç değiştir</b> veya <b>Tümünü değiştir</b> seçeneği sorulur.</li>'
+    + '<li><b>Özel Kira & Ev Giderleri Rehberi (Ayrı Evde Kalanlar İçin):</b> <i>Ayarlar › Konut</i> sekmesinde “Kendi evim ya da özel kiradayım” seçerek kira tutarını, faturaların kiraya dahil olup olmadığını (<i>İnternet, Elektrik & Gaz, Su, Belediye Vergisi</i>) ve bu giderlerin sadece <b>Aylık Özette</b> mi yoksa <b>Her Hafta (÷ 4,33)</b> maaş tahmini ve bordrodan mı düşüleceğini kolayca seçebilirsin.</li>'
+    + '<li><b>Birikimim & Hedefim Hesaplayıcı:</b> <i>Aylık, Yıllık & Birikim</i> sekmesinde elindeki toplam birikimi doğrudan belirle (<b>Birikimi Düzenle</b>) veya üzerine ekle (<b>+ Birikime Ekle</b>), hedefini yaz; maaş ortalamana göre <i>Rahat (%20)</i>, <i>Dengeli (%35)</i> veya <i>Hızlı (%50)</i> tempoyla hedefine kaç hafta ve ayda ulaşacağını anında gör.</li>'
+    + '<li><b>Bordronu yükle (Mail veya myHolland) & Yeni Bordro Uyarısı:</b> PDF bordronu yüklediğinde gerçek rakamlar tahminle karşılaştırılır ve park ödeneği normal maaşından ayrı gösterilir. Salı akşamından Çarşamba 14:00’e kadar yeni hafta bordrosu çıktığında <i>myHolland ↗</i> yanında yanıp sönen bildirim seni haberdar eder.</li>'
+    + '<li><b>Açık (Beyaz) & Koyu (Siyah) Tema:</b> Üst çubuktaki <b>☀️ / 🌙</b> butonuna dokunarak veya <i>Ayarlar</i>’dan gözünü yormayan Açık (Beyaz), Koyu (Siyah) ya da Sistem teması arasında anında geçiş yapabilirsin.</li>'
     + '</ul>'
     + '<h4>💡 En iyi kullanım şekli</h4><ul>'
-    + '<li><b>Vardiyalarını önceden planlı gir.</b> Uygulama haftanın sonucunu ve hedefini önceden hesaplar.</li>'
-    + '<li><b>Haftanın her gününü planla.</b> İzinli günleri de işaretle; hedef planı o zaman en dengeli çıkar.</li>'
-    + '<li>Gerçek çıkış saatin değişince kaydı güncelle; tahmin gerçeğe yaklaşır.</li>'
-    + '<li>Her çarşamba bordro gelince yükle ve farka bak.</li></ul>';
+    + '<li><b>Vardiyalarını önceden planlı gir.</b> Uygulama haftanın sonucunu, saatlik net kazancını ve hedefini önceden hesaplar.</li>'
+    + '<li><b>Haftanın her gününü planla.</b> İzinli günleri de işaretle; önerilen hedef planı o zaman en dengeli çıkar.</li>'
+    + '<li>Gerçek çıkış saatin değişince kaydı güncelle; tahmin gerçeğe en yakın sonucu verir.</li>'
+    + '<li>Salı gecesi veya Çarşamba günü bordro gelince yükle, ayarların bordrona göre kendiliğinden güncellensin.</li></ul>';
 }
 var FB_NOTE_SHARED = '<p class="note credit">' + (LANG === 'en' ? 'For bugs and feedback, you can find Okan in packing 😉' : 'Hata ve geri bildirimler için Okan’ı ambalajda bulabilirsiniz 😉') + '</p>';
 function renderHelloLocal(el){
@@ -2305,14 +2321,13 @@ function renderHelloLocal(el){
     + '<li><b>Hesap yok, kimlik yok.</b> Ad, e-posta, telefon ya da şifre istenmez. Kim olduğunu bilen bir sunucu yok.</li>'
     + '<li><b>Veriler senin cihazında.</b> Vardiyaların, bordro tutarların ve ayarların bu tarayıcının hafızasında durur.</li>'
     + '<li><b>Bordro PDF’i dışarı çıkmaz.</b> PDF telefonunda okunur, hiçbir yere yüklenmez. Bordrodan sadece tutarlar kaydedilir; adın, adresin, BSN ve IBAN numaran kaydedilmez.</li>'
-    + '<li><b>Diğer cihazlarında da kullanmak istersen</b> Ayarlar › Eşitleme’yi aç: veriler cihazından çıkmadan önce sana özel 16 haneli kodla <b>AES-256</b> (bankaların da kullandığı şifreleme) ile kilitlenir. Sunucuda (Google Firebase, Avrupa) sadece okunamayan karışık bir metin durur. Kod hiçbir yere gönderilmez.</li>'
-    + '<li><b>Kimse verine erişemez.</b> Uygulamayı yapan kişi de dahil hiç kimse verilerini göremez; kodun olmadan kayıt bulunamaz bile. Sunucu kuralları listelemeyi ve silmeyi kapatır.</li>'
-    + '<li><b>Takip yok.</b> Reklam, sayaç ya da analiz aracı yok. Sayfa kendi dosyaları ve şifreli eşitleme sunucusu dışında hiçbir yere bağlanamaz (tarayıcı güvenlik kilidi).</li>'
-    + '<li><b>Açık kod.</b> Uygulamanın kodu GitHub’da herkesin incelemesine açık.</li></ul>'
+    + '<li><b>Diğer cihazlarında da kullanmak istersen</b> Ayarlar › Eşitleme’yi aç: veriler cihazından çıkmadan önce sana özel 16 haneli kodla <b>AES-256</b> (bankaların da kullandığı şifreleme) ile kilitlenir. Sunucuda (Avrupa) sadece okunamayan şifreli metin durur. Kod hiçbir yere gönderilmez.</li>'
+    + '<li><b>Kimse verine erişemez.</b> Uygulamayı geliştiren kişi de dahil hiç kimse verilerini göremez; kodun olmadan kayıt bulunamaz bile.</li>'
+    + '<li><b>Takip ve reklam yok.</b> Reklam, sayaç ya da analiz aracı yoktur.</li></ul>'
     + '<h4>⚠️ Senin dikkat etmen gerekenler</h4><ul>'
     + '<li>Eşitleme kodunu kimseyle paylaşma. Biri gördüyse Ayarlar › Eşitleme › <b>Kodu yenile</b>: eski kod hemen iptal olur.</li>'
     + '<li>Telefonunu ekran kilidiyle koru; telefonunu açabilen biri uygulamayı da açabilir.</li>'
-    + '<li>Haftada bir Ayarlar › Yedek’ten <b>Yedeği indir</b> ya da eşitlemeyi aç. Tarayıcı verilerini silerken bu siteyi silme; kayıtların da silinir.</li>'
+    + '<li>Haftada bir Ayarlar › Yedek ve Diğerleri’nden <b>Yedeği indir</b> ya da eşitlemeyi aç. Tarayıcı verilerini silerken bu siteyi silme; kayıtların da silinir.</li>'
     + '<li>Uygulamayı ana ekrana ekle: iPhone’da Safari › Paylaş › Ana Ekrana Ekle, Android’de Chrome › ⋮ › Ana ekrana ekle. İnternetsiz de açılır.</li>'
     + '<li>Tutarlar tahmindir; kesin olan bordrondur. Bordro yükledikçe tahminler sana göre ayarlanır.</li></ul>' + FB_NOTE + '</div>';
   el.innerHTML = h;
@@ -2361,15 +2376,14 @@ function renderHello(){
   else if (cloudFail) h += '<p class="hl-warn">İnternet bağlantını kontrol et. Girdiklerin bu cihazda bekliyor, bağlantı gelince kaydedilecek.</p>';
   h += '<div class="hl-tips" id="helloTipsBox"' + (tipsOpen ? '' : ' hidden') + '>' + USE_TIPS
     + '<h4>🔒 Verilerin nasıl korunuyor?</h4><ul>'
-    + '<li>Kayıtların, Claude hesabınla girdiğin bu uygulamanın veritabanında <b>sana ait ayrı bir alanda</b> tutulur. Uygulama başkalarının verisini sana, seninkini de başkalarına göstermez.</li>'
+    + '<li>Kayıtların, hesabınla girdiğin bu uygulamanın veritabanında <b>sana ait ayrı bir alanda</b> tutulur. Uygulama başkalarının verisini sana, seninkini de başkalarına göstermez.</li>'
     + '<li><b>Bordro PDF’i dışarı çıkmaz.</b> PDF cihazında okunur, yüklenmez. Bordrodan sadece tutarlar kaydedilir; adın, adresin, BSN ve IBAN numaran kaydedilmez.</li>'
-    + '<li>Uygulamanın kodu her gün otomatik kontrol edilir; onaysız bir değişiklik olursa eski haline döndürülür.</li>'
-    + '<li>Bu sürümde veriler şifrelenmeden saklanır; uygulama sahibi teknik olarak veritabanına erişebilir. Tam gizlilik istiyorsan şifreli web sürümünü kullan: okanozgur16.github.io/maas-takip</li></ul>'
+    + '<li>Uygulamanın kodu düzenli kontrol edilir; onaysız bir değişiklik olursa eski haline döndürülür.</li></ul>'
     + '<h4>⚠️ Verilerinin kaybolmaması için</h4><ul>'
-    + '<li>Her zaman aynı Claude hesabıyla gir. Başka hesapla girersen verilerini göremezsin.</li>'
+    + '<li>Her zaman aynı hesapla gir. Başka hesapla girersen verilerini göremezsin.</li>'
     + '<li>Bir şey girdikten sonra üstte <b>“Kaydedildi”</b> yazısını gör. “Bu cihazda” yazıyorsa henüz kaydedilmemiştir.</li>'
     + '<li>İlk bordronu yüklediğinde ücretin, kiran ve kesintilerin otomatik ayarlanır. Ayarlar’da elle değiştirdiğin alanlara bordro dokunmaz.</li>'
-    + '<li>Uygulama her gün otomatik yedek alır. Bir şey ters giderse Ayarlar › Yedek’ten geri dönebilirsin.</li>'
+    + '<li>Uygulama her gün otomatik yedek alır. Bir şey ters giderse Ayarlar › Yedek ve Diğerleri’nden geri dönebilirsin.</li>'
     + '<li>Aynı anda iki cihazda değişiklik yapma; birinde bitirip diğerini yenile.</li>'
     + '<li>Tutarlar tahmindir; kesin olan bordrondur.</li></ul>' + FB_NOTE + '</div>';
   el.innerHTML = h;
@@ -2413,7 +2427,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-18-shiftpay-v22';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-18-shiftpay-v23';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2637,7 +2651,8 @@ function renderHero(){
   h += '<div class="bar" role="img" aria-label="Saat dağılımı">' + (tot > 0 ? seg('b100', t.norm) + seg('b150', t.irr) + seg('b185', t.over) : '') + '</div>';
   var lg = function(col, name, hrs, euro){ return '<div class="lg"><div class="k"><span class="dot" style="background:var(' + col + ')"></span>' + name + '</div><div class="h num">' + hm(hrs) + '</div><div class="e num">' + eur(euro) + '</div></div>'; };
   h += '<div class="legend">' + lg('--c100', pct(S.mNormal), t.norm, p.wN) + lg('--c150', pct(S.mIrr), t.irr, p.wI) + lg('--c185', pct(S.mOver), t.over, p.wO) + '</div>';
-  h += '<div class="facts num"><span>Toplam <b>' + hm(tot) + '</b> saat</span>' + (t.count > 0 ? '<span><b>' + t.count + '</b> vardiya</span>' : '') + '<span>Çalışma ücreti <b class="inc">' + eur(p.wages) + '</b></span>' + (t.vacH ? '<span>Tatil <b>' + hm(t.vacH) + '</b></span>' : '') + '</div>';
+  var netPerHr = (!p.empty && tot > 0) ? r2((p.payable - parkOf(p)) / tot) : 0;
+  h += '<div class="facts num"><span>Toplam <b>' + hm(tot) + '</b> saat</span>' + (t.count > 0 ? '<span><b>' + t.count + '</b> vardiya</span>' : '') + '<span>Çalışma ücreti <b class="inc">' + eur(p.wages) + '</b></span>' + (netPerHr > 0 ? '<span>' + L('Saatlik net', 'Net/hr') + ' <b>' + eur(netPerHr) + '</b></span>' : '') + (t.vacH ? '<span>Tatil <b>' + hm(t.vacH) + '</b></span>' : '') + '</div>';
   if (!p.empty && !slip){
     var fx = fixedInfo(S), fixedTot = fx.tot;
     if (fixedTot > 0) h += '<div class="alt num">' + fx.label + ' (<span class="exp">−' + eur(fixedTot) + '</span>) düşülmeden önce: <b>' + eur(r2(p.payable + fixedTot)) + '</b>' + (p.payable < 0 ? '<br>Hafta başında net tutar eksi görünür, çünkü bu kesintiler haftada bir kez düşer.' : '') + '</div>';
@@ -2648,8 +2663,11 @@ function renderHero(){
   }
   if (p.empty){
     var other45 = Object.keys(state.slips).filter(function(w){ return w !== ws; }).sort().pop();
-    h += '<div class="callout"><span>Bu haftaya henüz saat girilmedi. Günlerden birine vardiya ekle.</span>' +
-      (other45 ? '<button class="btn small" data-act="openWeek" data-w="' + other45 + '">Son bordro haftasını aç</button>' : '') + '</div>';
+    var prevWeekStart = addDays(ws, -7), prevWeekEnd = addDays(ws, -1);
+    var prevShifts = state.entries.filter(function(e){ return e && e.type === 'shift' && e.date >= prevWeekStart && e.date <= prevWeekEnd; });
+    h += '<div class="callout"><span>Bu haftaya henüz saat girilmedi. Günlerden birine vardiya ekle.</span><div style="display:flex;gap:6px;flex-wrap:wrap">' +
+      (prevShifts.length ? '<button class="btn small primary" data-act="copyPrevWeek">📋 ' + L('Geçen haftanın planını kopyala (' + prevShifts.length + ' gün)', 'Copy last week’s shifts (' + prevShifts.length + ' days)') + '</button>' : '') +
+      (other45 ? '<button class="btn small" data-act="openWeek" data-w="' + other45 + '">Son bordro haftasını aç</button>' : '') + '</div></div>';
   }
   /* Salı gecesi 18:00'den Çarşamba öğlen 14:00'e kadar (veya Bordro ekle'ye basılana kadar) myHolland yanında yanıp sönen bildirim */
   var prevW = addDays(weekStart(today), -7), prevSlip = state.slips[prevW], nowD = new Date(), dow = nowD.getDay(), hrNow = nowD.getHours();
@@ -5235,6 +5253,10 @@ function applyMaasSub(){
 function setMaasSub(v){
   view.maasSub = (v === 'brk' || v === 'yr') ? v : 'wk';
   try { localStorage.setItem(LS + '-maassub', view.maasSub); } catch (e) {}
+  var mL = layGet('maas'), cards = view.maasSub === 'brk' ? ['brk'] : view.maasSub === 'yr' ? ['savGoal', 'month', 'year'] : ['hero', 'days', 'goal'];
+  var chF = false;
+  cards.forEach(function(cid){ if (mL.fold && mL.fold[cid]){ mL.fold[cid] = false; chF = true; } });
+  if (chF){ laySave(); layApply(); }
   applyMaasSub();
   renderSecBanner();
 }
@@ -5245,11 +5267,22 @@ function applyPcSub(){
 function setPcSub(v){
   view.pcSub = (v === 'sys' || v === 'cfg') ? v : 'sum';
   try { localStorage.setItem(LS + '-pcsub', view.pcSub); } catch (e) {}
+  var pL = layGet('pc'), cards = view.pcSub === 'sys' ? ['pcWatch'] : view.pcSub === 'cfg' ? ['pcWhat', 'pcSet', 'pcItems'] : ['pcHero', 'pcLog', 'pcWk'];
+  var chF = false;
+  cards.forEach(function(cid){ if (pL.fold && pL.fold[cid]){ pL.fold[cid] = false; chF = true; } });
+  if (chF){ laySave(); layApply(); }
   applyPcSub();
   renderSecBanner();
 }
 function applyTab(){
   var app = document.querySelector('.app'); if (!app) return;
+  try {
+    var savedLay = localStorage.getItem(LS + '-ui-layout');
+    if (savedLay === 'classic' || savedLay === 'v2') UI_VER = savedLay;
+    else if (state && state.ui && (state.ui.uiVer === 'classic' || state.ui.uiVer === 'v2')) UI_VER = state.ui.uiVer;
+    else UI_VER = 'v2';
+  } catch (e) {}
+  applyUiVer();
   if (!pcOk()) view.tab = 'maas';
   app.classList.toggle('nopc', !pcOk());
   app.classList.toggle('pcmode', view.tab === 'pc');
@@ -5260,6 +5293,37 @@ function applyTab(){
 function setTab(v){
   view.tab = v === 'pc' ? 'pc' : 'maas'; try { localStorage.setItem(LS + '-tab', view.tab); } catch (e) {}
   applyTab(); renderSecBanner(); if (view.tab === 'pc') renderPc(true); wBadge(); window.scrollTo({ top: 0 });
+}
+
+function buildAiContinuationPrompt(){
+  var slipKeys = Object.keys(state.slips || {}).sort();
+  var lastSlipW = slipKeys.length ? slipKeys[slipKeys.length - 1] : 'yok';
+  var lastSlipObj = lastSlipW !== 'yok' ? state.slips[lastSlipW] : null;
+  var watchCnt = (W && Array.isArray(W.items)) ? W.items.length : 0;
+  return [
+    '=== SHIFTPAY EVRENSEL YAPAY ZEKA DEVAM & OTO-GÜNCELLEME KOMUTU ===',
+    'Proje Adı: ShiftPay (' + APP_VER + ')',
+    'Canlı URL: https://shiftpay-app.pages.dev/',
+    'GitHub Tek Doğru Kaynak (Source of Truth): https://github.com/okanozgur16/maas-takip (Dal: main, Geri Dönüş Dalı: backup-pre-v19)',
+    'Mimari Rehber Dosyaları: https://shiftpay-app.pages.dev/AI-CONTEXT.md ve repodaki CLAUDE.md',
+    '',
+    '--- ANLIK CANLI SİSTEM DURUMU (TELEMETRİ) ---',
+    '• Aktif Sürüm: ' + APP_VER,
+    '• Kayıtlı Bordro Sayısı: ' + slipKeys.length + (lastSlipObj ? ' (Son Bordro: Hafta ' + lastSlipObj.week + ' · ' + lastSlipW + ' · €' + lastSlipObj.payable + ')' : ''),
+    '• Kayıtlı Vardiya / Gün Kaydı: ' + (state.entries || []).length,
+    '• Aktif Arayüz Düzeni: ' + (UI_VER === 'classic' ? 'Sıralamalı Tasarım (classic)' : 'Kategori Tasarımı (v2 - varsayılan)') + ' | Tema: ' + THEME,
+    '• PC Planı İzlenen Sistem Sayısı: ' + watchCnt + ' adet (GameGaraj & Gaming.Gen.TR)',
+    '',
+    '--- YAPAY ZEKA İÇİN ZORUNLU OTO-KODLAMA VE GÜNCELLEME KURALLARI (BANA TEKRAR SORMA, DOĞRUDAN UYGULA) ---',
+    '1. EKSİKSİZ VE OTOMATİK KOD ÜRETİMİ: Bana yarım kod, "..." ile kısaltılmış blok veya teorik açıklama verme. Yaptığın her değişikliği doğrudan index.html, sw.js, version.json ve Python otomasyon dosyalarına uygulanabilir tam, hatasız ve kendi kendini güncelleyen kod blokları olarak yaz; erişimin varsa doğrudan GitHub (okanozgur16/maas-takip) ve Cloudflare Pages (shiftpay-app) üzerine deploy et.',
+    '2. SÜRÜM SENKRONİZASYONU: Her kod güncellemesinde index.html (APP_VER), version.json ve sw.js (CACHE) içindeki sürüm numarasını aynı anda bir üst sürüme yükselt. Asla eski sürüm veya varsayım üzerinden gitme; her zaman yukarıdaki son sürümü ve GitHub main dalını baz al.',
+    '3. GİZLİLİK VE ŞİFRELEME DOKUNULMAZLIĞI: Normal maaş kullanıcıları Gizli PC Planını, Otomatik Bordro Çek butonunu (mhAutoPull) ve bu AI Devam Köprüsünü ASLA görmemelidir. isOwner() kontrolünü (OWNER_SYNC_ID = "334e83e9dfc83510848bfa0982e0b0d3e78958182732d79bc69025135cfe8612"), AES-256-GCM eşitlemeyi (sync) ve PBKDF2-250k PC kasasını (VAULT) %100 koru. mergeStates() içinde bordro zaman damgası (slip.u) korumasını bozma.',
+    '4. ÇİFT ARAYÜZ, ÇİFT TEMA VE ÇİFT DİL UYUMU: Uygulama açılışta varsayılan olarak yeni Kategori Tasarımı (🎯 Haftalık Plan, 🧾 Haftalık Döküm, 📈 Aylık, Yıllık & Birikim) ile açılır; kullanıcı Sıralamalı Tasarıma geçerse tercihi kaydedilir. Eklediğin her özellik hem Kategori hem Sıralamalı tasarımda, hem Açık (Beyaz) hem Koyu (Siyah) temada, hem de Türkçe ve İngilizce (I18N_EN / L(tr, en)) dillerinde sıfır taşma ve sıfır eksik çeviri ile çalışmalıdır.',
+    '5. SIFIR KOTA / SIFIR TOKEN: Uygulama çalışma zamanında hiçbir ücretli AI/LLM API\'sine ihtiyaç duymadan %100 saf JS ve arka plan Python botlarıyla (myholland_bot.py, gmail_bot.py, planbition_bot.py, pc_watch_bot.py) kendi kendini onaracak (selfHeal) şekilde çalışmalıdır.',
+    '6. SEÇENEK SUNMA: Kritik tasarım veya akış kararlarında tek bir dayatma yapmak yerine A/B seçenekleri sun.',
+    '',
+    'Şimdi yukarıdaki tüm kuralları ve canlı durumu hafızana al, tekrar hatırlatmama gerek bırakmadan doğrudan vereceğim yeni talimatı uygula:'
+  ].join('\n');
 }
 
 /* ---------- Olaylar ---------- */
@@ -5281,11 +5345,26 @@ document.addEventListener('click', function(ev){
   else if (a === 'themeCycle'){ cycleTheme(); }
   else if (a === 'mhAutoPull'){ mhAutoPull(); }
   else if (a === 'mhSetCreds'){ mhSetCredsPrompt(); renderOwnerAutoSlipBox(); }
+  else if (a === 'copyPrevWeek'){
+    var curW = view.week, prvW = addDays(curW, -7), prvEnd = addDays(curW, -1);
+    var prvList = state.entries.filter(function(e){ return e && e.type === 'shift' && e.date >= prvW && e.date <= prvEnd; });
+    if (prvList.length){
+      var nowU = Date.now();
+      prvList.forEach(function(pe){
+        var newD = addDays(pe.date, 7);
+        if (!state.entries.some(function(x){ return x && x.date === newD && x.type === 'shift'; })){
+          var ne = Object.assign({}, pe, { id: uid(), date: newD, planned: newD > today, userEdited: true, planbition: false, u: nowU });
+          state.entries.push(ne);
+        }
+      });
+      commit();
+    }
+  }
   else if (a === 'copyAiCtx'){
-    var aiPrompt = 'Proje: ShiftPay (' + APP_VER + ')\nCanlı URL: https://shiftpay-app.pages.dev/\nGitHub Tek Doğru Kaynak (Source of Truth): https://github.com/okanozgur16/maas-takip\nMimari Rehber: https://shiftpay-app.pages.dev/AI-CONTEXT.md (veya repodaki AI-CONTEXT.md & CLAUDE.md)\nGeri Dönüş Dalı: backup-pre-v19\nNot: Lütfen AI-CONTEXT.md dosyasındaki şifreleme (AES-256-GCM), gizli PC planı ve sürüm kurallarını baz alarak kaldığımız yerden devam et.';
+    var aiPrompt = buildAiContinuationPrompt();
     try {
       navigator.clipboard.writeText(aiPrompt).then(function(){
-        var m = $('aiCtxMsg'); if (m) m.textContent = '✓ AI devam kodu kopyalandı! İstediğin yapay zekaya yapıştırabilirsin.';
+        var m = $('aiCtxMsg'); if (m) m.textContent = '✓ Otomatik kurallı AI devam kodu kopyalandı! Diğer yapay zekaya doğrudan yapıştırabilirsin.';
       }, function(){
         var m = $('aiCtxMsg'); if (m) m.textContent = 'GitHub: github.com/okanozgur16/maas-takip';
       });
