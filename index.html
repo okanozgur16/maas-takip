@@ -835,14 +835,46 @@ html:not(.ui-classic) .dayhead .d .t-today{background:var(--accent);color:var(--
 .pwa-tx small{display:block;color:var(--muted);font-size:12.5px;margin-top:3px;line-height:1.35}
 .pwa-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 
-/* Şifreli PC Planı 3-Mini-Sekmeli Sade Görünüm */
-.pcsubbar{display:none;margin:0 0 14px;justify-content:center}
+/* Şifreli PC Planı & Maaş 3-Alt-Sekmeli Sade Görünüm + Bölüm Başlıkları */
+.pcsubbar,.maassubbar{display:none;margin:0 0 12px;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .app.pcmode .pcsubbar{display:flex}
-html.ui-classic .pcsubbar{display:none !important}
-.pcsubtabs{width:100%;max-width:540px;display:grid;grid-template-columns:repeat(3,1fr);padding:4px}
-.pcsubtabs button{padding:8px 6px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-html:not(.ui-classic) .pcsubtabs button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 30%,transparent)}
+.app:not(.pcmode) .maassubbar{display:flex}
+html.ui-classic .pcsubbar,html.ui-classic .maassubbar,html.ui-classic .sechead{display:none !important}
+.pcsubtabs,.maassubtabs{flex:1 1 320px;display:grid;grid-template-columns:repeat(3,1fr);padding:4px}
+.pcsubtabs button,.maassubtabs button{padding:8px 6px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+html:not(.ui-classic) .pcsubtabs button[aria-pressed="true"],
+html:not(.ui-classic) .maassubtabs button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 30%,transparent)}
 
+.sechead{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 14px;padding:12px 16px;border-radius:16px;background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 11%,var(--surface)),var(--surface));border:1px solid color-mix(in srgb,var(--accent) 28%,var(--line));box-shadow:var(--shadow)}
+.sechead-l{display:flex;align-items:center;gap:11px;min-width:0}
+.sechead-ic{width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:18px;background:color-mix(in srgb,var(--accent) 16%,var(--surface2));border:1px solid color-mix(in srgb,var(--accent) 32%,var(--line));flex-shrink:0}
+.sechead-tx b{display:block;font-size:15px;font-weight:700;color:var(--text);line-height:1.25}
+.sechead-tx small{display:block;font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.35}
+
+/* Maaş Alt-Sekme Kart Görünürlüğü */
+html:not(.ui-classic) .grid[data-sub="wk"] [data-card="goal"],
+html:not(.ui-classic) .grid[data-sub="wk"] [data-card="brk"],
+html:not(.ui-classic) .grid[data-sub="wk"] [data-card="savGoal"],
+html:not(.ui-classic) .grid[data-sub="wk"] [data-card="year"],
+html:not(.ui-classic) .grid[data-sub="wk"] [data-card="month"]{display:none !important}
+
+html:not(.ui-classic) .grid[data-sub="brk"] [data-card="hero"],
+html:not(.ui-classic) .grid[data-sub="brk"] [data-card="days"],
+html:not(.ui-classic) .grid[data-sub="brk"] [data-card="savGoal"],
+html:not(.ui-classic) .grid[data-sub="brk"] [data-card="year"],
+html:not(.ui-classic) .grid[data-sub="brk"] [data-card="month"]{display:none !important}
+
+html:not(.ui-classic) .grid[data-sub="yr"] [data-card="hero"],
+html:not(.ui-classic) .grid[data-sub="yr"] [data-card="days"],
+html:not(.ui-classic) .grid[data-sub="yr"] [data-card="goal"],
+html:not(.ui-classic) .grid[data-sub="yr"] [data-card="brk"]{display:none !important}
+
+@media (min-width:900px){
+  html:not(.ui-classic) .grid[data-sub="brk"],
+  html:not(.ui-classic) .grid[data-sub="yr"]{grid-template-columns:minmax(0,1fr)}
+}
+
+/* PC Planı Alt-Sekme Kart Görünürlüğü */
 html:not(.ui-classic) .pcgrid[data-sub="sum"] [data-card="pcWatch"],
 html:not(.ui-classic) .pcgrid[data-sub="sum"] [data-card="pcWhat"],
 html:not(.ui-classic) .pcgrid[data-sub="sum"] [data-card="pcSet"],
@@ -865,6 +897,26 @@ html:not(.ui-classic) .pcgrid[data-sub="cfg"] [data-card="pcWk"]{display:none !i
   html:not(.ui-classic) .pcgrid[data-sub="sys"]{grid-template-columns:minmax(0,1fr)}
 }
 
+/* Akıllı Sistem Arama Çubuğu & Hızlı Etiketler */
+.wsearch-box{margin:10px 0 12px;padding:12px;border-radius:14px;background:var(--surface2);border:1px solid color-mix(in srgb,var(--accent) 32%,var(--line))}
+.wsearch-row{display:flex;align-items:center;gap:8px;position:relative}
+.wsearch-in{width:100%;padding:10px 36px 10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--text);font-size:14px;font-weight:500}
+.wsearch-in:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.wsearch-clr{position:absolute;right:8px;top:50%;transform:translateY(-50%);border:none;background:var(--surface2);color:var(--muted);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center}
+.wsearch-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.wsearch-chip{padding:4px 9px;border-radius:99px;font-size:11.5px;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--text);cursor:pointer;transition:all .15s}
+.wsearch-chip:hover,.wsearch-chip.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 15%,var(--surface));color:var(--accent)}
+
+/* Genel Birikimim & Hedefim Kartı (Aylık/Yıllık Sekmesi) */
+.savg-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:10px 0}
+.savg-box{padding:11px 13px;border-radius:12px;background:var(--surface2);border:1px solid var(--line)}
+.savg-box.hi{border-color:color-mix(in srgb,var(--good) 45%,var(--line));background:color-mix(in srgb,var(--good) 8%,var(--surface2))}
+.savg-tempos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
+.savg-tbtn{padding:9px 8px;border-radius:11px;border:1px solid var(--line);background:var(--surface2);color:var(--text);text-align:center;cursor:pointer;font-size:12px;line-height:1.35}
+.savg-tbtn b{display:block;font-size:13px;margin-bottom:2px}
+.savg-tbtn.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--surface2))}
+@media (max-width:520px){.savg-tempos{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -885,20 +937,23 @@ html:not(.ui-classic) .pcgrid[data-sub="cfg"] [data-card="pcWk"]{display:none !i
   <div class="hello" id="hello" hidden></div>
   <div class="pwabanner" id="pwaBanner" hidden></div>
   <div class="holask" id="holAsk" hidden></div>
-  <div class="tabsw"><div class="seg" id="mainTabs" role="group" aria-label="Bölüm"><button data-act="tabMaas" data-v="maas" aria-pressed="true">Maaş</button><button data-act="tabPc" data-v="pc" aria-pressed="false">PC planı<span class="wbadge" id="wBadge" hidden></span></button></div><div class="layact"><button class="btn small" data-act="layEdit" id="layBtn">Düzenle</button><button class="btn small" data-act="layReset" id="layReset" hidden>Sıfırla</button></div></div>
-  <div class="grid" data-lay="maas">
+  <div class="tabsw"><div class="seg" id="mainTabs" role="group" aria-label="Bölüm"><button data-act="tabMaas" data-v="maas" aria-pressed="true">💶 Maaş Takibi</button><button data-act="tabPc" data-v="pc" aria-pressed="false">🖥️ PC Planı (Özel)<span class="wbadge" id="wBadge" hidden></span></button></div><div class="layact"><button class="btn small" data-act="layEdit" id="layBtn">Düzenle</button><button class="btn small" data-act="layReset" id="layReset" hidden>Sıfırla</button></div></div>
+  <div class="maassubbar" id="maasSubBar"><div class="seg maassubtabs" id="maasSubTabs" role="tablist" aria-label="Maaş bölümleri"><button type="button" role="tab" data-act="maasSub" data-v="wk" aria-pressed="true">📅 Bu Hafta &amp; Günler</button><button type="button" role="tab" data-act="maasSub" data-v="brk" aria-pressed="false">🧾 Döküm &amp; Hedef</button><button type="button" role="tab" data-act="maasSub" data-v="yr" aria-pressed="false">📈 Aylık, Yıllık &amp; Birikim</button></div></div>
+  <div class="pcsubbar" id="pcSubBar"><div class="seg pcsubtabs" id="pcSubTabs" role="tablist" aria-label="PC planı bölümleri"><button type="button" role="tab" data-act="pcSub" data-v="sum" aria-pressed="true">📊 Hedef &amp; Özet</button><button type="button" role="tab" data-act="pcSub" data-v="sys" aria-pressed="false">🖥️ Sistemler &amp; Arama</button><button type="button" role="tab" data-act="pcSub" data-v="cfg" aria-pressed="false">⚙️ Bütçe &amp; Ayarlar</button></div><div style="display:flex;gap:6px"><button type="button" class="btn small" data-act="vHide" title="PC planını ekrandan gizle">👁 Gizle</button><button type="button" class="btn small danger" data-act="vLockBtn" title="PC planını şifreyle kilitle">🔒 Kilitle</button></div></div>
+  <div class="sechead" id="secBanner" aria-live="polite"></div>
+  <div class="grid" id="maasPage" data-lay="maas" data-sub="wk">
     <div class="gcol" data-col="l">
       <div class="cw" data-card="hero"><section class="card" id="hero" aria-live="polite"></section></div>
       <div class="cw" data-card="goal"><section class="card" id="goal"></section></div>
       <div class="cw" data-card="brk"><section class="card" id="brk"></section></div>
-      <div class="cw" data-card="year"><section class="card" id="year"></section></div>
+      <div class="cw" data-card="savGoal"><section class="card" id="savGoal"></section></div>
       <div class="cw" data-card="month"><section class="card" id="month"></section></div>
+      <div class="cw" data-card="year"><section class="card" id="year"></section></div>
     </div>
     <div class="gcol" data-col="r">
       <div class="cw" data-card="days"><section class="card" id="days"></section></div>
     </div>
   </div>
-  <div class="pcsubbar" id="pcSubBar"><div class="seg pcsubtabs" id="pcSubTabs" role="tablist" aria-label="PC planı bölümleri"><button type="button" role="tab" data-act="pcSub" data-v="sum" aria-pressed="true">📊 Hedef &amp; Özet</button><button type="button" role="tab" data-act="pcSub" data-v="sys" aria-pressed="false">🖥️ Sistemler</button><button type="button" role="tab" data-act="pcSub" data-v="cfg" aria-pressed="false">⚙️ Bütçe &amp; Giderler</button></div></div>
   <div class="pcgrid" id="pcPage" data-lay="pc" data-sub="sum">
     <div class="pccol" data-col="l">
       <div class="cw" data-card="pcHero"><section class="card" id="pcHero" aria-live="polite"></section></div>
@@ -1033,6 +1088,19 @@ html:not(.ui-classic) .pcgrid[data-sub="cfg"] [data-card="pcWk"]{display:none !i
   </div>
 </div>
 
+<!-- Planbition Çakışma Onay Penceresi (3 Seçenekli) -->
+<div class="overlay" id="ovPbConf" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="pbConfTitle">
+    <div class="sh-head"><h2 id="pbConfTitle">⚠️ Kendi Girdiğin Saatler Değişecek</h2><button class="icon" data-act="pbConfCancel" aria-label="Kapat">✕</button></div>
+    <div class="sh-body" id="pbConfBody" style="display:grid;gap:12px"></div>
+    <div class="sh-foot" style="display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end">
+      <button type="button" class="btn" data-act="pbConfCancel">Hayır, Vazgeç</button>
+      <button type="button" class="btn" data-act="pbConfAll">Evet, Tümünü Değiştir</button>
+      <button type="button" class="btn primary" data-act="pbConfKeep">✓ Kendi Girdiğim Hariç Değiştir</button>
+    </div>
+  </div>
+</div>
+
 
 <script>
 /* ===== Hesap motoru ===== */
@@ -1093,8 +1161,8 @@ function sumEntries(list, S) {
   return t;
 }
 
-/* Haftalık gelir vergisi (normal kısım): 14 gerçek bordro noktasından (vergi matrahı, vergi) kurulan eğri */
-const TAX_KNOTS = [[416.61, 25.58], [498.95, 29.88], [545.85, 45.69], [558.5, 49.88], [578.05, 56.83], [592.47, 62.44], [604.61, 67.29], [663.6, 90.23], [703.09, 105.52], [706.04, 106.31]];
+/* Haftalık gelir vergisi (normal kısım): 15 gerçek bordro noktasından (vergi matrahı, vergi) kurulan eğri */
+const TAX_KNOTS = [[416.61, 25.58], [498.95, 29.88], [545.85, 45.69], [558.5, 49.88], [578.05, 56.83], [592.47, 62.44], [604.61, 67.29], [630.97, 77.35], [663.6, 90.23], [703.09, 105.52], [706.04, 106.31]];
 function taxNormal(x, S) {
   if (x <= 0) return 0;
   const K = TAX_KNOTS, last = K[K.length - 1];
@@ -1272,6 +1340,7 @@ var view = {
   week: weekStart(today),
   wkSel: null,
   tab: (function(){ try { return localStorage.getItem(LS + '-tab') === 'pc' ? 'pc' : 'maas'; } catch (e) { return 'maas'; } })(),
+  maasSub: (function(){ try { var m = localStorage.getItem(LS + '-maassub'); return m === 'brk' || m === 'yr' ? m : 'wk'; } catch (e) { return 'wk'; } })(),
   pcSub: (function(){ try { var s = localStorage.getItem(LS + '-pcsub'); return s === 'sys' || s === 'cfg' ? s : 'sum'; } catch (e) { return 'sum'; } })()
 };
 
@@ -2139,7 +2208,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-18-shiftpay-v19';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-18-shiftpay-v20';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2275,7 +2344,43 @@ function renderWeekNets(){
   }
   el.innerHTML = h;
 }
-function renderAll(){ applyTab(); renderCalNote(); renderHol(); if (STANDALONE) renderHello(); renderPc(false); renderHeader(); renderHero(); renderDays(); renderGoal(); renderBreak(); renderYear(); renderMonth(); if (!$('ov4').hidden) renderWeekPick(); if (!$('ov5').hidden) renderWeekNets(); }
+function renderSecBanner(){
+  var el = $('secBanner'); if (!el) return;
+  var ic = '📅', title = '', desc = '';
+  if (view.tab === 'pc'){
+    var ps = view.pcSub || 'sum';
+    if (ps === 'sys'){
+      ic = '🖥️';
+      title = L('Hazır Sistemler & Akıllı Arama', 'Prebuilt Systems & Smart Search');
+      desc = L('GameGaraj ve Gaming.Gen.TR sistemlerinde parça ara (örn. "9800x3d ve rtx 50"), filtrele ve F/P karşılaştır.', 'Search components across GameGaraj & Gaming.Gen.TR, filter, and compare value.');
+    } else if (ps === 'cfg'){
+      ic = '⚙️';
+      title = L('Bütçe, Gelir/Gider & Özel PC Bildirimleri', 'Budget, Cashflow & Private PC Alerts');
+      desc = L('Kur, hedef planlar, maaş dışı gelir/giderler ve sadece sana özel PC fiyat düşüşü bildirimleri.', 'Exchange rate, target plans, non-salary cashflow, and private PC price drop alerts.');
+    } else {
+      ic = '📊';
+      title = L('PC Hedef & Birikim Özeti', 'PC Target & Savings Summary');
+      desc = L('Seçtiğin PC hedefine kalan tutar, tahmini ulaşma tarihi, birikim ekleme ve aylık projeksiyon.', 'Remaining amount for your selected PC goal, estimated date, savings log, and monthly projection.');
+    }
+  } else {
+    var ms = view.maasSub || 'wk';
+    if (ms === 'brk'){
+      ic = '🧾';
+      title = L('Maaş Dökümü & Haftalık Hedef Planlayıcı', 'Pay Breakdown & Weekly Goal Planner');
+      desc = L('Brüt/net maaş kalemleri, vergi ve kesinti dağılımı ile haftalık net hedefine ulaşma planı.', 'Gross/net pay lines, tax & deductions breakdown, and weekly net goal planner.');
+    } else if (ms === 'yr'){
+      ic = '📈';
+      title = L('Birikimim, Hedefim & Aylık / Yıllık Toplamlar', 'My Savings, Goal & Monthly / Yearly Totals');
+      desc = L('Kişisel birikim ve hedef hesaplayıcı, aylık net kazanç grafiği, yıllık toplamlar ve tatil bakiyesi.', 'Personal savings & goal calculator, monthly net chart, yearly totals, and vacation balance.');
+    } else {
+      ic = '📅';
+      title = L('Bu Hafta Özeti & Günlük Vardiyalar', 'This Week Summary & Daily Shifts');
+      desc = L('Haftalık net maaş tahmini, bordro durumu, günlük vardiya girişi ve Planbition senkronizasyonu.', 'Weekly net pay estimate, payslip status, daily shifts, and Planbition sync.');
+    }
+  }
+  el.innerHTML = '<div class="sechead-l"><div class="sechead-ic" aria-hidden="true">' + ic + '</div><div class="sechead-tx"><b>' + title + '</b><small>' + desc + '</small></div></div>';
+}
+function renderAll(){ applyTab(); renderSecBanner(); renderCalNote(); renderHol(); if (STANDALONE) renderHello(); renderPc(false); renderHeader(); renderHero(); renderDays(); renderGoal(); renderBreak(); renderSavGoal(); renderYear(); renderMonth(); if (!$('ov4').hidden) renderWeekPick(); if (!$('ov5').hidden) renderWeekNets(); }
 function renderHeader(){
   var ws = view.week, we = addDays(ws, 6), a = parseISO(ws), b = parseISO(we);
   var range = a.getMonth() === b.getMonth() ? a.getDate() + '–' + b.getDate() + ' ' + MONTHS[b.getMonth()] : a.getDate() + ' ' + MONTHS[a.getMonth()] + '–' + b.getDate() + ' ' + MONTHS[b.getMonth()];
@@ -2341,6 +2446,13 @@ function renderHero(){
     h += ' <button class="btn small danger" data-act="slipDel">Bordroyu kaldır</button><span class="delta num ' + (Math.abs(diff) <= 1 ? 'ok' : 'off') + '">' + (parkOf(p) > 0 ? 'Park hariç uygulama tahmini ' : 'Uygulama tahmini ') + eur(est.payable) + ' <span class="nowr">(' + sgn(diff) + ')</span></span>';
   }
   h += '</div>';
+  /* Salı gecesi myHolland & Çarşamba Mail Otomatik Bordro Durum Bilgilendirmesi */
+  var prevW = addDays(weekStart(today), -7), prevSlip = state.slips[prevW], dow = new Date().getDay(), hrNow = new Date().getHours();
+  if (!prevSlip && (dow === 2 && hrNow >= 20 || dow === 3 || dow === 4)){
+    h += '<div class="callout" style="margin-top:10px;border-color:color-mix(in srgb,var(--accent) 45%,var(--line))"><span>' +
+      (dow === 2 ? '🌙 <b>Salı Gecesi Bordro Kontrolü:</b> Hafta ' + isoWeek(prevW) + ' bordrosu myHolland’a düştüğünde arka plan otomasyonu otomatik ekler.' : '📩 <b>Çarşamba Bordro Günü:</b> Hafta ' + isoWeek(prevW) + ' bordrosu myHolland veya Gmail üzerinden otomatik çekilir; dilersen PDF’i elle de seçebilirsin.') +
+      '</span><button class="btn small primary" data-act="slipAdd">Bordro Yükle</button></div>';
+  }
   document.getElementById('hero').innerHTML = h;
 }
 var PB_UI = { busy: false, msg: '', err: false };
@@ -2480,8 +2592,125 @@ async function pbSetCreds(){
   commit();
   pbPull();
 }
+var PB_PEND = null;
+function pbApplyPending(mode){
+  var o = $('ovPbConf'); if (o) o.hidden = true;
+  if (!PB_PEND || mode === 'cancel'){
+    PB_PEND = null;
+    PB_UI.busy = false;
+    PB_UI.err = false;
+    PB_UI.msg = 'Planbition aktarımı iptal edildi; kendi girdiğin saatler korundu.';
+    renderDays();
+    return;
+  }
+  var res = PB_PEND.res, wStart = PB_PEND.wStart, skipDates = PB_PEND.skipDates || {};
+  PB_PEND = null;
+  var byD = {};
+  (res.shifts || []).forEach(function(s){ if (s && s.date) byD[s.date] = s; });
+  var nowMs = Date.now(), changes = [], keptCount = 0;
+
+  for (var di = 0; di < 14; di++){
+    var d = addDays(wStart, di);
+    if (mode === 'keep' && skipDates[d]){
+      keptCount++;
+      continue;
+    }
+    var oldList = state.entries.filter(function(e){ return e && e.date === d; });
+    var keptDept = '';
+    var oldShift = oldList.filter(function(e){ return e && e.type === 'shift'; })[0];
+    var wasOff = oldList.some(function(e){ return e && (e.type === 'off' || e.type === 'cancel'); });
+    var dObj = parseISO(d), dName = DAYS[dObj.getDay()] + ' ' + dObj.getDate() + ' ' + MONTHS[dObj.getMonth()];
+
+    oldList.forEach(function(e){
+      var dp = e.dept || e.tag || '';
+      if (dp && e.type === 'shift') keptDept = dp;
+      if (e.id && !e.id.startsWith('pb_') && !e.id.startsWith('off_')) tomb(e.id);
+    });
+    state.entries = state.entries.filter(function(e){ return !e || e.date !== d; });
+
+    var newId = '';
+    if (byD[d]){
+      var s = byD[d], hr = parseInt(String(s.start || '14:30').split(':')[0], 10);
+      if (isNaN(hr)) hr = 14;
+      var shType = hr < 12 ? 'morning' : 'late';
+      var shLabel = shType === 'morning' ? 'Sabah' : 'Öğle';
+      var dept = s.dept || keptDept || s.struct || '';
+      newId = 'pb_' + d.replace(/-/g, '') + '_' + (shType === 'morning' ? 'm' : 'l');
+
+      if (!oldShift){
+        changes.push(dName + ': ' + shLabel + ' (' + s.start + '-' + s.end + ')' + (dept ? ' · ' + dept : ''));
+      } else {
+        var chp = [];
+        if (oldShift.shift !== shType || oldShift.start !== s.start || oldShift.end !== s.end) chp.push((oldShift.start || '?') + '-' + (oldShift.end || '?') + ' ➔ ' + s.start + '-' + s.end);
+        if ((oldShift.dept || '') !== dept) chp.push((oldShift.dept || '—') + ' ➔ ' + (dept || '—'));
+        if (chp.length) changes.push(dName + ': ' + chp.join(', '));
+      }
+
+      if (state.del){
+        delete state.del[newId];
+        delete state.del['off_' + d.replace(/-/g, '')];
+        delete state.del['pb_' + d.replace(/-/g, '') + '_m'];
+        delete state.del['pb_' + d.replace(/-/g, '') + '_l'];
+      }
+
+      state.entries.push({
+        id: newId,
+        date: d,
+        type: 'shift',
+        shift: shType,
+        start: s.start,
+        end: s.end,
+        breakMin: 30,
+        planned: d >= today,
+        driver: S0drv(),
+        dept: dept,
+        tag: dept,
+        planbition: true,
+        userEdited: false,
+        u: nowMs
+      });
+    } else {
+      newId = 'off_' + d.replace(/-/g, '');
+      if (oldShift && !wasOff){
+        changes.push(dName + ': Vardiya kalktı (izinli)');
+      }
+      if (state.del){
+        delete state.del[newId];
+        delete state.del['pb_' + d.replace(/-/g, '') + '_m'];
+        delete state.del['pb_' + d.replace(/-/g, '') + '_l'];
+      }
+      state.entries.push({ id: newId, type: 'off', date: d, planbition: true, u: nowMs });
+    }
+  }
+  PB_UI.err = false;
+  var nShifts = (res.shifts || []).length;
+  var keptNote = keptCount > 0 ? ' (' + keptCount + ' gün kendi girdiğin saat olarak korundu)' : '';
+  var chMsg = changes.length
+    ? ' Değişiklikler: ' + changes.slice(0, 3).join(', ') + (changes.length > 3 ? ' ve ' + (changes.length - 3) + ' gün daha' : '') + '.'
+    : ' Tüm vardiyaların güncel.';
+
+  PB_UI.msg = '✓ Planbition’dan ' + nShifts + ' vardiya kontrol edildi' + keptNote + '.' + chMsg + (res.totalConfirm > 0 ? ' ⚠️ Planbition’da onay bekleyen ' + res.totalConfirm + ' yeni vardiyan var!' : '');
+
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && changes.length > 0){
+    try {
+      new Notification('ShiftPay: Vardiyanız Güncellendi!', {
+        body: changes.slice(0, 3).join('\n') + (changes.length > 3 ? '\nve ' + (changes.length - 3) + ' gün daha...' : ''),
+        icon: 'icon-192.png'
+      });
+    } catch (e) {}
+  }
+  PB_UI.busy = false;
+  commit();
+}
 async function pbPull(){
   if (PB_UI.busy) return;
+  var curWeek = weekStart(today);
+  if (view.week < curWeek){
+    PB_UI.err = true;
+    PB_UI.msg = '🔒 Geçmiş haftalar (Hafta ' + isoWeek(view.week) + ') tamamlandığı için Planbition ile değiştirilemez. Sadece bu hafta veya gelecek haftalarda Planbition’dan getir çalışır.';
+    renderDays();
+    return;
+  }
   PB_UI.busy = true; PB_UI.msg = ''; PB_UI.err = false; renderDays();
   try {
     var cr = await pbLoadCreds();
@@ -2503,95 +2732,49 @@ async function pbPull(){
     var byD = {};
     (res.shifts || []).forEach(function(s){ if (s && s.date) byD[s.date] = s; });
     var wStart = (res.weeks && res.weeks[0]) || view.week;
-        var nowMs = Date.now(), changes = [];
+    var conflicts = [], skipDates = {};
+
     for (var di = 0; di < 14; di++){
       var d = addDays(wStart, di);
       var oldList = state.entries.filter(function(e){ return e && e.date === d; });
-      var keptDept = '';
-      var oldShift = oldList.filter(function(e){ return e && e.type === 'shift'; })[0];
-      var wasOff = oldList.some(function(e){ return e && (e.type === 'off' || e.type === 'cancel'); });
+      if (!oldList.length) continue;
+      var oldShift = oldList.filter(function(e){ return e && (e.type === 'shift' || e.type === 'manual' || e.type === 'vacation'); })[0];
+      var oldOff = oldList.filter(function(e){ return e && (e.type === 'off' || e.type === 'cancel'); })[0];
+      var isUserEntry = oldList.some(function(e){ return e.userEdited || (e.type === 'shift' && !e.planbition) || e.type === 'manual' || e.type === 'vacation' || d < today; });
+      var pbS = byD[d];
       var dObj = parseISO(d), dName = DAYS[dObj.getDay()] + ' ' + dObj.getDate() + ' ' + MONTHS[dObj.getMonth()];
 
-      oldList.forEach(function(e){
-        var dp = e.dept || e.tag || '';
-        if (dp && e.type === 'shift') keptDept = dp;
-        if (e.id && !e.id.startsWith('pb_') && !e.id.startsWith('off_')) tomb(e.id);
-      });
-      state.entries = state.entries.filter(function(e){ return !e || e.date !== d; });
-
-      var newId = '';
-      if (byD[d]){
-        var s = byD[d], hr = parseInt(String(s.start || '14:30').split(':')[0], 10);
-        if (isNaN(hr)) hr = 14;
-        var shType = hr < 12 ? 'morning' : 'late';
-        var shLabel = shType === 'morning' ? 'Sabah' : 'Öğle';
-        var dept = s.dept || keptDept || s.struct || '';
-        newId = 'pb_' + d.replace(/-/g, '') + '_' + (shType === 'morning' ? 'm' : 'l');
-
-        if (!oldShift){
-          changes.push(dName + ': ' + shLabel + ' (' + s.start + '-' + s.end + ')' + (dept ? ' · ' + dept : ''));
-        } else {
-          var chp = [];
-          if (oldShift.shift !== shType || oldShift.start !== s.start || oldShift.end !== s.end) chp.push((oldShift.start || '?') + '-' + (oldShift.end || '?') + ' ➔ ' + s.start + '-' + s.end);
-          if ((oldShift.dept || '') !== dept) chp.push((oldShift.dept || '—') + ' ➔ ' + (dept || '—'));
-          if (chp.length) changes.push(dName + ': ' + chp.join(', '));
+      if (oldShift){
+        if (!pbS){
+          skipDates[d] = 1;
+          conflicts.push({ d: d, label: dName + ': Senin kaydın (' + (oldShift.start || 'Özel') + '–' + (oldShift.end || '') + ') ➔ Planbition’da boş (İzinli yapılacak)', user: isUserEntry });
+        } else if (oldShift.start !== pbS.start || oldShift.end !== pbS.end || (isUserEntry && oldShift.dept && pbS.dept && oldShift.dept !== pbS.dept)){
+          skipDates[d] = 1;
+          conflicts.push({ d: d, label: dName + ': Senin kaydın ' + (oldShift.start || '?') + '–' + (oldShift.end || '?') + (oldShift.dept ? ' (' + oldShift.dept + ')' : '') + ' ➔ Planbition ' + pbS.start + '–' + pbS.end + (pbS.dept ? ' (' + pbS.dept + ')' : ''), user: isUserEntry });
+        } else if (isUserEntry){
+          skipDates[d] = 1;
         }
-
-        if (state.del){
-          delete state.del[newId];
-          delete state.del['off_' + d.replace(/-/g, '')];
-          delete state.del['pb_' + d.replace(/-/g, '') + '_m'];
-          delete state.del['pb_' + d.replace(/-/g, '') + '_l'];
-        }
-
-        state.entries.push({
-          id: newId,
-          date: d,
-          type: 'shift',
-          shift: shType,
-          start: s.start,
-          end: s.end,
-          breakMin: 30,
-          planned: d >= today,
-          driver: S0drv(),
-          dept: dept,
-          tag: dept,
-          planbition: true,
-          u: nowMs
-        });
-      } else {
-        newId = 'off_' + d.replace(/-/g, '');
-        if (oldShift && !wasOff){
-          changes.push(dName + ': Vardiya kalktı (izinli)');
-        }
-        if (state.del){
-          delete state.del[newId];
-          delete state.del['pb_' + d.replace(/-/g, '') + '_m'];
-          delete state.del['pb_' + d.replace(/-/g, '') + '_l'];
-        }
-        state.entries.push({ id: newId, type: 'off', date: d, u: nowMs });
+      } else if (oldOff && oldOff.userEdited && pbS){
+        skipDates[d] = 1;
+        conflicts.push({ d: d, label: dName + ': Senin işaretlediğin İzinli/İptal ➔ Planbition ' + pbS.start + '–' + pbS.end, user: true });
       }
     }
-    PB_UI.err = false;
-    var nShifts = (res.shifts || []).length;
-    var chMsg = changes.length 
-      ? (LANG === 'en' ? ' Changes: ' + changes.slice(0, 3).join(', ') + (changes.length > 3 ? ' and ' + (changes.length - 3) + ' more days' : '') + '.' : ' Değişiklikler: ' + changes.slice(0, 3).join(', ') + (changes.length > 3 ? ' ve ' + (changes.length - 3) + ' gün daha' : '') + '.')
-      : (LANG === 'en' ? ' All your shifts are up to date.' : ' Tüm vardiyaların güncel.');
 
-    PB_UI.msg = (LANG === 'en')
-      ? '✓ Fetched ' + nShifts + ' shifts from Planbition.' + chMsg + (res.totalConfirm > 0 ? ' ⚠️ You have ' + res.totalConfirm + ' new shifts awaiting confirmation in Planbition!' : '')
-      : '✓ Planbition’dan ' + nShifts + ' vardiya getirildi.' + chMsg + (res.totalConfirm > 0 ? ' ⚠️ Planbition’da onay bekleyen ' + res.totalConfirm + ' yeni vardiyan var!' : '');
-
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && changes.length > 0){
-      try {
-        new Notification(LANG === 'en' ? 'ShiftPay: Your Shift Was Updated!' : 'ShiftPay: Vardiyanız Güncellendi!', {
-          body: changes.slice(0, 3).join('\n') + (changes.length > 3 ? '\n' + (LANG === 'en' ? 'and ' + (changes.length - 3) + ' more days...' : 've ' + (changes.length - 3) + ' gün daha...') : ''),
-          icon: 'icon-192.png'
-        });
-      } catch (e) {}
+    PB_PEND = { res: res, wStart: wStart, conflicts: conflicts, skipDates: skipDates };
+    if (conflicts.length > 0){
+      var b = $('pbConfBody'), o = $('ovPbConf');
+      if (b && o){
+        var ch = '<p class="fh" style="margin:0"><b>Hafta ' + isoWeek(wStart) + ' ve Hafta ' + isoWeek(addDays(wStart, 7)) + '</b> için Planbition’dan gelen saatler, senin girdiğin veya mevcut kayıtlarınla şu günlerde farklılık gösteriyor (Geçmiş haftalara zaten dokunulmaz):</p>';
+        ch += '<div style="padding:10px 12px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);font-size:13px;line-height:1.5;max-height:220px;overflow-y:auto">' + conflicts.map(function(c){ return '<div>• ' + esc(c.label) + '</div>'; }).join('') + '</div>';
+        ch += '<p class="fh" style="margin:0">Kendi girdiğin saatlerin değişmesini istiyor musun?</p>';
+        b.innerHTML = ch;
+        o.hidden = false;
+        PB_UI.busy = false;
+        renderDays();
+        return;
+      }
     }
-    PB_UI.busy = false;
-    commit();
+    pbApplyPending('keep');
   } catch (e) {
     console.error('pbPull error:', e);
     PB_UI.err = true;
@@ -2894,6 +3077,87 @@ function renderCalNote(){
   var st = state.settings || {}, n = Object.keys(state.slips || {}).length;
   el.textContent = 'Tutarlar tahmindir. ' + (st.autoAt || n ? '' : 'İlk bordronu yükleyene kadar varsayılan değerlerle hesaplanır. ') + 'Gelir vergisi bir tahmin eğrisiyle hesaplanır; bordro eklediğin haftalarda gerçek rakamlar kullanılır ve tahminle farkı gösterilir.';
 }
+function userGoalObj(){
+  state.settings = state.settings || {};
+  var ug = state.settings.userGoal;
+  if (!ug || typeof ug !== 'object'){
+    ug = { saved: 0, title: 'Hedefim (Örn. Araba / Tatil)', targetAmt: 5000, weeklySave: 150 };
+    state.settings.userGoal = ug;
+  }
+  return {
+    saved: Math.max(0, +ug.saved || 0),
+    title: String(ug.title !== undefined ? ug.title : 'Hedefim'),
+    targetAmt: Math.max(0, +ug.targetAmt || 0),
+    weeklySave: Math.max(10, +ug.weeklySave || 150)
+  };
+}
+function renderSavGoal(force){
+  var el = $('savGoal'); if (!el) return;
+  var ae = document.activeElement;
+  if (!force && ae && el.contains(ae) && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName) && ae.id !== 'ug_wk') return;
+  var ug = userGoalObj();
+  var list = allWeekList(), bl = list.filter(function(r){ return r.slip; });
+  if (!bl.length) bl = list;
+  var avgWk = 450;
+  if (bl.length){
+    var sumNet = 0;
+    bl.forEach(function(r){ sumNet += (r.p.payable - parkOf(r.p)); });
+    avgWk = Math.max(100, r2(sumNet / bl.length));
+  }
+  var rem = Math.max(0, r2(ug.targetAmt - ug.saved));
+  var pctDone = ug.targetAmt > 0 ? Math.min(100, Math.max(0, (ug.saved / ug.targetAmt) * 100)) : 0;
+  var wkSave = ug.weeklySave;
+  var moSave = r2(wkSave * 52 / 12);
+  var wksNeed = rem <= 0 ? 0 : Math.ceil(rem / Math.max(1, wkSave));
+  var mosNeed = r2(wksNeed * 7 / 30.4375);
+  var reachIso = addDays(today, wksNeed * 7), reachD = parseISO(reachIso);
+  var reachLabel = wksNeed === 0 ? L('Hedefe ulaştın! 🎉', 'Goal reached! 🎉') : (MONTHS_L[reachD.getMonth()] + ' ' + reachD.getFullYear());
+  var leftForSpend = r2(avgWk - wkSave);
+
+  var tSlow = Math.max(25, Math.round(avgWk * 0.20 / 5) * 5);
+  var tMed  = Math.max(50, Math.round(avgWk * 0.35 / 5) * 5);
+  var tFast = Math.max(75, Math.round(avgWk * 0.50 / 5) * 5);
+
+  var h = '<div class="hero-top" style="margin-bottom:8px"><h2 style="margin:0">💰 ' + L('Birikimim & Hedefim', 'My Savings & Goal') + '</h2><div style="display:flex;gap:6px"><button type="button" class="btn small primary" data-act="ugAdd">+ ' + L('Birikime Ekle', 'Add Savings') + '</button><button type="button" class="btn small" data-act="ugReset">' + L('Sıfırla', 'Reset') + '</button></div></div>';
+  h += '<div class="sub" style="margin-bottom:10px">' + L('Kenardaki mevcut paranı ve ulaşmak istediğin hedefi yaz; maaş ortalamana göre haftalık veya aylık ne kadar biriktirerek ne zaman ulaşacağını anında gör.', 'Enter your current savings and target goal to see how fast you can reach it based on your weekly/monthly pay.') + '</div>';
+
+  h += '<div class="two" style="margin-bottom:10px">' +
+    '<div class="field"><label for="ug_saved">' + L('Elimdeki Toplam Birikim (€)', 'Current Total Savings (€)') + '</label><input id="ug_saved" type="text" inputmode="decimal" value="' + esc(String(ug.saved).replace('.', ',')) + '" placeholder="Örn. 1500"></div>' +
+    '<div class="field"><label for="ug_title">' + L('Hedefim (Ne için?)', 'My Goal (What for?)') + '</label><input id="ug_title" type="text" maxlength="45" value="' + esc(ug.title) + '" placeholder="Örn. Araba, Tatil, Telefon, Ev…"></div>' +
+  '</div>';
+
+  h += '<div class="two" style="margin-bottom:10px">' +
+    '<div class="field"><label for="ug_target">' + L('Hedef Tutarı (€)', 'Target Amount (€)') + '</label><input id="ug_target" type="text" inputmode="decimal" value="' + esc(String(ug.targetAmt).replace('.', ',')) + '" placeholder="Örn. 5000"></div>' +
+    '<div class="field"><label for="ug_wk_in">' + L('Haftalık Kenara Ayıracağım (€)', 'Weekly Saving Amount (€)') + '</label><input id="ug_wk_in" type="text" inputmode="decimal" value="' + esc(String(wkSave).replace('.', ',')) + '" placeholder="Örn. 150"></div>' +
+  '</div>';
+
+  h += '<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pctDone) + '" style="margin:8px 0 6px"><i style="width:' + pctDone + '%"></i></div>';
+  h += '<div class="pcleg num" style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:10px"><span>' + L('Mevcut:', 'Saved:') + ' <b style="color:var(--text)">' + eur(ug.saved) + '</b> (%' + Math.round(pctDone) + ')</span><span>' + L('Kalan:', 'Remaining:') + ' <b style="color:var(--text)">' + eur(rem) + '</b> / ' + eur(ug.targetAmt) + '</span></div>';
+
+  h += '<div class="pcsl" style="margin:8px 0"><div class="t"><span>' + L('Haftalık Birikim:', 'Weekly Saving:') + ' <b class="num" id="ug_wklbl">' + eur(wkSave) + ' / hafta</b></span><span class="num" id="ug_molbl">≈ ' + eur(moSave) + ' / ay</span></div>' +
+    '<input type="range" id="ug_wk" min="25" max="600" step="5" value="' + Math.min(600, Math.max(25, wkSave)) + '" aria-label="Haftalık birikim tutarı"></div>';
+
+  h += '<div id="ug_out">' + renderSavGoalResult(ug, avgWk, rem, wkSave, moSave, wksNeed, mosNeed, reachLabel, leftForSpend, tSlow, tMed, tFast) + '</div>';
+  el.innerHTML = h;
+}
+function renderSavGoalResult(ug, avgWk, rem, wkSave, moSave, wksNeed, mosNeed, reachLabel, leftForSpend, tSlow, tMed, tFast){
+  var h = '<div class="savg-grid">' +
+    '<div class="savg-box hi"><small style="color:var(--muted);display:block">' + esc(ug.title || 'Hedef') + ' (' + eur(ug.targetAmt) + ')</small><b class="num" style="font-size:17px;display:block;margin-top:2px">' + (rem <= 0 ? '🎉 Tamamlandı!' : wksNeed + ' hafta (≈ ' + String(mosNeed).replace('.', ',') + ' ay)') + '</b><small class="num" style="color:var(--muted)">Tahmini tarih: <b>' + reachLabel + '</b></small></div>' +
+    '<div class="savg-box"><small style="color:var(--muted);display:block">Aylık Birikim Hızın</small><b class="num" style="font-size:17px;display:block;margin-top:2px">' + eur(moSave) + ' / ay</b><small class="num" style="color:var(--muted)">Haftada ' + eur(wkSave) + ' kenara ayrılır</small></div>' +
+    '<div class="savg-box"><small style="color:var(--muted);display:block">Maaştan Harcamaya Kalan</small><b class="num" style="font-size:17px;display:block;margin-top:2px;color:' + (leftForSpend >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + (leftForSpend >= 0 ? eur(leftForSpend) + ' / hafta' : '−' + eur(Math.abs(leftForSpend)) + ' aşım') + '</b><small class="num" style="color:var(--muted)">Haftalık ort. net maaşın: ' + eur(avgWk) + '</small></div>' +
+  '</div>';
+
+  var wSlow = rem <= 0 ? 0 : Math.ceil(rem / tSlow), mSlow = (wSlow * 7 / 30.4375).toFixed(1).replace('.', ',');
+  var wMed  = rem <= 0 ? 0 : Math.ceil(rem / tMed),  mMed  = (wMed * 7 / 30.4375).toFixed(1).replace('.', ',');
+  var wFast = rem <= 0 ? 0 : Math.ceil(rem / tFast), mFast = (wFast * 7 / 30.4375).toFixed(1).replace('.', ',');
+
+  h += '<div class="savg-tempos">' +
+    '<button type="button" class="savg-tbtn' + (Math.abs(wkSave - tSlow) < 3 ? ' on' : '') + '" data-act="ugTempo" data-v="' + tSlow + '"><b>🐢 Rahat (%20)</b><span>Haftada ' + eur(tSlow) + ' · Ayda ' + eur(Math.round(tSlow * 52 / 12)) + '</span><br><small style="color:var(--muted)">' + (rem <= 0 ? 'Hazır' : wSlow + ' hafta (' + mSlow + ' ay)') + '</small></button>' +
+    '<button type="button" class="savg-tbtn' + (Math.abs(wkSave - tMed) < 3 ? ' on' : '') + '" data-act="ugTempo" data-v="' + tMed + '"><b>⚖️ Dengeli (%35)</b><span>Haftada ' + eur(tMed) + ' · Ayda ' + eur(Math.round(tMed * 52 / 12)) + '</span><br><small style="color:var(--muted)">' + (rem <= 0 ? 'Hazır' : wMed + ' hafta (' + mMed + ' ay)') + '</small></button>' +
+    '<button type="button" class="savg-tbtn' + (Math.abs(wkSave - tFast) < 3 ? ' on' : '') + '" data-act="ugTempo" data-v="' + tFast + '"><b>🚀 Hızlı (%50)</b><span>Haftada ' + eur(tFast) + ' · Ayda ' + eur(Math.round(tFast * 52 / 12)) + '</span><br><small style="color:var(--muted)">' + (rem <= 0 ? 'Hazır' : wFast + ' hafta (' + mFast + ' ay)') + '</small></button>' +
+  '</div>';
+  return h;
+}
 function renderMonth(){
   var el = document.getElementById('month'); if (!el) return;
   var list = allWeekList();
@@ -3063,6 +3327,9 @@ function saveSheet(){
   if (r.err){ updatePreview(); return; }
   var e = r.e;
   if (e.type === 'shift' && (entryHours(e, SET()).norm + entryHours(e, SET()).irr + entryHours(e, SET()).over) <= 0){ updatePreview(); return; }
+  e.userEdited = true;
+  e.planbition = false;
+  e.u = Date.now();
   var i = state.entries.findIndex(function(x){ return x.id === e.id; });
   if (i >= 0) state.entries[i] = e; else state.entries.push(e);
   if (e.type === 'shift') state.ui.lastShift = e.shift;
@@ -3486,7 +3753,8 @@ function renderSettings(){
     h += '<div class="subhead">Otomatik yedekler</div><small class="fh">Uygulama her gün verilerinin bir kopyasını hesabına kaydeder (son 7 gün). Bir şey ters giderse buradan geri dönebilirsin.</small><div id="bkList" class="bklist"><small class="fh">' + (bkRef ? 'Yükleniyor…' : 'Otomatik yedek için hesabınla giriş yapmış olman gerekir.') + '</small></div>';
     h += '<div class="subhead">Elle yedek</div><div class="field"><label for="bk">Verilerin (kopyalayıp sakla)</label><textarea id="bk" readonly></textarea></div><div class="two"><button class="btn small" data-act="copyBk">Kopyala</button><span id="bkMsg" class="sub"></span></div>';
     h += '<div class="field"><label for="imp">Yedekten geri yükle</label><textarea id="imp" placeholder="Yedek metnini buraya yapıştır"></textarea></div><button class="btn small" data-act="importBk">Geri yükle</button> <span id="impMsg" class="sub"></span>';
-    h += '<div class="syncbox" style="margin-top:14px"><div class="subhead">🎨 ' + L('Arayüz Görünümü (Sürüm / Geri Dönüş)', 'Interface Version (Rollback)') + '</div><small class="fh">' + L('Yeni renkli vurguları veya sadeleştirilmiş PC görünümünü beğenmezsen tek dokunuşla eski v17 görünümüne geri dönebilirsin.', 'Switch back to classic v17 UI anytime with one tap.') + '</small><div class="seg" role="group" style="margin-top:6px"><button type="button" data-act="uiVer" data-v="v2" aria-pressed="' + (UI_VER !== 'classic') + '">✨ ' + L('Modern (v18)', 'Modern (v18)') + '</button><button type="button" data-act="uiVer" data-v="classic" aria-pressed="' + (UI_VER === 'classic') + '">🏛️ ' + L('Eski Klasik (v17)', 'Classic (v17)') + '</button></div></div>';
+    h += '<div class="syncbox" style="margin-top:14px"><div class="subhead">🎨 ' + L('Arayüz Görünümü (Sürüm / Geri Dönüş)', 'Interface Version (Rollback)') + '</div><small class="fh">' + L('Yeni sekmeli görünümü veya renkli vurguları beğenmezsen tek dokunuşla eski v17 görünümüne geri dönebilirsin.', 'Switch back to classic v17 UI anytime with one tap.') + '</small><div class="seg" role="group" style="margin-top:6px"><button type="button" data-act="uiVer" data-v="v2" aria-pressed="' + (UI_VER !== 'classic') + '">✨ ' + L('Modern (v20)', 'Modern (v20)') + '</button><button type="button" data-act="uiVer" data-v="classic" aria-pressed="' + (UI_VER === 'classic') + '">🏛️ ' + L('Eski Klasik (v17)', 'Classic (v17)') + '</button></div></div>';
+    h += '<div class="syncbox" style="margin-top:12px"><div class="subhead">🤖 ' + L('Yapay Zeka (Claude / GPT / Gemini / Antigravity) Köprüsü', 'Universal AI Continuation Bridge') + '</div><small class="fh">' + L('Telefondan veya bilgisayardan herhangi bir yapay zekada (Claude Pro, ChatGPT, Gemini, Antigravity) projeye kaldığın yerden sıfır veri ve sürüm kaybıyla devam etmek için aşağıdaki butona dokunup kopyalanan metni yapıştır.', 'Copy the universal AI context prompt to continue development from any AI assistant on mobile or desktop.') + '</small><div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><button type="button" class="btn small primary" data-act="copyAiCtx">📋 ' + L('AI Devam Kodunu Kopyala', 'Copy AI Context Prompt') + '</button><a class="btn small" href="https://github.com/okanozgur16/maas-takip" target="_blank" rel="noopener noreferrer">GitHub Repo ↗</a><span id="aiCtxMsg" class="sub"></span></div></div>';
   }
   $('setBody').innerHTML = h;
   if ($('bk')) $('bk').value = JSON.stringify(pcStrip(state));
@@ -3728,8 +3996,10 @@ function renderPc(force){
       (sm === 'manual' ? '<div class="field" style="margin-top:10px"><label for="pc_weekly">Haftalık net maaşım (€)</label><input id="pc_weekly" data-pc="weekly" inputmode="decimal" value="' + (P.weekly > 0 ? pcInp(P.weekly) : '') + '" placeholder="örn. 350"></div>' : '') +
       '<div class="subhead">PC planları (fiyat TL)</div>' +
       P.plans.map(function(p){ return '<div class="pcpl"><input data-pc="plan" data-id="' + esc(p.id) + '" data-f="name" value="' + esc(p.name) + '" aria-label="Plan adı"><input data-pc="plan" data-id="' + esc(p.id) + '" data-f="tl" inputmode="numeric" value="' + pcInp(p.tl) + '" aria-label="Fiyat (TL)"><button class="x" data-act="pcPlanDel" data-id="' + esc(p.id) + '" aria-label="Planı sil"' + (P.plans.length < 2 ? ' disabled' : '') + '>✕</button></div>'; }).join('') +
-      (P.plans.length < 5 ? '<button class="btn small" data-act="pcPlanAdd" style="margin-top:6px">+ Plan ekle</button>' : '');
+      (P.plans.length < 5 ? '<button class="btn small" data-act="pcPlanAdd" style="margin-top:6px">+ Plan ekle</button>' : '') +
+      (STANDALONE ? '<div id="vTail" class="vtail" style="margin-top:14px"></div>' : '');
     $('pcSet').innerHTML = sh;
+    if (STANDALONE) vaultTail();
   }
   if (force || !pcFocusIn('pcItems')){
     var grp = function(title, hint, test, k){
@@ -3769,7 +4039,22 @@ function renderPcWhat(force){
     '<button class="btn small" id="pcw_rs" data-act="pcWhatReset" style="margin-top:8px;display:' + ((W.s || W.w) ? '' : 'none') + '">Sıfırla</button>';
 }
 /* ---------- İzlenen PC'ler (Otomasyon + OEM Sistem Takip Entegrasyonu) ---------- */
-var WLS = 'maas-takip-v1-watch', watchRef = null, watchAt = 0, W = null, wView = { tier: null, all: {}, open: {}, page: 'main', fil: 'all', aOpen: {}, fmode: 'all' };
+var WLS = 'maas-takip-v1-watch', watchRef = null, watchAt = 0, W = null, wView = { tier: null, all: {}, open: {}, page: 'main', fil: 'all', aOpen: {}, fmode: 'all', q: '' };
+function wNormStr(s){
+  return String(s || '').toLowerCase().replace(/İ/g, 'i').replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c');
+}
+function wMatchQuery(x, rawQ){
+  if (!rawQ || !String(rawQ).trim()) return true;
+  var stop = { 've': 1, 'ile': 1, 'veya': 1, 'icin': 1, 'de': 1, 'da': 1, 'olan': 1, 'sistem': 1, 'sistemler': 1, 'sistemleri': 1, 'pc': 1, 'hazir': 1 };
+  var tokens = wNormStr(rawQ).split(/[\s,+;/|]+/).filter(function(t){ return t && !stop[t]; });
+  if (!tokens.length) return true;
+  var hay = wNormStr([x.name, x.cpu, x.gpu, x.gpu_category, x.tier, x.board, x.ram, x.ssd, x.psu, x.cooler, x.case, x.site, x.vendor, x.resolution_tier, (x.site === 'gamegaraj.com' ? 'gamegaraj' : 'gaminggen')].join(' '));
+  var hayNoSpace = hay.replace(/[\s.-]+/g, '');
+  return tokens.every(function(tk){
+    var tkClean = tk.replace(/[\s.-]+/g, '');
+    return hay.indexOf(tk) >= 0 || (tkClean.length >= 2 && hayNoSpace.indexOf(tkClean) >= 0);
+  });
+}
 try { W = STANDALONE ? null : JSON.parse(localStorage.getItem(WLS) || 'null'); } catch (e) { W = null; }
 try { var wv0 = JSON.parse(localStorage.getItem(WLS + '-ui') || 'null'); if (wv0 && wv0.tier) wView.tier = wv0.tier; } catch (e) {}
 function wOem(){
@@ -4174,27 +4459,47 @@ function wTop(){ var e = $('pcWatch'); if (e && e.scrollIntoView) try { e.scroll
 function renderWatch(){
   var el = $('pcWatch'); if (!el || view.tab !== 'pc') { wBadge(); return; }
   if (!W || !Array.isArray(W.items) || !W.items.length){
-    el.innerHTML = '<h2>İzlenen PC’ler</h2><div class="wnt">' + (STANDALONE ? (VAULT.on ? (VAULT.ec && VAULT.ec.conn ? 'Fiyatlar şu an yüklenemedi. Bağlantını kontrol edip sayfayı yenile; güncelleme her sabah gelir.' : 'Fiyat takibi henüz bağlı değil. Aşağıdaki “Fiyat takibini bağla” ile kodu al ve Claude’a gönder.') : 'Fiyat takibi için PC planını aç.') : 'Henüz veri yok. Claude her gün itopya ve gaming.gen.tr’yi kontrol edip buraya yazacak.') + '</div>'; if (STANDALONE){ el.insertAdjacentHTML('beforeend', '<div id="vTail" class="vtail"></div>'); vaultTail(); } return;
+    el.innerHTML = '<h2>İzlenen PC’ler</h2><div class="wnt">' + (STANDALONE ? (VAULT.on ? 'Fiyatlar yükleniyor veya bağlantı bekleniyor; sayfayı yenile.' : 'Fiyat takibi için PC planını aç.') : 'Henüz veri yok.') + '</div>'; return;
   }
   var unseen = wUnseen(), uk = {}; unseen.forEach(function(a){ uk[wKey(a)] = 1; });
   if (wView.page === 'alerts'){ renderAlertsPage(el, uk); if (unseen.length) setTimeout(wMarkSeen, 1500); return; }
   var liveChip = W_LIVE_ST === 'live'
     ? '<span class="chip" style="color:var(--good);border-color:color-mix(in srgb,var(--good) 45%,var(--line))">● Canlı · ' + esc(wFormatCheck(W)) + '</span>'
     : '<span class="chip"' + (W_LIVE_ST === 'cache' ? ' title="Canlı worker bağlantısı yok, güncel yerel veri gösteriliyor"' : '') + '>' + (W_LIVE_ST === 'cache' ? 'Önbellek · ' : 'Son kontrol ') + esc(wFormatCheck(W)) + '</span>';
-  var h = '<div class="wh"><h2>İzlenen PC’ler</h2><div style="display:flex;gap:8px;align-items:center">' + liveChip + '<button type="button" class="btn small" data-act="wRefresh"' + (wBusy ? ' disabled' : '') + '>' + (wBusy ? 'Kontrol ediliyor…' : '🔄 Fiyatları güncelle') + '</button></div></div>';
-  var all = wAlList(), al = all.slice(0, 3);
-  if (al.length){
-    h += '<div class="walerts">';
-    al.forEach(function(a){
-      h += '<button class="wal ' + esc(a.kind || '') + (uk[wKey(a)] ? ' unseen' : '') + '" data-act="wAlGo" data-k="' + esc(wKey(a)) + '"><i class="ic">' + wKind(a.kind)[0] + '</i><div><span class="d">' + esc(wShortDate(a.t || a.d)) + '</span>' + (uk[wKey(a)] ? '<span class="nw">yeni</span>' : '') + ' ' + esc(a.text) + '</div></button>';
-    });
-    h += '</div><button class="btn small wallbtn" data-act="wAlPage">Tüm bildirimler (' + all.length + ')' + (unseen.length ? ' · ' + unseen.length + L(' yeni', ' new') : '') + ' →</button>';
-  }
+  var all = wAlList();
+  var h = '<div class="wh"><h2>🖥️ Sistemler & Fiyat Takibi</h2><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' + liveChip +
+    (all.length ? '<button type="button" class="btn small" data-act="wAlPage">🔔 Bildirimler (' + all.length + ')' + (unseen.length ? ' · <b>' + unseen.length + ' yeni</b>' : '') + '</button>' : '') +
+    '<button type="button" class="btn small" data-act="wRefresh"' + (wBusy ? ' disabled' : '') + '>' + (wBusy ? 'Kontrol ediliyor…' : '🔄 Güncelle') + '</button></div></div>';
+
+  /* Akıllı Çoklu Kelime Arama Kutusu */
+  var qVal = wView.q || '';
+  var qChips = [
+    ['9800x3d ve rtx 50', '🔥 9800X3D + RTX 50'],
+    ['7800x3d ve rtx 50', '⭐ 7800X3D + RTX 50'],
+    ['9800x3d 5080', '🚀 9800X3D + 5080'],
+    ['7800x3d 5070ti', '🎯 7800X3D + 5070 Ti'],
+    ['gold', '💎 80+ Gold PSU'],
+    ['sivi', '❄️ Sıvı Soğutma']
+  ];
+  h += '<div class="wsearch-box">' +
+    '<div class="wsearch-row">' +
+      '<input type="search" id="wSearchIn" class="wsearch-in" value="' + esc(qVal) + '" placeholder="🔍 Sistem veya parça ara (örn: 9800x3d ve rtx 50, 7800x3d 5070ti, gamegaraj...)" autocomplete="off" spellcheck="false">' +
+      '<button type="button" id="wSearchClr" class="wsearch-clr" data-act="wQClr" title="Aramayı temizle" style="display:' + (qVal ? 'flex' : 'none') + '">✕</button>' +
+    '</div>' +
+    '<div class="wsearch-chips">' +
+      '<small style="font-size:11.5px;color:var(--muted);margin-right:2px">Hızlı ara:</small>' +
+      qChips.map(function(c){
+        var isOn = wNormStr(qVal).trim() === wNormStr(c[0]).trim();
+        return '<button type="button" class="wsearch-chip' + (isOn ? ' on' : '') + '" data-act="wQChip" data-v="' + esc(c[0]) + '">' + c[1] + '</button>';
+      }).join('') +
+    '</div>' +
+  '</div>';
+
   var bud = wBud();
-  h += '<div class="pcsl wbud"><div class="t"><span>Bütçem</span><span id="wBudT">' + wBudTx(bud) + '</span></div><input type="range" id="wBudget" min="100000" max="250000" step="5000" value="' + bud + '" aria-label="PC bütçesi (TL)"><div class="wbs"><span>100 bin</span><span>250 bin</span></div></div>';
-  h += '<div id="wBody"></div>' + (STANDALONE ? '<div id="vTail" class="vtail"></div>' : '');
+  h += '<div class="pcsl wbud"><div class="t"><span>Bütçe Sınırım</span><span id="wBudT">' + wBudTx(bud) + '</span></div><input type="range" id="wBudget" min="100000" max="250000" step="5000" value="' + bud + '" aria-label="PC bütçesi (TL)"><div class="wbs"><span>100 bin ₺</span><span>250 bin ₺</span></div></div>';
+  h += '<div id="wBody"></div>';
   el.innerHTML = h;
-  renderWatchBody(); if (STANDALONE) vaultTail();
+  renderWatchBody();
   if (unseen.length) setTimeout(wMarkSeen, 1500);
 }
 function wRenderCmp(C){
@@ -4240,6 +4545,9 @@ function renderWatchBody(){
   var el = $('wBody'); if (!el || !W) return;
   wEnrich(W);
   var C = pcCompute(), rate = C.rate, bud = wBud(), svd = +C.P.saved || 0, h = '', wrows = '', oem = wOem();
+  var qStr = String(wView.q || '').trim(), hasQ = qStr.length > 0;
+  var clrBtn = $('wSearchClr'); if (clrBtn) clrBtn.style.display = hasQ ? 'flex' : 'none';
+
   W_TIERS.forEach(function(t){
     var B = wBest(t[0], bud), x = B.x; if (!B.all) return;
     if (!x){ wrows += '<button class="wq none" data-act="wTier" data-v="' + t[0] + '"><span class="wql"><small>' + t[2] + ' · ' + t[1] + '</small><b>Bu bütçeye sığmıyor</b></span><span class="wqr"><small>en ucuzu</small><b class="num">' + wTL(B.cheapest.price) + '</b></span></button>'; return; }
@@ -4249,39 +4557,43 @@ function renderWatchBody(){
       var dd = Math.round((parseISO(rd) - parseISO(C.tgt)) / 86400000);
       big = pcDate(rd); cls = dd > 0 ? 'late' : 'ok';
       sub = L('şu an ' + pcE0(e - svd) + ' eksik · ' + (dd > 0 ? 'hedef tarihinden ' + dd + ' gün sonra' : dd < 0 ? 'hedef tarihinden ' + (-dd) + ' gün önce' : 'tam hedef tarihinde'), 'now ' + pcE0(e - svd) + ' short · ' + (dd > 0 ? dd + ' days after the target date' : dd < 0 ? (-dd) + ' days before the target date' : 'exactly on the target date'));
-    } else { big = L('Yetmiyor', 'Not enough'); sub = L('şu an ' + pcE0(e - svd) + ' eksik · bu tempoyla 14 ay içinde yetişmiyor', 'now ' + pcE0(e - svd) + ' short · not reachable within 14 months at this pace'); cls = 'bad'; }
+    } else { big = L('Yetmiyor', 'Not enough'); sub = L('şu an ' + pcE0(e - svd) + ' eksik · 14 ay+ sürer', 'now ' + pcE0(e - svd) + ' short'); cls = 'bad'; }
     wrows += '<button class="wq ' + cls + '" data-act="wTier" data-v="' + t[0] + '"><span class="wql"><small>' + t[2] + ' · ' + t[1] + ' · ★ ' + (x.score || 8.5) + '/10</small><b>' + esc(x.name) + '</b><span class="num">' + wTL(x.price) + ' ≈ ' + pcE0(e) + '</span></span><span class="wqr"><b>' + big + '</b><small>' + sub + '</small></span></button>';
   });
-  if (wrows) h += '<div class="subhead">Bu bütçeyle ne zaman alabilirsin?</div><div class="wqs">' + wrows + '</div><div class="wnt wqn">Her ekran kartı için bütçene sığan en mantıklı sistem seçilir. Tarihler ayırdığın ' + pcE0(svd) + ', maaş tahminin ve gelir giderlerinden hesaplanır; birikimini güncellediğinde, bordro geldiğinde ya da fiyat değiştiğinde kendiliğinden yenilenir.</div>';
   var sumTx = W.ai_summary || W.summary || wBuildSummary(W);
-  if (sumTx) h += '<div class="pcadv wsum"><i class="ic">i</i><div><b>Günlük Sistem & F/P Özeti:</b> ' + esc(sumTx) + '</div></div>';
+  if (wrows && !hasQ){
+    h += '<details class="bd" style="margin-bottom:10px"><summary><span class="l">💡 Kategori Liderleri & Ne Zaman Alabilirsin?</span><span class="chev">›</span></summary><div class="rows" style="padding-top:8px"><div class="wqs">' + wrows + '</div>' + (sumTx ? '<div class="pcadv wsum" style="margin-top:8px"><i class="ic">i</i><div><b>F/P Özeti:</b> ' + esc(sumTx) + '</div></div>' : '') + '</div></details>';
+  }
   h += wRenderCmp(C);
   var tier = wView.tier || '5070ti';
-  h += '<div class="seg wide wtier" role="group" aria-label="Ekran kartı">';
-  W_TIERS.forEach(function(t){ var B = wBest(t[0], bud); h += '<button data-act="wTier" data-v="' + t[0] + '" aria-pressed="' + (tier === t[0]) + '"' + (B.n ? '' : ' class="dim"') + '>' + t[1].replace('RTX ', '') + '<small>' + t[2] + ' · ' + B.n + '</small></button>'; });
-  h += '</div>';
+  if (!hasQ){
+    h += '<div class="seg wide wtier" role="group" aria-label="Ekran kartı">';
+    W_TIERS.forEach(function(t){ var B = wBest(t[0], bud); h += '<button data-act="wTier" data-v="' + t[0] + '" aria-pressed="' + (tier === t[0]) + '"' + (B.n ? '' : ' class="dim"') + '>' + t[1].replace('RTX ', '') + '<small>' + t[2] + ' · ' + B.n + '</small></button>'; });
+    h += '</div>';
+  }
   var favCnt = Object.keys(oem.favs || {}).filter(function(k){ return oem.favs[k]; }).length;
   var hidCnt = Object.keys(oem.hidden || {}).filter(function(k){ return oem.hidden[k]; }).length;
   var is78or98 = function(x){ return /(7800X3D|9800X3D)/i.test((x.cpu || '') + ' ' + (x.name || '')); };
-  var curTierItems = W.items.filter(function(x){ return x.tier === tier; });
-  var x3dCnt = curTierItems.filter(function(x){ return is78or98(x) && !oem.hidden[x.id]; }).length;
-  var ggCnt = curTierItems.filter(function(x){ return (x.site === 'gaming.gen.tr' || x.vendor === 'gaming.gen.tr') && !oem.hidden[x.id]; }).length;
-  var grjCnt = curTierItems.filter(function(x){ return (x.site === 'gamegaraj.com' || x.vendor === 'gamegaraj.com') && !oem.hidden[x.id]; }).length;
+  var poolForCounts = hasQ ? W.items.filter(function(x){ return wMatchQuery(x, qStr); }) : W.items.filter(function(x){ return x.tier === tier; });
+  var allX3dCnt = W.items.filter(function(x){ return is78or98(x) && !oem.hidden[x.id] && (!hasQ || wMatchQuery(x, qStr)); }).length;
+  var ggCnt = poolForCounts.filter(function(x){ return (x.site === 'gaming.gen.tr' || x.vendor === 'gaming.gen.tr') && !oem.hidden[x.id]; }).length;
+  var grjCnt = poolForCounts.filter(function(x){ return (x.site === 'gamegaraj.com' || x.vendor === 'gamegaraj.com') && !oem.hidden[x.id]; }).length;
   h += '<div class="wbar-fil"><div class="wfil" style="margin-top:4px">' +
-    '<button type="button" data-act="wFmode" data-v="all" aria-pressed="' + (wView.fmode === 'all') + '">Tümü (' + curTierItems.length + ')</button>' +
-    (x3dCnt ? '<button type="button" data-act="wFmode" data-v="x3d" aria-pressed="' + (wView.fmode === 'x3d') + '">⭐ 7800X3D / 9800X3D <small>' + x3dCnt + '</small></button>' : '') +
+    '<button type="button" data-act="wFmode" data-v="all" aria-pressed="' + (wView.fmode === 'all') + '">' + (hasQ ? 'Arama Sonuçları (' + poolForCounts.length + ')' : 'Tümü (' + poolForCounts.length + ')') + '</button>' +
+    (allX3dCnt ? '<button type="button" data-act="wFmode" data-v="x3d" aria-pressed="' + (wView.fmode === 'x3d') + '">⭐ 7800X3D / 9800X3D <small>' + allX3dCnt + '</small></button>' : '') +
     (grjCnt ? '<button type="button" data-act="wFmode" data-v="grj" aria-pressed="' + (wView.fmode === 'grj') + '">GameGaraj <small>' + grjCnt + '</small></button>' : '') +
     (ggCnt ? '<button type="button" data-act="wFmode" data-v="gg" aria-pressed="' + (wView.fmode === 'gg') + '">Gaming.Gen.TR <small>' + ggCnt + '</small></button>' : '') +
     (favCnt ? '<button type="button" data-act="wFmode" data-v="fav" aria-pressed="' + (wView.fmode === 'fav') + '">★ Favorilerim <small>' + favCnt + '</small></button>' : '') +
     (hidCnt ? '<button type="button" data-act="wFmode" data-v="hid" aria-pressed="' + (wView.fmode === 'hid') + '">Gizlenenler <small>' + hidCnt + '</small></button>' : '') +
     '</div></div>';
   var allT = W.items.filter(function(x){
+    if (hasQ && !wMatchQuery(x, qStr)) return false;
     if (wView.fmode === 'fav') return !!oem.favs[x.id];
     if (wView.fmode === 'hid') return !!oem.hidden[x.id];
-    if (wView.fmode === 'x3d') return is78or98(x) && x.tier === tier && !oem.hidden[x.id];
-    if (wView.fmode === 'gg') return (x.site === 'gaming.gen.tr' || x.vendor === 'gaming.gen.tr') && x.tier === tier && !oem.hidden[x.id];
-    if (wView.fmode === 'grj') return (x.site === 'gamegaraj.com' || x.vendor === 'gamegaraj.com') && x.tier === tier && !oem.hidden[x.id];
-    return x.tier === tier && !oem.hidden[x.id];
+    if (wView.fmode === 'x3d') return is78or98(x) && !oem.hidden[x.id];
+    if (wView.fmode === 'gg') return (x.site === 'gaming.gen.tr' || x.vendor === 'gaming.gen.tr') && (hasQ || x.tier === tier) && !oem.hidden[x.id];
+    if (wView.fmode === 'grj') return (x.site === 'gamegaraj.com' || x.vendor === 'gamegaraj.com') && (hasQ || x.tier === tier) && !oem.hidden[x.id];
+    return (hasQ || x.tier === tier) && !oem.hidden[x.id];
   }).sort(function(a, b){
     var stockA = (a.stock === 'yok') ? 1 : 0;
     var stockB = (b.stock === 'yok') ? 1 : 0;
@@ -4291,10 +4603,14 @@ function renderWatchBody(){
     if (aTop !== bTop) return bTop - aTop;
     return a.price - b.price;
   });
-  var list = wView.fmode === 'all' ? allT.filter(function(x){ return x.price <= bud; }) : allT;
-  var over = wView.fmode === 'all' ? allT.filter(function(x){ return x.price > bud; }) : [];
-  var pick = (wBest(tier, bud).x || {}).id, show = (wView.all[tier] || wView.fmode !== 'all') ? list : list.slice(0, 5);
-  if (!list.length) h += '<div class="wnt">' + (wView.fmode === 'fav' ? 'Henüz favori sistem seçmedin.' : wView.fmode === 'hid' ? 'Gizlenmiş sistem yok.' : 'Bu ekran kartında ' + wTL(bud) + ' bütçeye sığan sistem yok.' + (over.length ? ' En ucuzu ' + esc(over[0].name) + ': ' + wTL(over[0].price) + '.' : '')) + '</div>';
+  var ignoreBud = hasQ || wView.fmode !== 'all';
+  var list = ignoreBud ? allT : allT.filter(function(x){ return x.price <= bud; });
+  var over = ignoreBud ? [] : allT.filter(function(x){ return x.price > bud; });
+  var pick = (wBest(tier, bud).x || {}).id, show = (wView.all[tier] || ignoreBud) ? list : list.slice(0, 6);
+  if (hasQ){
+    h += '<div class="sub" style="margin:6px 0 8px;display:flex;justify-content:space-between;align-items:center"><span>🔍 <b>“' + esc(qStr) + '”</b> araması için tüm ekran kartlarında <b>' + list.length + '</b> sistem bulundu.</span><button type="button" class="btn small" data-act="wQClr">Aramayı Temizle ✕</button></div>';
+  }
+  if (!list.length) h += '<div class="wnt">' + (hasQ ? '“' + esc(qStr) + '” aramasına uygun sistem bulunamadı. Başka bir anahtar kelime dene.' : wView.fmode === 'fav' ? 'Henüz favori sistem seçmedin.' : wView.fmode === 'hid' ? 'Gizlenmiş sistem yok.' : 'Bu ekran kartında ' + wTL(bud) + ' bütçeye sığan sistem yok.' + (over.length ? ' En ucuzu ' + esc(over[0].name) + ': ' + wTL(over[0].price) + '.' : '')) + '</div>';
   show.forEach(function(x){
     var hs = x.hist || [], prev = hs.length > 1 ? hs[hs.length - 2][1] : null, ch = prev ? r2(x.price - prev) : 0;
     var eurV = x.price / rate, rd = C.reach(eurV), saved = +C.P.saved || 0;
@@ -4365,15 +4681,14 @@ function renderPcLog(){
     rows.push('<div class="pclr"><div class="a"><span>' + pcDate(e.d) + '</span><b class="num">' + eur(e.amt) + '</b><button class="x" data-act="pcLogDel" data-id="' + esc(e.id) + '" aria-label="Kaydı sil">✕</button></div><div class="b num">' + b + '</div></div>');
   });
   var sv = +P.saved || 0, rt = +P.rate > 0 ? +P.rate : 1;
-  var h = '<h2>Birikim geçmişi</h2><div class="pcsv"><div class="eb">Bilgisayar için birikiminiz</div><div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap"><div><div class="big num">' + eur(sv) + '</div><div class="sub num">≈ ' + pcTL(sv * rt) + '</div></div><div style="display:flex;gap:6px"><button type="button" class="btn small" data-act="pcEditSaved">Düzenle</button><button type="button" class="btn small danger" data-act="pcResetSaved" title="Birikimi sıfırla">Sıfırla</button></div></div></div>' +
-    '<div class="pcadd"><label for="pcAddAmt" class="fh">Yeni birikim ekle (€)</label>' +
+  var h = '<div class="hero-top" style="margin-bottom:8px"><h2 style="margin:0">💰 Birikim Yönetimi & Geçmiş</h2><div style="display:flex;gap:6px"><button type="button" class="btn small" data-act="pcEditSaved">Toplamı Düzenle (' + eur(sv) + ')</button><button type="button" class="btn small danger" data-act="pcResetSaved" title="Birikimi sıfırla">Sıfırla</button></div></div>' +
+    '<div class="pcadd"><label for="pcAddAmt" class="fh">Yeni birikim ekle (€) — Mevcut: <b>' + eur(sv) + '</b> (≈ ' + pcTL(sv * rt) + ')</label>' +
     (PC_ADD.pend > 0
       ? '<div class="pcconf num"><div><b>' + eur(PC_ADD.pend) + '</b> eklenecek. Yeni toplam: <b>' + eur(r2(sv + PC_ADD.pend)) + '</b></div><div class="row"><button class="btn primary small" data-act="pcAddOk">Onayla</button><button class="btn small" data-act="pcAddNo">Vazgeç</button></div></div>'
-      : '<div class="row"><input id="pcAddAmt" inputmode="decimal" placeholder="örn. 250" value="' + esc(PC_ADD.v) + '"><button class="btn primary small" data-act="pcAddAsk">Ekle</button></div>') +
-    (PC_ADD.err ? '<div class="fh" role="status" style="color:var(--bad)">' + esc(PC_ADD.err) + '</div>' : '') + '</div>' +
-    '<div class="sub" style="margin:10px 0 8px">Eklediğin tutar toplam birikimine yazılır ve geçmişe kaydolur. Toplamı doğrudan değiştirmek istersen yukarıdaki “PC için ayırdığım” kutusunu kullan. Her kayıt tahminle karşılaştırılır.</div>';
+      : '<div class="row"><input id="pcAddAmt" inputmode="decimal" placeholder="örn. 250" value="' + esc(PC_ADD.v) + '"><button class="btn primary small" data-act="pcAddAsk">+ Ekle</button></div>') +
+    (PC_ADD.err ? '<div class="fh" role="status" style="color:var(--bad)">' + esc(PC_ADD.err) + '</div>' : '') + '</div>';
   if (n2) h += '<div class="pcst' + (tot >= 0 ? '' : ' bad') + '" style="margin-top:10px">Kayıtlara göre toplam: tahminden <b class="num">' + (tot >= 0 ? pcE0(tot) + ' önde' : pcE0(-tot) + ' geride') + '</b>.</div>';
-  h += rows.length ? '<div style="margin-top:6px">' + rows.reverse().join('') + '</div>' : '<div class="sub" style="margin-top:10px">Henüz kayıt yok.</div>';
+  h += rows.length ? '<div style="margin-top:6px">' + rows.reverse().join('') + '</div>' : '<div class="sub" style="margin-top:8px">Henüz birikim geçmişi kaydı yok.</div>';
   el.innerHTML = h;
 }
 function onPcInput(t){
@@ -4410,7 +4725,7 @@ function onPcInput(t){
 /* ---------- Kart düzeni (bu cihazda saklanır) ---------- */
 var LAYK = LS + '-layout';
 var LAY_DEF = {
-  maas: [['hero', 'Özet', 'l'], ['days', 'Günler', 'r'], ['goal', 'Haftalık hedef', 'l'], ['brk', 'Maaş dökümü', 'l'], ['year', 'Yıl toplamları', 'l'], ['month', 'Aylık özet', 'l']],
+  maas: [['hero', 'Özet', 'l'], ['days', 'Günler', 'r'], ['goal', 'Haftalık hedef', 'l'], ['brk', 'Maaş dökümü', 'l'], ['savGoal', 'Birikimim & Hedefim', 'l'], ['month', 'Aylık özet', 'l'], ['year', 'Yıl toplamları', 'l']],
   pc: [['pcHero', 'Sonuç', 'l'], ['pcWatch', 'İzlenen PC’ler', 'l'], ['pcWhat', 'Ya şöyle olsa?', 'l'], ['pcSet', 'Bilgilerim', 'r'], ['pcItems', 'Gelir ve giderlerim', 'r'], ['pcLog', 'Birikim geçmişi', 'l'], ['pcWk', 'Ay ay tahmin', 'l']]
 };
 var layS = {}; try { layS = JSON.parse(localStorage.getItem(LAYK) || '{}') || {}; } catch (e) { layS = {}; }
@@ -4516,6 +4831,16 @@ function layToggle(on){
   var b = $('layBtn'); if (b) b.textContent = on ? 'Bitti' : 'Düzenle';
   var r = $('layReset'); if (r) r.hidden = !on;
 }
+function applyMaasSub(){
+  var m = $('maasPage'); if (m) m.setAttribute('data-sub', view.maasSub || 'wk');
+  document.querySelectorAll('#maasSubTabs button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === (view.maasSub || 'wk'))); });
+}
+function setMaasSub(v){
+  view.maasSub = (v === 'brk' || v === 'yr') ? v : 'wk';
+  try { localStorage.setItem(LS + '-maassub', view.maasSub); } catch (e) {}
+  applyMaasSub();
+  renderSecBanner();
+}
 function applyPcSub(){
   var p = $('pcPage'); if (p) p.setAttribute('data-sub', view.pcSub || 'sum');
   document.querySelectorAll('#pcSubTabs button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === (view.pcSub || 'sum'))); });
@@ -4524,6 +4849,7 @@ function setPcSub(v){
   view.pcSub = (v === 'sys' || v === 'cfg') ? v : 'sum';
   try { localStorage.setItem(LS + '-pcsub', view.pcSub); } catch (e) {}
   applyPcSub();
+  renderSecBanner();
 }
 function applyTab(){
   var app = document.querySelector('.app'); if (!app) return;
@@ -4531,17 +4857,18 @@ function applyTab(){
   app.classList.toggle('nopc', !pcOk());
   app.classList.toggle('pcmode', view.tab === 'pc');
   document.querySelectorAll('#mainTabs button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.getAttribute('data-v') === view.tab)); });
+  applyMaasSub();
   applyPcSub();
 }
 function setTab(v){
   view.tab = v === 'pc' ? 'pc' : 'maas'; try { localStorage.setItem(LS + '-tab', view.tab); } catch (e) {}
-  applyTab(); if (view.tab === 'pc') renderPc(true); wBadge(); window.scrollTo({ top: 0 });
+  applyTab(); renderSecBanner(); if (view.tab === 'pc') renderPc(true); wBadge(); window.scrollTo({ top: 0 });
 }
 
 /* ---------- Olaylar ---------- */
 document.addEventListener('click', function(ev){
   var el = ev.target.closest('[data-act]');
-  if (!el){ if (ev.target.id === 'ov') closeSheet(); if (ev.target.id === 'ov2') $('ov2').hidden = true; if (ev.target.id === 'ov3') $('ov3').hidden = true; if (ev.target.id === 'ov4') $('ov4').hidden = true; if (ev.target.id === 'ov5') $('ov5').hidden = true; return; }
+  if (!el){ if (ev.target.id === 'ov') closeSheet(); if (ev.target.id === 'ov2') $('ov2').hidden = true; if (ev.target.id === 'ov3') $('ov3').hidden = true; if (ev.target.id === 'ov4') $('ov4').hidden = true; if (ev.target.id === 'ov5') $('ov5').hidden = true; if (ev.target.id === 'ovPbConf') pbApplyPending('cancel'); return; }
   var a = el.getAttribute('data-act');
   if (a === 'layEdit'){ layToggle(!document.querySelector('.app').classList.contains('editing')); }
   else if (a === 'layReset'){ layS = {}; laySave(); layApply(); }
@@ -4550,8 +4877,58 @@ document.addEventListener('click', function(ev){
   else if (/^v[A-Z]/.test(a)){ if (STANDALONE) vaultAct(a, el); }
   else if (a === 'tabMaas'){ setTab('maas'); }
   else if (a === 'tabPc'){ if (pcOk()){ setTab('pc'); loadWatch(); } }
+  else if (a === 'maasSub'){ setMaasSub(el.getAttribute('data-v')); }
   else if (a === 'pcSub'){ setPcSub(el.getAttribute('data-v')); }
   else if (a === 'uiVer'){ setUiVer(el.getAttribute('data-v')); }
+  else if (a === 'copyAiCtx'){
+    var aiPrompt = 'Proje: ShiftPay (' + APP_VER + ')\nCanlı URL: https://shiftpay-app.pages.dev/\nGitHub Tek Doğru Kaynak (Source of Truth): https://github.com/okanozgur16/maas-takip\nMimari Rehber: https://shiftpay-app.pages.dev/AI-CONTEXT.md (veya repodaki AI-CONTEXT.md & CLAUDE.md)\nGeri Dönüş Dalı: backup-pre-v19\nNot: Lütfen AI-CONTEXT.md dosyasındaki şifreleme (AES-256-GCM), gizli PC planı ve sürüm kurallarını baz alarak kaldığımız yerden devam et.';
+    try {
+      navigator.clipboard.writeText(aiPrompt).then(function(){
+        var m = $('aiCtxMsg'); if (m) m.textContent = '✓ AI devam kodu kopyalandı! İstediğin yapay zekaya yapıştırabilirsin.';
+      }, function(){
+        var m = $('aiCtxMsg'); if (m) m.textContent = 'GitHub: github.com/okanozgur16/maas-takip';
+      });
+    } catch (e) {}
+  }
+  else if (a === 'pbConfKeep'){ pbApplyPending('keep'); }
+  else if (a === 'pbConfAll'){ pbApplyPending('all'); }
+  else if (a === 'pbConfCancel'){ pbApplyPending('cancel'); }
+  else if (a === 'wQClr'){ wView.q = ''; var si = $('wSearchIn'); if (si) si.value = ''; renderWatch(); }
+  else if (a === 'wQChip'){
+    var cq = el.getAttribute('data-v') || '';
+    wView.q = (wNormStr(wView.q).trim() === wNormStr(cq).trim()) ? '' : cq;
+    renderWatch();
+  }
+  else if (a === 'ugAdd'){
+    var ug0 = userGoalObj();
+    var addStr = window.prompt('Mevcut birikimine (' + eur(ug0.saved) + ') kaç € eklemek istiyorsun? (Çıkarmak için başına eksi koyabilirsin):', '150');
+    if (addStr !== null){
+      var delta = parseFloat(String(addStr).replace(',', '.'));
+      if (!isNaN(delta)){
+        state.settings = state.settings || {};
+        state.settings.userGoal = Object.assign({}, ug0, { saved: Math.max(0, r2(ug0.saved + delta)) });
+        commit();
+        renderSavGoal(true);
+      }
+    }
+  }
+  else if (a === 'ugReset'){
+    if (window.confirm('Mevcut birikim tutarın €0 olarak sıfırlansın mı?')){
+      var ug1 = userGoalObj();
+      state.settings = state.settings || {};
+      state.settings.userGoal = Object.assign({}, ug1, { saved: 0 });
+      commit();
+      renderSavGoal(true);
+    }
+  }
+  else if (a === 'ugTempo'){
+    var tv = Math.max(10, +el.getAttribute('data-v') || 150);
+    var ug2 = userGoalObj();
+    state.settings = state.settings || {};
+    state.settings.userGoal = Object.assign({}, ug2, { weeklySave: tv });
+    commit();
+    renderSavGoal(true);
+  }
   else if (a === 'pwaInstall'){
     if (PWA_PROMPT){
       var pr = PWA_PROMPT; PWA_PROMPT = null;
@@ -4662,7 +5039,7 @@ document.addEventListener('click', function(ev){
     if (!same){
       state.entries.filter(function(e){ return e.date === dd; }).forEach(function(x){ if (x.id) tomb(x.id); });
       state.entries = state.entries.filter(function(e){ return e.date !== dd; });
-      state.entries.push({ id: uid(), type: kind, date: dd });
+      state.entries.push({ id: uid(), type: kind, date: dd, userEdited: true, u: Date.now() });
     }
     commit();
   }
@@ -4699,7 +5076,24 @@ document.addEventListener('input', function(ev){
   var t = ev.target;
   if (t.id === 'ntfAt'){ if (/^\d\d:\d\d$/.test(t.value)){ NTF.at = t.value; ntfSave(); ntfSoon(); } return; }
   if (t.id === 'pcAddAmt'){ PC_ADD.v = t.value; PC_ADD.err = ''; return; }
+  if (t.id === 'wSearchIn'){ wView.q = t.value; renderWatchBody(); return; }
   if (t.id === 'wBudget'){ state.pc.budget = +t.value; $('wBudT').innerHTML = wBudTx(+t.value); renderWatchBody(); return; }
+  if (t.id === 'ug_wk'){
+    var ugW = userGoalObj(); ugW.weeklySave = Math.max(10, +t.value || 150);
+    state.settings.userGoal = ugW;
+    if ($('ug_wk_in')) $('ug_wk_in').value = String(ugW.weeklySave);
+    renderSavGoal(false);
+    return;
+  }
+  if (t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk_in'){
+    var ugI = userGoalObj();
+    if (t.id === 'ug_saved') ugI.saved = Math.max(0, num(t.value));
+    else if (t.id === 'ug_title') ugI.title = t.value.slice(0, 45);
+    else if (t.id === 'ug_target') ugI.targetAmt = Math.max(0, num(t.value));
+    else if (t.id === 'ug_wk_in') ugI.weeklySave = Math.max(10, num(t.value) || 10);
+    state.settings.userGoal = ugI;
+    return;
+  }
   if (t.id === 'pcw_s' || t.id === 'pcw_w'){
     var W = view.pcWhat || (view.pcWhat = { s: 0, w: 0 }); if (t.id === 'pcw_s') W.s = +t.value; else W.w = +t.value;
     var tx = pcWhatTxt(W); $('pcw_st').textContent = tx[0]; $('pcw_wt').textContent = tx[1]; $('pcw_out').innerHTML = pcWhatOut(); $('pcw_rs').style.display = (W.s || W.w) ? '' : 'none'; return;
@@ -4715,13 +5109,14 @@ document.addEventListener('change', function(ev){
   else if (t.id === 'pdfIn' || t.id === 'pdfIn2'){ var fl = Array.prototype.slice.call(t.files || []); t.value = ''; if (fl.length) importFiles(fl); }
   else if (t.id === 'sDate'){ fillSlipForm(); }
   else if (t.id === 'wpDate'){ if (t.value){ view.week = weekStart(t.value); $('ov4').hidden = true; renderAll(); window.scrollTo({ top: 0 }); } }
+  else if (t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk' || t.id === 'ug_wk_in'){ commit(); renderSavGoal(true); }
   else if (t.closest && t.closest('#pcPage') && t.getAttribute('data-pc')){ onPcInput(t); }
   else if (t.id === 'wBudget'){ state.pc.budget = +t.value; state.pc.updated = Date.now(); commit(); }
   else if (t.id === 'goalIn'){ var g = num(t.value); if (g > 0){ state.settings.goalNet = g; commit(); } }
   else if (t.closest && t.closest('#ov')) updatePreview();
   else if (t.closest && t.closest('#setBody')) onSettingInput(t);
 });
-document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape'){ closeSheet(); $('ov2').hidden = true; $('ov3').hidden = true; $('ov4').hidden = true; $('ov5').hidden = true; } });
+document.addEventListener('keydown', function(ev){ if (ev.key === 'Escape'){ closeSheet(); $('ov2').hidden = true; $('ov3').hidden = true; $('ov4').hidden = true; $('ov5').hidden = true; if ($('ovPbConf') && !$('ovPbConf').hidden) pbApplyPending('cancel'); } });
 
 (function(){ var d = $('drop'); if (!d) return;
   ['dragenter', 'dragover'].forEach(function(n){ d.addEventListener(n, function(e){ e.preventDefault(); d.classList.add('over'); }); });
