@@ -1543,7 +1543,7 @@ var view = {
   week: weekStart(today),
   wkSel: null,
   tab: (function(){ try { return localStorage.getItem(LS + '-tab') === 'pc' ? 'pc' : 'maas'; } catch (e) { return 'maas'; } })(),
-  maasSub: (function(){ try { var m = localStorage.getItem(LS + '-maassub'); return m === 'brk' || m === 'yr' ? m : 'wk'; } catch (e) { return 'wk'; } })(),
+  maasSub: 'wk',
   pcSub: (function(){ try { var s = localStorage.getItem(LS + '-pcsub'); return s === 'sys' || s === 'cfg' ? s : 'sum'; } catch (e) { return 'sum'; } })()
 };
 
@@ -2463,7 +2463,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-18-shiftpay-v24';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-18-shiftpay-v25';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -5301,7 +5301,7 @@ function applyMaasSub(){
 }
 function setMaasSub(v){
   view.maasSub = (v === 'brk' || v === 'yr') ? v : 'wk';
-  try { localStorage.setItem(LS + '-maassub', view.maasSub); } catch (e) {}
+  
   var mL = layGet('maas'), cards = view.maasSub === 'brk' ? ['brk'] : view.maasSub === 'yr' ? ['savGoal', 'month', 'year'] : ['hero', 'days', 'goal'];
   var chF = false;
   cards.forEach(function(cid){ if (mL.fold && mL.fold[cid]){ mL.fold[cid] = false; chF = true; } });
