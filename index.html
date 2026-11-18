@@ -2463,7 +2463,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-18-shiftpay-v25';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-18-shiftpay-v26';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -4693,16 +4693,18 @@ async function applyLiveWatch(wv, force){
     if (itemsToSend.length < 15){
       wv.items.slice(0, 15).forEach(function(it){ if (!seenIds[it.id] && itemsToSend.length < 15){ seenIds[it.id] = 1; itemsToSend.push(it); } });
     }
+    if (window.__pcWatchOff){ W_LIVE_ST = 'cache'; return wv; }
     var res = await ntfPost('/api/pc-watch', {
       force: !!force,
       items: itemsToSend.map(function(x){ return { id: x.id, name: x.name, site: x.site, tier: x.tier, url: x.url, price: x.price, stock: x.stock }; })
     }).catch(function(){ return null; });
-    if (!res || !res.ok){ W_LIVE_ST = 'cache'; return wv; }
+    if (!res || !res.ok){ if (res && (res.http === 400 || res.http === 404)) window.__pcWatchOff = true; W_LIVE_ST = 'cache'; return wv; }
     W_LIVE_ST = 'live';
-    if (res.rate > 0){
-      wv.rate = res.rate;
-      if (state.pc && !state.pc.rateLock && Math.abs((+state.pc.rate || 0) - res.rate) >= 0.05){
-        state.pc.rate = res.rate;
+    var liveRate = +(res.rate || res.eurRate) || 0;
+    if (liveRate > 0){
+      wv.rate = liveRate;
+      if (state.pc && !state.pc.rateLock && Math.abs((+state.pc.rate || 0) - liveRate) >= 0.05){
+        state.pc.rate = liveRate;
       }
     }
     if (res && res.ok && res.updates){
