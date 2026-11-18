@@ -917,6 +917,122 @@ html:not(.ui-classic) .pcgrid[data-sub="cfg"] [data-card="pcWk"]{display:none !i
 .savg-tbtn.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 14%,var(--surface2))}
 @media (max-width:520px){.savg-tempos{grid-template-columns:1fr}}
 
+/* v21: myHolland Yanıp Sönen Yeni Hafta Bordro Bildirimi */
+@keyframes mhPulseGlow {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 color-mix(in srgb, var(--c150) 55%, transparent); opacity: 1; }
+  50% { transform: scale(1.02); box-shadow: 0 0 0 6px color-mix(in srgb, var(--c150) 0%, transparent); opacity: 0.86; }
+}
+.mh-pulse-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--c150);
+  background: color-mix(in srgb, var(--c150) 14%, var(--surface));
+  border: 1.5px solid color-mix(in srgb, var(--c150) 55%, var(--line));
+  cursor: pointer;
+  animation: mhPulseGlow 1.8s infinite ease-in-out;
+  text-align: left;
+  max-width: 100%;
+}
+.mh-pulse-badge:hover {
+  background: color-mix(in srgb, var(--c150) 22%, var(--surface));
+}
+
+/* v21: Adım Adım Özel Kira & Ev Gideri Rehberi */
+.home-step {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--surface2);
+  border: 1px solid var(--line);
+}
+.home-step-hd {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.home-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0 10px;
+}
+.home-pchip {
+  padding: 5px 10px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s;
+}
+.home-pchip.on {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  color: var(--accent);
+}
+
+/* v21: Mobil Yazı ve Buton Taşmalarını Önleme (320px - 600px) */
+@media (max-width: 600px) {
+  html, body { overflow-x: hidden; max-width: 100vw; }
+  .app { padding: 12px 10px 68px; max-width: 100%; overflow-x: hidden; }
+  .top { gap: 8px; margin-bottom: 10px; }
+  .brand { font-size: 18px; flex-wrap: wrap; gap: 6px; min-width: 0; }
+  .top-actions { width: 100%; justify-content: space-between; gap: 5px; }
+  .weeknav { flex: 1 1 auto; min-width: 0; }
+  .weeknav .label { min-width: 0; font-size: 13px; padding: 2px 4px; overflow: hidden; text-overflow: ellipsis; }
+  .weeknav .label small { font-size: 10.5px; }
+  .top-actions > .btn.small { padding: 6px 8px; font-size: 12px; }
+  .pcsubbar, .maassubbar { flex-direction: column; align-items: stretch; gap: 6px; }
+  .pcsubtabs, .maassubtabs { flex: 1 1 auto; width: 100%; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 3px; padding: 3px; }
+  .pcsubtabs button, .maassubtabs button {
+    white-space: normal;
+    font-size: 11.5px;
+    line-height: 1.2;
+    padding: 6px 4px;
+    height: auto;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    word-break: break-word;
+  }
+  .sechead { padding: 10px 12px; gap: 8px; }
+  .sechead-tx b { font-size: 13.5px; }
+  .sechead-tx small { font-size: 11.5px; }
+  .card { padding: 14px 12px; border-radius: 16px; min-width: 0; max-width: 100%; box-sizing: border-box; }
+  .hero-top { flex-wrap: wrap; gap: 6px; }
+  .big { font-size: 31px; word-break: break-word; }
+  .legend { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+  .lg { padding: 7px 6px; min-width: 0; }
+  .lg .k { font-size: 11px; }
+  .lg .e { font-size: 13px; }
+  .slip { gap: 6px; }
+  .addrow { flex-wrap: wrap; gap: 6px; padding: 8px 10px; }
+  .addrow button { flex: 1 1 calc(33.33% - 6px); min-width: 76px; padding: 6px 4px; font-size: 12px; }
+  .dayhead { flex-wrap: wrap; gap: 6px; padding: 9px 10px; }
+  .item { padding: 9px 10px; gap: 4px 6px; }
+  .item .t { font-size: 13.5px; }
+  .item .amt { font-size: 14px; }
+  .settabs { flex-wrap: wrap; }
+  .settabs button, .settabs.six button { flex: 1 1 calc(33.33% - 4px); font-size: 12px; padding: 6px 4px; white-space: normal; line-height: 1.15; }
+  .crow { grid-template-columns: 1fr 82px 76px auto; gap: 4px; }
+  .crow.hrow { grid-template-columns: 1fr 95px auto; }
+  .sh-foot { flex-wrap: wrap; gap: 6px; }
+}
+
 </style>
 </head>
 <body>
@@ -1288,6 +1404,34 @@ function normalize(s){
     s.pc.goalSel = { min: 'a', mid: 'b', max: 'c' }[pc0.goalSel] || 'b';
   }
   s.entries = s.entries.filter(function(e){ return e && typeof e === 'object' && e.id && e.id !== 'b45' && e.id !== 'b45v' && typeof e.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(e.date); });
+  /* v21 Kendi Kendini Onaran Veri Motoru (Self-Healing): mükerrer vardiya temizliği, eski silinmiş kayıtların budanması ve konut ayar uyumu */
+  (function selfHeal(){
+    var seenE = {}, dedup = [];
+    s.entries.forEach(function(e){
+      var sig = e.date + '|' + (e.type || '') + '|' + (e.shift || '') + '|' + (e.start || '') + '|' + (e.end || '') + '|' + (e.hours || '') + '|' + (e.h100 || '');
+      if (!seenE[sig]){ seenE[sig] = e; dedup.push(e); }
+      else {
+        var prev = seenE[sig];
+        if ((e.userEdited && !prev.userEdited) || ((+e.u || 0) > (+prev.u || 0))){
+          var idx = dedup.indexOf(prev);
+          if (idx >= 0) dedup[idx] = e;
+          seenE[sig] = e;
+        }
+      }
+    });
+    s.entries = dedup;
+    if (s.del && typeof s.del === 'object'){
+      var cutoffDel = Date.now() - 60 * 86400000;
+      Object.keys(s.del).forEach(function(k){
+        if (typeof s.del[k] === 'number' && s.del[k] > 1000000000000 && s.del[k] < cutoffDel) delete s.del[k];
+      });
+    }
+    if (!s.settings.homeIncMode){
+      var hasExtra = Array.isArray(s.settings.homeExp) && s.settings.homeExp.some(function(x){ return x && (+x.a || 0) > 0; });
+      s.settings.homeIncMode = hasExtra ? 'extra' : 'all';
+    }
+    if (!s.settings.homeDeductMode) s.settings.homeDeductMode = 'monthly';
+  })();
   ['2025-12-29', '2025-11-10', '2025-09-29', '2025-09-22'].forEach(function(badW){ if (s.slips && s.slips[badW]) delete s.slips[badW]; });
   if (s.payslips){ Object.keys(s.payslips).forEach(function(w){ if (!s.slips[w] && typeof s.payslips[w] === 'number') s.slips[w] = { source: 'elle', hours: null, lines: null, payable: s.payslips[w] }; }); delete s.payslips; }
   Object.keys(SEED.weeks).forEach(function(w){
@@ -1304,7 +1448,16 @@ function normalize(s){
 }
 var state;
 try { var raw = localStorage.getItem(LS); state = normalize(raw ? JSON.parse(raw) : null); if (!raw) state.updated = 0; } catch (e) { state = normalize(null); state.updated = 0; }
-var SET_EXTRA = { housingMode: 'company', rentMonthly: 0, rentDay: 1, extraIns: 0, custom: [], driverMode: 'on', insMode: 'slip', insMonthly: 0, homeRent: 0, homeExp: [] };
+var SET_EXTRA = { housingMode: 'company', rentMonthly: 0, rentDay: 1, extraIns: 0, custom: [], driverMode: 'on', insMode: 'slip', insMonthly: 0, homeRent: 0, homeExp: [], homeIncMode: 'all', homeDeductMode: 'monthly' };
+function homeMonthlyActiveTotal(st){
+  st = st || (state && state.settings) || {};
+  if ((st.housingMode || 'company') !== 'none') return 0;
+  var r = Math.abs(+st.homeRent || 0), o = 0;
+  if ((st.homeIncMode || 'all') === 'extra'){
+    (Array.isArray(st.homeExp) ? st.homeExp : []).forEach(function(x){ if (x) o += Math.abs(+x.a || 0); });
+  }
+  return r2(r + o);
+}
 /* Kira ayda bir kesiliyorsa: ayın rentDay'i hangi haftaya düşüyorsa o hafta */
 function rentWeek(ws, day){
   if (!ws) return false;
@@ -1319,7 +1472,9 @@ function SET(ws){
   if (S.insMode === 'self'){ S.insurance = 0; S.extraIns = 0; }
   var ci = 0, co = 0;
   (Array.isArray(S.custom) ? S.custom : []).forEach(function(c){ var a = Math.abs(+c.a || 0); if (c.kind === 'in') ci += a; else co += a; });
-  S.customIn = r2(ci); S.customOut = r2(co);
+  var wkHome = (S.housingMode === 'none' && S.homeDeductMode === 'weekly') ? r2(homeMonthlyActiveTotal(S) * 12 / 52) : 0;
+  S.wkHomeDeduct = wkHome;
+  S.customIn = r2(ci); S.customOut = r2(co + wkHome);
   return S;
 }
 var today = toISO(new Date());
@@ -1991,16 +2146,22 @@ function ntfCardHTML(){
   if (NTF.msg) h += '<small class="fh" role="status">' + esc(NTF.msg) + '</small>';
   return h + '</div>';
 }
+var OWNER_SYNC_ID = '334e83e9dfc83510848bfa0982e0b0d3e78958182732d79bc69025135cfe8612';
+function isOwner(){
+  if (typeof pcOk === 'function' && pcOk()) return true;
+  if (typeof sync !== 'undefined' && sync && sync.id === OWNER_SYNC_ID) return true;
+  return false;
+}
 function vaultTail(){
   var el = $('vTail'); if (!el) return;
   var h = '';
   if (VAULT.on){
     var cn = !!(VAULT.ec && VAULT.ec.conn);
-    h += '<div class="vrow">' + (cn ? '<small class="fh">Fiyat takibi bağlı ✓</small>' : '<button class="btn small" data-act="vKeyShow">Fiyat takibini bağla</button>') + '<button class="btn small" data-act="vHide">Gizle</button><button class="btn small" data-act="vLockBtn">Kilitle ve gizle</button></div>';
+    h += '<div class="vrow">' + (cn ? '<small class="fh">Fiyat takibi bağlı ✓</small>' : '<button class="btn small" data-act="vKeyShow">Fiyat takibini bağla</button>') + '<button class="btn small" data-act="copyAiCtx">🤖 AI Devam Kodu</button><button class="btn small" data-act="vHide">Gizle</button><button class="btn small" data-act="vLockBtn">Kilitle ve gizle</button><span id="aiCtxMsg" class="sub"></span></div>';
     if (VAULT.keyOpen && VAULT.ec && !VAULT.ec.conn) h += '<div class="vkey"><small class="fh">Bu kod gizli değil, sadece verileri sana şifreler. Claude’a gönder; günlük fiyat takibi bu kodla şifreli yazılacak.</small><code>' + esc(VAULT.ec.pub) + '</code><button class="btn small" data-act="vCopy">Kopyala</button></div>';
     h += vPushHTML();
   } else if (!VAULT.exists){
-    h += '<div class="vrow"><small class="fh">PC planın şu an sadece maaş eşitleme koduyla korunuyor.</small><button class="btn small" data-act="vOpenBtn">Özel şifreyle koru</button></div>';
+    h += '<div class="vrow"><small class="fh">PC planın şu an sadece maaş eşitleme koduyla korunuyor.</small><button class="btn small" data-act="vOpenBtn">Özel şifreyle koru</button><button class="btn small" data-act="copyAiCtx">🤖 AI Devam Kodu</button></div>';
     h += vPushHTML();
   }
   el.innerHTML = h;
@@ -2208,7 +2369,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-18-shiftpay-v20';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-18-shiftpay-v21';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2409,6 +2570,11 @@ function weekResult(ws, mode){
     p = Object.assign({}, est, { empty: false, payable: +slip.payable || 0 });
     if (slip.gross != null) p.gross = slip.gross;
   }
+  if (S.wkHomeDeduct > 0){
+    p.bankPayable = p.payable;
+    p.wkHomeDeduct = S.wkHomeDeduct;
+    p.payable = r2(p.payable - S.wkHomeDeduct);
+  }
   return { t: t, p: p, est: est, slip: slip };
 }
 function parkOf(p){ return r2(p.extraTravel || 0); }
@@ -2417,10 +2583,11 @@ function renderHero(){
   var cur = weekResult(ws, mode), t = cur.t, p = cur.p, slip = cur.slip, est = cur.est;
   var tot = t.norm + t.irr + t.over;
   var payDay = addDays(ws, 10), slipDay = addDays(ws, 9);
-  var h = '<div class="hero-top"><div class="eyebrow">' + (slip ? 'Hesabına yatan' : 'Hesabına yatacak') + '</div>' +
+  var h = '<div class="hero-top"><div class="eyebrow">' + (slip ? (p.wkHomeDeduct > 0 ? 'Kira & Giderler Düşüldükten Sonra Kalan' : 'Hesabına yatan') : (S.wkHomeDeduct > 0 ? 'Kira & Giderler Düşülmüş Tahmin' : 'Hesabına yatacak')) + '</div>' +
     (slip ? '<span class="chip">Bordro ile kesinleşti</span>' : '<div class="seg" role="group" aria-label="Hesap türü"><button data-act="mode" data-v="done" aria-pressed="' + (mode === 'done') + '">Yapılan</button><button data-act="mode" data-v="all" aria-pressed="' + (mode === 'all') + '">Planlı dahil</button></div>') + '</div>';
   h += '<div class="big num' + (!p.empty && p.payable < 0 ? ' neg' : '') + (p.empty ? ' empty' : '') + '">' + (p.empty ? eur(0) : eur(p.payable)) + '</div>';
   h += '<div class="sub">Bordro ' + dlabel(slipDay) + ' · maaş ' + dlabel(payDay) + '</div>';
+  if (!p.empty && slip && p.wkHomeDeduct > 0) h += '<div class="basel num">Bankaya yatan <b>' + eur(p.bankPayable) + '</b> − haftalık kira & fatura payı <span class="exp">−' + eur(p.wkHomeDeduct) + '</span></div>';
   if (!p.empty && parkOf(p) > 0) h += '<div class="basel num">Normal para <b>' + eur(r2(p.payable - parkOf(p))) + '</b> + <span class="pkc">' + eur(parkOf(p)) + ' park ödeneği</span></div>';
   var seg = function(c, v){ return v > 0 ? '<i class="' + c + '" style="width:' + (v / tot * 100) + '%"></i>' : ''; };
   h += '<div class="bar" role="img" aria-label="Saat dağılımı">' + (tot > 0 ? seg('b100', t.norm) + seg('b150', t.irr) + seg('b185', t.over) : '') + '</div>';
@@ -2440,19 +2607,19 @@ function renderHero(){
     h += '<div class="callout"><span>Bu haftaya henüz saat girilmedi. Günlerden birine vardiya ekle.</span>' +
       (other45 ? '<button class="btn small" data-act="openWeek" data-w="' + other45 + '">Son bordro haftasını aç</button>' : '') + '</div>';
   }
+  /* Salı gecesi 18:00'den Çarşamba öğlen 14:00'e kadar (veya Bordro ekle'ye basılana kadar) myHolland yanında yanıp sönen bildirim */
+  var prevW = addDays(weekStart(today), -7), prevSlip = state.slips[prevW], nowD = new Date(), dow = nowD.getDay(), hrNow = nowD.getHours();
+  var mhClicked = false; try { mhClicked = localStorage.getItem(LS + '-slipclicked-' + prevW) === '1'; } catch (e) {}
+  var showMhPulse = !prevSlip && !mhClicked && ((dow === 2 && hrNow >= 18) || (dow === 3 && hrNow < 14));
   h += '<div class="slip"><button class="btn small btn-emerald" data-act="slipAdd"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 11.5l-8.6 8.6a5.5 5.5 0 0 1-7.8-7.8l8.9-8.9a3.7 3.7 0 0 1 5.2 5.2l-8.9 8.9a1.8 1.8 0 0 1-2.6-2.6l8.2-8.2"/></svg>' + (slip ? 'Bordroyu değiştir' : 'Bordro ekle') + '</button><a class="btn small mhbtn" href="https://www.myholland.eu/finances" target="_blank" rel="noopener noreferrer" title="myHolland’da bordrolarını indir, sonra Bordro ekle ile yükle">myHolland ↗</a>';
+  if (showMhPulse){
+    h += '<button type="button" class="mh-pulse-badge" data-act="slipAdd" title="Bordro eklemek için dokun">🔔 ' + L('Yeni Hafta ' + isoWeek(prevW) + ' bordrosu mevcut olabilir!', 'New Week ' + isoWeek(prevW) + ' payslip may be available!') + '</button>';
+  }
   if (slip){
     var diff = r2(est.payable - (p.payable - parkOf(p)));
     h += ' <button class="btn small danger" data-act="slipDel">Bordroyu kaldır</button><span class="delta num ' + (Math.abs(diff) <= 1 ? 'ok' : 'off') + '">' + (parkOf(p) > 0 ? 'Park hariç uygulama tahmini ' : 'Uygulama tahmini ') + eur(est.payable) + ' <span class="nowr">(' + sgn(diff) + ')</span></span>';
   }
   h += '</div>';
-  /* Salı gecesi myHolland & Çarşamba Mail Otomatik Bordro Durum Bilgilendirmesi */
-  var prevW = addDays(weekStart(today), -7), prevSlip = state.slips[prevW], dow = new Date().getDay(), hrNow = new Date().getHours();
-  if (!prevSlip && (dow === 2 && hrNow >= 20 || dow === 3 || dow === 4)){
-    h += '<div class="callout" style="margin-top:10px;border-color:color-mix(in srgb,var(--accent) 45%,var(--line))"><span>' +
-      (dow === 2 ? '🌙 <b>Salı Gecesi Bordro Kontrolü:</b> Hafta ' + isoWeek(prevW) + ' bordrosu myHolland’a düştüğünde arka plan otomasyonu otomatik ekler.' : '📩 <b>Çarşamba Bordro Günü:</b> Hafta ' + isoWeek(prevW) + ' bordrosu myHolland veya Gmail üzerinden otomatik çekilir; dilersen PDF’i elle de seçebilirsin.') +
-      '</span><button class="btn small primary" data-act="slipAdd">Bordro Yükle</button></div>';
-  }
   document.getElementById('hero').innerHTML = h;
 }
 var PB_UI = { busy: false, msg: '', err: false };
@@ -3022,8 +3189,9 @@ function renderBreak(){
   var ded = '<details class="rowd"><summary><span class="l">Emeklilik ve sigorta kesintileri</span><span class="v">−' + eur(p.premiums) + '</span></summary><div class="in"><div><span>StiPP emeklilik</span><span>' + eur(p.stipp) + '</span></div><div><span>WIA-hiaat</span><span>' + eur(p.wia) + '</span></div><div><span>AZV</span><span>' + eur(p.azv) + '</span></div><div><span>PAWW</span><span>' + eur(p.paww) + '</span></div></div></details>';
   ded += '<details class="rowd"><summary><span class="l">Gelir vergisi</span><span class="v">−' + eur(p.tax) + '</span></summary><div class="in"><div><span>Normal gelir üzerinden</span><span>' + eur(p.lbT) + '</span></div><div><span>Özel ödemeler (ADV, ' + pct(S.mOver) + ')</span><span>' + eur(p.lbB) + '</span></div></div></details>';
   ded += row('WGA primi', '−' + eur(p.whk), 'minus');
-  var outT = r2(p.housingNet + p.utilities + p.insurance + (p.extraIns || 0));
+  var outT = r2(p.housingNet + p.utilities + p.insurance + (p.extraIns || 0) + (S.wkHomeDeduct || 0));
   var out = row('Kira', '−' + eur(p.housingNet), 'minus', 'Toplam ' + eur(p.housingTotal) + ', ' + eur(p.housingGross) + ' brütten düşüldü');
+  if (S.wkHomeDeduct > 0) out += row('Özel kira & ev giderleri (haftalık pay)', '−' + eur(S.wkHomeDeduct), 'minus', 'Aylık ' + eur(homeMonthlyActiveTotal(S)) + ' ÷ 4,33 hafta');
   out += row('Su ve elektrik', '−' + eur(p.utilities), 'minus');
   out += row('Sağlık sigortası', '−' + eur(p.insurance), 'minus');
   if (p.extraIns > 0) out += row('Ek sigorta kesintisi', '−' + eur(p.extraIns), 'minus');
@@ -3059,16 +3227,34 @@ function allWeekList(){
   state.entries.forEach(function(e){ if (!isPlanned(e)) set[weekStart(e.date)] = 1; });
   return Object.keys(set).sort().map(function(w){ var c = weekResult(w, 'done'); return { w: w, p: c.p, t: c.t, slip: c.slip }; }).filter(function(r){ return !r.p.empty; });
 }
-function updHxTot(){ var e = $('hxTot'); if (!e) return; var st = state.settings, t = Math.abs(+st.homeRent || 0); (st.homeExp || []).forEach(function(x){ t += Math.abs(+x.a || 0); }); e.innerHTML = t > 0 ? 'Toplam <b class="num">' + eur(r2(t)) + '</b> / ay' : ''; }
+function updHxTot(){
+  var e = $('hxTot'); if (!e) return;
+  var t = homeMonthlyActiveTotal(state.settings);
+  e.innerHTML = t > 0 ? 'Toplam <b class="num">' + eur(r2(t)) + '</b> / ay <small class="muted">(≈ ' + eur(r2(t * 12 / 52)) + ' / hafta)</small>' : '';
+}
 function homeExpTotal(){
   var st = state.settings || {}, t = 0, parts = [];
-  if ((st.housingMode || 'company') === 'none'){ var r = Math.abs(+st.homeRent || 0), o = 0; (Array.isArray(st.homeExp) ? st.homeExp : []).forEach(function(x){ o += Math.abs(+x.a || 0); }); if (r > 0) parts.push('kira'); if (o > 0) parts.push('ev giderleri'); t += r + o; }
+  if ((st.housingMode || 'company') === 'none' && (st.homeDeductMode || 'monthly') !== 'weekly'){
+    var r = Math.abs(+st.homeRent || 0), o = 0;
+    if ((st.homeIncMode || 'all') === 'extra'){
+      (Array.isArray(st.homeExp) ? st.homeExp : []).forEach(function(x){ if (x) o += Math.abs(+x.a || 0); });
+    }
+    if (r > 0) parts.push('kira');
+    if (o > 0) parts.push('ev giderleri');
+    t += r + o;
+  }
   if (st.insMode === 'self'){ var i = Math.abs(+st.insMonthly || 0); if (i > 0){ parts.push('sigorta'); t += i; } }
   homeExpTotal.parts = parts; return r2(t);
 }
 function fixedInfo(S){
   var parts = [], tot = 0, add = function(v, n){ v = +v || 0; if (v > 0){ tot += v; parts.push(n); } };
-  add(S.housingTotal, 'kira'); add(S.utilities, 'su-elektrik'); add((+S.insurance || 0) + (+S.extraIns || 0), 'sigorta'); add(S.customOut, 'diğer kesintiler');
+  add(S.housingTotal, 'kira'); add(S.utilities, 'su-elektrik'); add((+S.insurance || 0) + (+S.extraIns || 0), 'sigorta');
+  if (S.wkHomeDeduct > 0){
+    add(S.wkHomeDeduct, 'özel kira ve ev gideri payı');
+    add(r2((+S.customOut || 0) - S.wkHomeDeduct), 'diğer kesintiler');
+  } else {
+    add(S.customOut, 'diğer kesintiler');
+  }
   var short = parts.length > 1 ? parts.slice(0, -1).join(', ') + ' ve ' + parts[parts.length - 1] : parts.join('');
   return { tot: r2(tot), short: parts.join(', '), label: short.charAt(0).toLocaleUpperCase('tr-TR') + short.slice(1) };
 }
@@ -3574,9 +3760,10 @@ function autoFromSlips(force){
   if (vr.length >= 2){ var med = vr[Math.floor(vr.length / 2)]; put('vacPayPct', Math.round(med * 10000) / 10000, 'haftalık tatil saati ödemesi %' + String(Math.round(med * 1000) / 10).replace('.', ',')); }
   var hg = +L.housingGross || 0, hn = +L.housingNet || 0, hasH = hg > 0 || hn > 0;
   var prev = keys.length > 1 ? state.slips[keys[keys.length - 2]].lines : null, prevH = prev && ((+prev.housingGross || 0) + (+prev.housingNet || 0)) > 0;
+  var hasPrivateHome = (+st.homeRent || 0) > 0 || (Array.isArray(st.homeExp) && st.homeExp.some(function(x){ return x && (+x.a || 0) > 0; }));
   if (!lock.housingMode){
     var mode = st.housingMode || 'company';
-    if (hasH && mode === 'none'){ st.housingMode = 'company'; ch.push('şirket evi (kira haftalık kesiliyor)'); }
+    if (hasH && mode === 'none' && !hasPrivateHome){ st.housingMode = 'company'; ch.push('şirket evi (kira haftalık kesiliyor)'); }
     if (!hasH && !prevH && mode === 'company'){ st.housingMode = 'none'; ch.push('kira kesintisi yok'); }
     st.auto.housingMode = 1;
   }
@@ -3718,17 +3905,58 @@ function renderSettings(){
     else h += '<small class="fh">Bordronda araç eki görünürse bu ayar kendiliğinden açılır.</small>';
   } else if (setTabSel === 'home'){
     var hm = st.housingMode || 'company';
-    h += '<div class="field"><label>Nerede kalıyorsun?</label><div class="radios">' + [['company', 'Şirket evi', 'Kira her hafta bordrodan kesilir'], ['monthly', 'Kira ayda bir bordrodan kesiliyor', 'Bordrodan ayda bir kez kira düşülür'], ['none', 'Kendi evim ya da özel kiradayım', 'Bordrodan kira kesilmez; ev giderlerini aşağıya yazabilirsin']].map(function(o){ return '<label class="radio' + (hm === o[0] ? ' on' : '') + '"><input type="radio" name="hmode" data-key="housingMode" value="' + o[0] + '"' + (hm === o[0] ? ' checked' : '') + '><span><b>' + o[1] + '</b><small>' + o[2] + '</small></span></label>'; }).join('') + '</div></div>';
+    h += '<div class="field"><label>1. Nerede kalıyorsun?</label><div class="radios">' + [['company', 'Şirket evi', 'Kira her hafta bordrodan kesilir'], ['monthly', 'Kira ayda bir bordrodan kesiliyor', 'Bordrodan ayda bir kez kira düşülür'], ['none', 'Kendi evim ya da özel kiradayım (Ayrı ev)', 'Bordrodan kira kesilmez; kira ve fatura ayarlarını aşağıdan seçebilirsin']].map(function(o){ return '<label class="radio' + (hm === o[0] ? ' on' : '') + '"><input type="radio" name="hmode" data-key="housingMode" value="' + o[0] + '"' + (hm === o[0] ? ' checked' : '') + '><span><b>' + o[1] + '</b><small>' + o[2] + '</small></span></label>'; }).join('') + '</div></div>';
     var raw = Object.assign({}, DEFAULTS, st);
-    if (hm === 'company') h += '<div class="two">' + fld('housingTotal', 'Haftalık kira toplamı (€)', 'number', '0.01', raw) + fld('housingGross', 'Kiranın brütten düşen kısmı (€)', 'number', '0.01', raw, 'Bordroda “ET-uitruil huisvesting”.') + '</div>';
-    if (hm === 'monthly') h += '<div class="two">' + fld('rentMonthly', 'Aylık kira (€)', 'number', '0.01', S) + fld('rentDay', 'Ayın kaçında kesiliyor', 'number', '1', S) + '</div>';
-    h += '<div class="two">' + fld('utilities', 'Bordrodan kesilen su ve elektrik (€/hafta)', 'number', '0.01', S, 'Kesilmiyorsa 0 yap.') + '</div>';
+    if (hm === 'company'){
+      h += '<div class="two">' + fld('housingTotal', 'Haftalık kira toplamı (€)', 'number', '0.01', raw) + fld('housingGross', 'Kiranın brütten düşen kısmı (€)', 'number', '0.01', raw, 'Bordroda “ET-uitruil huisvesting”.') + '</div>';
+      h += '<div class="two">' + fld('utilities', 'Bordrodan kesilen su ve elektrik (€/hafta)', 'number', '0.01', S, 'Kesilmiyorsa 0 yap.') + '</div>';
+    }
+    if (hm === 'monthly'){
+      h += '<div class="two">' + fld('rentMonthly', 'Aylık kira (€)', 'number', '0.01', S) + fld('rentDay', 'Ayın kaçında kesiliyor', 'number', '1', S) + '</div>';
+      h += '<div class="two">' + fld('utilities', 'Bordrodan kesilen su ve elektrik (€/hafta)', 'number', '0.01', S, 'Kesilmiyorsa 0 yap.') + '</div>';
+    }
     if (hm === 'none'){
-      var hx = Array.isArray(st.homeExp) ? st.homeExp : [], tot = Math.abs(+st.homeRent || 0); hx.forEach(function(x){ tot += Math.abs(+x.a || 0); });
-      h += '<div class="subhead">Aylık ev giderlerin</div><small class="fh">Bordrodan kesilmeyen, kendin ödediğin giderler. Aylık özette maaşından düşülür ve elinde kalan gösterilir.</small>';
-      h += '<div class="two">' + fld('homeRent', 'Aylık kira (€)', 'number', '0.01', S, 'Kendi evinse 0 bırak.') + '</div><small class="fh">Diğer ev giderleri (elektrik, su, internet…):</small>';
-      hx.forEach(function(x, i){ h += '<div class="crow hrow"><input aria-label="Gider adı" data-hexp="' + i + '" data-f="n" value="' + esc(x.n || '') + '" placeholder="Örn. Elektrik"><input aria-label="Aylık tutar (€)" data-hexp="' + i + '" data-f="a" type="text" inputmode="decimal" autocomplete="off" value="' + esc(String(x.a || '').replace('.', ',')) + '" placeholder="€/ay"><button class="icon" data-act="hexpDel" data-i="' + i + '" aria-label="Sil">✕</button></div>'; });
-      h += '<div class="hxfoot"><button class="btn small" data-act="hexpAdd">+ Gider ekle</button>' + '<span id="hxTot">' + (tot > 0 ? 'Toplam <b class="num">' + eur(r2(tot)) + '</b> / ay' : '') + '</span>' + '</div>';
+      var incMode = st.homeIncMode || 'all';
+      var dedMode = st.homeDeductMode || 'monthly';
+      var hx = Array.isArray(st.homeExp) ? st.homeExp : [];
+      var tot = homeMonthlyActiveTotal(st);
+
+      h += '<div class="home-step"><div class="home-step-hd">🏠 2. Aylık Kira Tutarın</div>';
+      h += '<div class="two">' + fld('homeRent', 'Aylık kira tutarım (€)', 'number', '0.01', S, 'Ev kendininse veya kira ödemiyorsan 0 bırak.') + '</div></div>';
+
+      h += '<div class="home-step"><div class="home-step-hd">🔌 3. Kiramın İçine Neler Dahil?</div><small class="fh">Kira sözleşmene göre aşağıdan uygun seçeneği işaretle:</small>';
+      h += '<div class="radios" style="margin-top:6px">' +
+        [['all', '✅ Her şey kirama dahil', 'Elektrik, su, ısınma ve internet kira tutarımın içinde — ayrıca fatura ödemiyorum'],
+         ['extra', '⚡ Bazı faturalar hariç / Ek ödemem var', 'Örn. çoğu şey kiranın içinde ama internet hariç, veya faturaları ayrı ödüyorum']].map(function(o){
+          return '<label class="radio' + (incMode === o[0] ? ' on' : '') + '"><input type="radio" name="hincmode" data-key="homeIncMode" value="' + o[0] + '"' + (incMode === o[0] ? ' checked' : '') + '><span><b>' + o[1] + '</b><small>' + o[2] + '</small></span></label>';
+        }).join('') + '</div>';
+
+      if (incMode === 'extra'){
+        var presets = [
+          ['🌐 İnternet', 'İnternet', 45],
+          ['⚡ Elektrik & Gaz', 'Elektrik & Gaz', 120],
+          ['💧 Su', 'Su', 25],
+          ['🏛️ Belediye / Çöp Vergisi', 'Belediye Vergisi', 35]
+        ];
+        h += '<div style="margin-top:10px"><small class="fh"><b>Hızlı Fatura Seçimi:</b> Kirana dahil olmayan faturaya dokunup ekle ve aylık tutarını yaz:</small>';
+        h += '<div class="home-presets">' + presets.map(function(pr){
+          var exists = hx.some(function(x){ return x && String(x.n || '').toLowerCase() === pr[1].toLowerCase(); });
+          return '<button type="button" class="home-pchip' + (exists ? ' on' : '') + '" data-act="hexpPreset" data-n="' + esc(pr[1]) + '" data-a="' + pr[2] + '">' + (exists ? '✓ ' : '+ ') + pr[0] + '</button>';
+        }).join('') + '</div>';
+        hx.forEach(function(x, i){
+          h += '<div class="crow hrow"><input aria-label="Gider adı" data-hexp="' + i + '" data-f="n" value="' + esc(x.n || '') + '" placeholder="Örn. İnternet"><input aria-label="Aylık tutar (€)" data-hexp="' + i + '" data-f="a" type="text" inputmode="decimal" autocomplete="off" value="' + esc(String(x.a || '').replace('.', ',')) + '" placeholder="€/ay"><button class="icon" data-act="hexpDel" data-i="' + i + '" aria-label="Sil">✕</button></div>';
+        });
+        h += '<div style="margin-top:6px"><button class="btn small" data-act="hexpAdd">+ Başka ev gideri ekle</button></div></div>';
+      }
+      h += '</div>';
+
+      h += '<div class="home-step"><div class="home-step-hd">📊 4. Maaş Tahminine ve Bordroya Nasıl Yansısın?</div><small class="fh">Kira ve ev giderlerinin maaş hesaplamalarında nasıl gösterileceğini seç:</small>';
+      h += '<div class="radios" style="margin-top:6px">' +
+        [['monthly', '📅 Sadece Aylık Özette Düşülsün', 'Haftalık bordro ve maaş tahminim brüt/net olarak kalsın; Aylık Özet sekmesinde kira ve faturalarım düşülüp elinde kalan gösterilsin'],
+         ['weekly', '📆 Her Hafta Maaş Tahmininden & Bordrodan Otomatik Düşülsün (÷ 4,33)', 'Aylık kira + fatura toplamım haftalığa bölünerek her hafta maaş tahminimden ve bordro eklendiğinde net kalan tutardan otomatik düşülsün']].map(function(o){
+          return '<label class="radio' + (dedMode === o[0] ? ' on' : '') + '"><input type="radio" name="hdedmode" data-key="homeDeductMode" value="' + o[0] + '"' + (dedMode === o[0] ? ' checked' : '') + '><span><b>' + o[1] + '</b><small>' + o[2] + '</small></span></label>';
+        }).join('') + '</div>';
+      h += '<div class="hxfoot" style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)"><span id="hxTot">' + (tot > 0 ? 'Toplam <b class="num">' + eur(r2(tot)) + '</b> / ay <small class="muted">(≈ ' + eur(r2(tot * 12 / 52)) + ' / hafta)</small>' : 'Henüz kira veya ev gideri girilmedi.') + '</span></div></div>';
     }
   } else if (setTabSel === 'ded'){
     var selfIns = st.insMode === 'self';
@@ -3753,8 +3981,10 @@ function renderSettings(){
     h += '<div class="subhead">Otomatik yedekler</div><small class="fh">Uygulama her gün verilerinin bir kopyasını hesabına kaydeder (son 7 gün). Bir şey ters giderse buradan geri dönebilirsin.</small><div id="bkList" class="bklist"><small class="fh">' + (bkRef ? 'Yükleniyor…' : 'Otomatik yedek için hesabınla giriş yapmış olman gerekir.') + '</small></div>';
     h += '<div class="subhead">Elle yedek</div><div class="field"><label for="bk">Verilerin (kopyalayıp sakla)</label><textarea id="bk" readonly></textarea></div><div class="two"><button class="btn small" data-act="copyBk">Kopyala</button><span id="bkMsg" class="sub"></span></div>';
     h += '<div class="field"><label for="imp">Yedekten geri yükle</label><textarea id="imp" placeholder="Yedek metnini buraya yapıştır"></textarea></div><button class="btn small" data-act="importBk">Geri yükle</button> <span id="impMsg" class="sub"></span>';
-    h += '<div class="syncbox" style="margin-top:14px"><div class="subhead">🎨 ' + L('Arayüz Görünümü (Sürüm / Geri Dönüş)', 'Interface Version (Rollback)') + '</div><small class="fh">' + L('Yeni sekmeli görünümü veya renkli vurguları beğenmezsen tek dokunuşla eski v17 görünümüne geri dönebilirsin.', 'Switch back to classic v17 UI anytime with one tap.') + '</small><div class="seg" role="group" style="margin-top:6px"><button type="button" data-act="uiVer" data-v="v2" aria-pressed="' + (UI_VER !== 'classic') + '">✨ ' + L('Modern (v20)', 'Modern (v20)') + '</button><button type="button" data-act="uiVer" data-v="classic" aria-pressed="' + (UI_VER === 'classic') + '">🏛️ ' + L('Eski Klasik (v17)', 'Classic (v17)') + '</button></div></div>';
-    h += '<div class="syncbox" style="margin-top:12px"><div class="subhead">🤖 ' + L('Yapay Zeka (Claude / GPT / Gemini / Antigravity) Köprüsü', 'Universal AI Continuation Bridge') + '</div><small class="fh">' + L('Telefondan veya bilgisayardan herhangi bir yapay zekada (Claude Pro, ChatGPT, Gemini, Antigravity) projeye kaldığın yerden sıfır veri ve sürüm kaybıyla devam etmek için aşağıdaki butona dokunup kopyalanan metni yapıştır.', 'Copy the universal AI context prompt to continue development from any AI assistant on mobile or desktop.') + '</small><div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><button type="button" class="btn small primary" data-act="copyAiCtx">📋 ' + L('AI Devam Kodunu Kopyala', 'Copy AI Context Prompt') + '</button><a class="btn small" href="https://github.com/okanozgur16/maas-takip" target="_blank" rel="noopener noreferrer">GitHub Repo ↗</a><span id="aiCtxMsg" class="sub"></span></div></div>';
+    h += '<div class="syncbox" style="margin-top:14px"><div class="subhead">🎨 ' + L('Arayüz Görünümü (Sürüm / Geri Dönüş)', 'Interface Version (Rollback)') + '</div><small class="fh">' + L('Yeni sekmeli görünümü veya renkli vurguları beğenmezsen tek dokunuşla eski v17 görünümüne geri dönebilirsin.', 'Switch back to classic v17 UI anytime with one tap.') + '</small><div class="seg" role="group" style="margin-top:6px"><button type="button" data-act="uiVer" data-v="v2" aria-pressed="' + (UI_VER !== 'classic') + '">✨ ' + L('Modern (v21)', 'Modern (v21)') + '</button><button type="button" data-act="uiVer" data-v="classic" aria-pressed="' + (UI_VER === 'classic') + '">🏛️ ' + L('Eski Klasik (v17)', 'Classic (v17)') + '</button></div></div>';
+    if (isOwner()){
+      h += '<div class="syncbox" style="margin-top:12px"><div class="subhead">🤖 ' + L('Yapay Zeka (Claude / GPT / Gemini / Antigravity) Köprüsü (Özel)', 'Universal AI Continuation Bridge (Private)') + '</div><small class="fh">' + L('Sadece senin şifreleme kodunla görünür. Telefondan veya bilgisayardan herhangi bir yapay zekada projeye kaldığın yerden sıfır veri ve sürüm kaybıyla devam etmek için kopyalayıp yapıştır.', 'Private to owner. Copy the universal AI context prompt to continue development from any AI assistant.') + '</small><div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap"><button type="button" class="btn small primary" data-act="copyAiCtx">📋 ' + L('AI Devam Kodunu Kopyala', 'Copy AI Context Prompt') + '</button><a class="btn small" href="https://github.com/okanozgur16/maas-takip" target="_blank" rel="noopener noreferrer">GitHub Repo ↗</a><span id="aiCtxMsg" class="sub"></span></div></div>';
+    }
   }
   $('setBody').innerHTML = h;
   if ($('bk')) $('bk').value = JSON.stringify(pcStrip(state));
@@ -3771,6 +4001,7 @@ function onSettingInput(el){
   if (key === 'driverMode'){ state.settings.driverMode = el.checked ? 'on' : 'off'; commit(); renderSettings(); return; }
   if (key === 'insMode'){ state.settings.insMode = el.checked ? 'self' : 'slip'; commit(); renderSettings(); return; }
   if (key === 'housingMode'){ state.settings.housingMode = el.value; if (el.value === 'none' && !state.settings.lock.utilities) state.settings.utilities = 0; commit(); renderSettings(); return; }
+  if (key === 'homeIncMode' || key === 'homeDeductMode'){ state.settings[key] = el.value; commit(); renderSettings(); return; }
   var isNum = el.type === 'number' || el.getAttribute('data-num') === '1', val = el.value;
   var v = isNum ? num(val) : val;
   if (isNum && String(val).trim() === '') return;
@@ -5026,7 +5257,11 @@ document.addEventListener('click', function(ev){
   else if (a === 'close'){ closeSheet(); }
   else if (a === 'settings'){ renderSettings(); $('ov2').hidden = false; }
   else if (a === 'closeSet'){ $('ov2').hidden = true; }
-  else if (a === 'slipAdd'){ $('slipOut').innerHTML = ''; $('sMsg').textContent = ''; buildWeekSelect(); $('slipPdf').style.display = 'grid'; $('slipMan').style.display = 'none'; var sb = $('ov3').querySelectorAll('.seg button'); sb[0].setAttribute('aria-pressed', 'true'); sb[1].setAttribute('aria-pressed', 'false'); $('ov3').hidden = false; }
+  else if (a === 'slipAdd'){
+    try { localStorage.setItem(LS + '-slipclicked-' + addDays(weekStart(today), -7), '1'); } catch (e) {}
+    renderHero();
+    $('slipOut').innerHTML = ''; $('sMsg').textContent = ''; buildWeekSelect(); $('slipPdf').style.display = 'grid'; $('slipMan').style.display = 'none'; var sb = $('ov3').querySelectorAll('.seg button'); sb[0].setAttribute('aria-pressed', 'true'); sb[1].setAttribute('aria-pressed', 'false'); $('ov3').hidden = false;
+  }
   else if (a === 'holYes'){ openSheet({ date: el.getAttribute('data-date'), tab: 'shift' }); }
   else if (a === 'holNo'){ var hd = el.getAttribute('data-date'); if (!state.entries.some(function(e){ return e.date === hd && e.type === 'off'; })) state.entries.push({ id: uid(), type: 'off', date: hd }); commit(); }
   else if (a === 'holLater'){ var hl = el.getAttribute('data-date'), sk = holSkip(), until = addDays(today, 2); if (until >= hl) until = addDays(hl, -1); if (until < today) until = today; sk[hl] = until; Object.keys(sk).forEach(function(k){ if (k < today) delete sk[k]; }); try { localStorage.setItem(LS + '-holskip', JSON.stringify(sk)); } catch (e) {} renderHol(); }
@@ -5050,7 +5285,17 @@ document.addEventListener('click', function(ev){
   else if (a === 'resetSet'){ var keepG = state.settings.goalNet; state.settings = keepG !== undefined ? { goalNet: keepG } : {}; autoFromSlips(true); commit(); renderSettings(); }
   else if (a === 'setTab'){ setTabSel = el.getAttribute('data-v'); renderSettings(); }
   else if (a === 'autoSet'){ var chs = autoFromSlips(true); commit(); renderSettings(); var ab = document.querySelector('.autobox small'); if (ab) ab.textContent = chs.length ? 'Güncellendi: ' + chs.join(', ') + '.' : 'Ayarların zaten son bordronla aynı.'; }
-  else if (a === 'hexpAdd'){ state.settings.homeExp = (state.settings.homeExp || []).concat([{ n: '', a: 0 }]); commit(); renderSettings(); var hs = document.querySelectorAll('[data-hexp][data-f=n]'); if (hs.length) hs[hs.length - 1].focus(); }
+  else if (a === 'hexpPreset'){
+    var pn = el.getAttribute('data-n') || '', pa = +(el.getAttribute('data-a') || 0);
+    var hl0 = (state.settings.homeExp || []).slice();
+    var idx0 = hl0.findIndex(function(x){ return x && String(x.n || '').toLowerCase() === pn.toLowerCase(); });
+    if (idx0 >= 0) hl0.splice(idx0, 1);
+    else hl0.push({ n: pn, a: pa });
+    state.settings.homeExp = hl0;
+    state.settings.homeIncMode = 'extra';
+    commit(); renderSettings();
+  }
+  else if (a === 'hexpAdd'){ state.settings.homeExp = (state.settings.homeExp || []).concat([{ n: '', a: 0 }]); state.settings.homeIncMode = 'extra'; commit(); renderSettings(); var hs = document.querySelectorAll('[data-hexp][data-f=n]'); if (hs.length) hs[hs.length - 1].focus(); }
   else if (a === 'hexpDel'){ var hl2 = (state.settings.homeExp || []).slice(); hl2.splice(+el.getAttribute('data-i'), 1); state.settings.homeExp = hl2; commit(); renderSettings(); }
   else if (a === 'custAdd'){ state.settings.custom = (state.settings.custom || []).concat([{ n: '', a: 0, kind: 'out' }]); commit(); renderSettings(); }
   else if (a === 'custDel'){ var cl = (state.settings.custom || []).slice(); cl.splice(+el.getAttribute('data-i'), 1); state.settings.custom = cl; commit(); renderSettings(); }
