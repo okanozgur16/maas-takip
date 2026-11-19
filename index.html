@@ -2148,14 +2148,14 @@ async function vOpen(){
   try {
     var K = await vFromRaw(await vKdfRaw(pw)), loc = vaultLocal(), payload = null, upd = '';
     if (loc){ try { VAULT.key = K.key; payload = await vDec(loc.c, K.key); } catch (e) { payload = null; } }
-    if (!payload && !loc){
-      var g = null; try { g = await vGet(K.id); } catch (e) { vMsg('Sunucuya ulaşılamadı. Bağlantını kontrol edip tekrar dene.'); return; }
-      if (!g.none){
+    if (!payload){
+      var g = null; try { g = await vGet(K.id); } catch (e) { if (loc){ vMsg('Şifre yanlış.'); return; } vMsg('Sunucuya ulaşılamadı. Bağlantını kontrol edip tekrar dene.'); return; }
+      if (g && !g.none){
         if (!g.c){ vMsg('Bu şifre kullanılamıyor. Farklı bir şifre seç.'); return; }
-        try { payload = await vDec(g.c, K.key); upd = g.upd; } catch (e) { vMsg('Şifre yanlış.'); return; }
+        try { VAULT.key = K.key; payload = await vDec(g.c, K.key); upd = g.upd; } catch (e) { vMsg('Şifre yanlış.'); return; }
       }
     }
-    if (!payload && loc){ vMsg('Şifre yanlış.'); return; }
+    if (!payload && loc){ vMsg('Şifre yanlış. (Büyük/küçük harf ve boşluklara dikkat et.)'); return; }
     if (!payload){
       $('vPw2w').hidden = false;
       if (pw2 !== pw){ vMsg(pw2 ? 'İki şifre aynı değil.' : 'Bu şifreyle kayıtlı PC planı bulunamadı. Yeni oluşturmak için şifreyi bir kez daha yaz.'); return; }
@@ -2528,7 +2528,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-19-shiftpay-v28';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-19-shiftpay-v29';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
