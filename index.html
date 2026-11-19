@@ -1139,6 +1139,23 @@ html:not(.ui-classic) .pcgrid[data-sub="bud"] [data-card="pcWhat"]{order:3}
 .wit-pocket.bad{background:color-mix(in srgb,var(--c150) 12%,var(--surface));color:var(--c150);border:1px solid color-mix(in srgb,var(--c150) 32%,var(--line))}
 .wit-site{font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
 
+
+/* v30: PC Planı Gelir/Gider Alt Toplam Özeti */
+.pc-sum-box{margin-top:16px;padding:14px;border-radius:14px;background:var(--surface2);border:1.5px solid var(--line)}
+.pc-sum-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.pc-sum-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.pc-sum-card{padding:10px 12px;border-radius:12px;background:var(--surface);border:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
+.pc-sum-card small{font-size:11px;color:var(--muted);font-weight:600}
+.pc-sum-card b{font-size:16px;font-weight:800;line-height:1.2}
+.pc-sum-card span{font-size:11px;color:var(--muted)}
+.pc-sum-card.in b{color:var(--good)}
+.pc-sum-card.out b{color:var(--bad)}
+.pc-sum-card.tot{border-color:color-mix(in srgb,var(--accent) 45%,var(--line));background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
+.pc-sum-card.tot.pos b{color:var(--good)}
+.pc-sum-card.tot.neg b{color:var(--bad)}
+.pc-sum-once{margin-top:8px;font-size:11.5px;color:var(--muted);display:flex;gap:10px;flex-wrap:wrap}
+@media (max-width:540px){.pc-sum-grid{grid-template-columns:1fr}}
+
 </style>
 </head>
 <body>
@@ -2528,7 +2545,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-19-shiftpay-v29';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-19-shiftpay-v30';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -4589,6 +4606,33 @@ function renderPc(force){
     $('pcSet').innerHTML = sh;
     if (STANDALONE) vaultTail();
   }
+  var pcItemsSumHTML = function(){
+    var moPay = r2((C.wk.use || 0) * 52 / 12);
+    var moIn = r2(pcMonthly(P.items.filter(function(i){ return i.kind === 'in'; })));
+    var totIn = r2(moPay + moIn);
+    var moNeed = r2(pcMonthly(P.items.filter(function(i){ return i.kind === 'out' && !i.cut; })));
+    var moSpend = r2(pcMonthly(P.items.filter(function(i){ return i.kind === 'out' && i.cut; })));
+    var totOut = r2(moNeed + moSpend);
+    var netMo = r2(totIn - totOut);
+    var onceIn = 0, onceOut = 0;
+    P.items.forEach(function(it){
+      if (it.freq === 'once' && +it.amt > 0 && (!it.on || it.on >= today)){
+        if (it.kind === 'in') onceIn += +it.amt; else onceOut += +it.amt;
+      }
+    });
+    var onceLine = (onceIn > 0 || onceOut > 0)
+      ? '<div class="pc-sum-once num">' + L('Tek seferlik planlanan:', 'One-time planned:')
+        + (onceIn > 0 ? ' <b style="color:var(--good)">+' + pcE0(onceIn) + '</b>' : '')
+        + (onceOut > 0 ? ' <b style="color:var(--bad)">−' + pcE0(onceOut) + '</b>' : '') + '</div>'
+      : '';
+    return '<div class="pc-sum-box">'
+      + '<div class="pc-sum-title"><span>📊 ' + L('Aylık Gelir / Gider Özeti', 'Monthly Cashflow Summary') + '</span><span class="num">' + L('Maaş dahil', 'Incl. salary') + '</span></div>'
+      + '<div class="pc-sum-grid">'
+        + '<div class="pc-sum-card in"><small>' + L('Toplam Aylık Gelir', 'Total Monthly Income') + '</small><b class="num">+' + pcE0(totIn) + '</b><span class="num">' + L('Maaş', 'Pay') + ' ' + pcE0(moPay) + (moIn > 0 ? ' + ' + L('Ek', 'Extra') + ' ' + pcE0(moIn) : '') + '</span></div>'
+        + '<div class="pc-sum-card out"><small>' + L('Toplam Aylık Harcama', 'Total Monthly Expenses') + '</small><b class="num">−' + pcE0(totOut) + '</b><span class="num">' + L('Zorunlu', 'Fixed') + ' ' + pcE0(moNeed) + ' + ' + L('Harcama', 'Spend') + ' ' + pcE0(moSpend) + '</span></div>'
+        + '<div class="pc-sum-card tot ' + (netMo >= 0 ? 'pos' : 'neg') + '"><small>' + L('Toplam (Aylık Net)', 'Total (Monthly Net)') + '</small><b class="num">' + (netMo >= 0 ? '+' : '−') + pcE0(Math.abs(netMo)) + '</b><span class="num">≈ ' + (netMo >= 0 ? '+' : '−') + pcE0(Math.abs(r2(netMo * 12 / 52))) + '/' + L('hf', 'wk') + '</span></div>'
+      + '</div>' + onceLine + '</div>';
+  };
   if (force || !pcFocusIn('pcItems')){
     var grp = function(title, hint, test, k){
       var gl = P.items.filter(test), rows = gl.map(pcItemHTML).join(''), mo = pcMonthly(gl);
@@ -4597,8 +4641,11 @@ function renderPc(force){
     var ih = '<h2>Gelir ve giderlerim</h2><div class="sub" style="margin:-6px 0 4px">Maaşın bordrodan otomatik hesaplanır (kira, su-elektrik, sigorta düşülmüş). Burası maaş dışındakiler için.</div>' +
       grp('Maaş dışı gelirlerim', 'maaş dışında yatanlar: kira, ek iş…', function(i){ return i.kind === 'in'; }, 'in') +
       grp('Zorunlu giderlerim', 'fatura, telefon, borç taksiti, tek seferlik gider…', function(i){ return i.kind === 'out' && !i.cut; }, 'need') +
-      grp('Harcamalarım', 'yeme içme, eğlence… günlere yayılır, öneriler buradan kısar', function(i){ return i.kind === 'out' && i.cut; }, 'spend');
+      grp('Harcamalarım', 'yeme içme, eğlence… günlere yayılır, öneriler buradan kısar', function(i){ return i.kind === 'out' && i.cut; }, 'spend') +
+      '<div id="pcItemsSum">' + pcItemsSumHTML() + '</div>';
     $('pcItems').innerHTML = ih;
+  } else {
+    var sumEl = $('pcItemsSum'); if (sumEl) sumEl.innerHTML = pcItemsSumHTML();
   }
   renderPcWhat(force); renderPcLog(); renderWatch();
 }
