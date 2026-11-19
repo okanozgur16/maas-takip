@@ -1107,6 +1107,38 @@ html:not(.ui-classic) .pcgrid[data-sub="cfg"] [data-card="pcWk"]{display:none !i
 .mavg{font-weight:600;color:var(--ink)}
 @media (max-width:480px){.set-quick{grid-template-columns:1fr}}
 
+
+/* v28: Sakin, Modern PC Planı & Kırmızı 0 Rozeti Düzeltmesi */
+.wbadge[hidden]{display:none !important}
+html:not(.ui-classic) .pcgrid[data-sub="bud"]{grid-template-columns:minmax(0,1fr)}
+html:not(.ui-classic) .pcgrid[data-sub="bud"] .pccol{display:contents}
+html:not(.ui-classic) .pcgrid[data-sub="bud"] [data-card="pcSet"]{order:1}
+html:not(.ui-classic) .pcgrid[data-sub="bud"] [data-card="pcItems"]{order:2}
+html:not(.ui-classic) .pcgrid[data-sub="bud"] [data-card="pcWhat"]{order:3}
+.pcgl{display:grid !important;grid-template-columns:repeat(auto-fit,minmax(195px,1fr)) !important;gap:10px !important}
+.pcgr{display:flex !important;flex-direction:column !important;align-items:stretch !important;gap:8px !important;padding:13px 14px !important;border-radius:14px !important;border:1.5px solid var(--line) !important;background:var(--surface2) !important;text-align:left !important;transition:all .16s ease !important}
+.pcgr:hover{border-color:var(--accent) !important;transform:translateY(-1px)}
+.pcgr.sel{border-color:var(--accent) !important;background:color-mix(in srgb,var(--accent) 10%,var(--surface2)) !important;box-shadow:0 4px 14px color-mix(in srgb,var(--accent) 20%,transparent) !important}
+.pcgr-top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.pcgr-name{display:flex;align-items:center;gap:7px;font-weight:800;font-size:14.5px;color:var(--ink)}
+.pcgr-cost{font-size:12px;color:var(--muted);font-weight:600}
+.pcgr-bar{height:5px;border-radius:99px;background:var(--line);overflow:hidden;width:100%}
+.pcgr-bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#10b981,#34d399)}
+.pcgr-bar.bad i{background:linear-gradient(90deg,#f59e0b,#ef4444)}
+.pcgr-foot{display:flex;align-items:center;justify-content:space-between;font-size:12.5px;font-weight:700}
+.pcgr-foot.ok{color:var(--good)}
+.pcgr-foot.bad{color:var(--bad)}
+.wit{padding:14px 16px !important;border-radius:16px !important;border:1.5px solid var(--line) !important;background:var(--surface2) !important;margin-bottom:10px !important;transition:border-color .16s ease !important}
+.wit:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--line)) !important}
+.wit.pick{border-color:color-mix(in srgb,var(--good) 55%,var(--line)) !important}
+.wit-spec{display:flex;flex-wrap:wrap;gap:6px;margin:7px 0 6px}
+.wit-tag{font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:8px;background:var(--surface);border:1px solid var(--line);color:var(--text)}
+.wit-tag.x3d{background:color-mix(in srgb,#eab308 14%,var(--surface));border-color:color-mix(in srgb,#eab308 38%,var(--line));color:#eab308;font-weight:700}
+.wit-pocket{display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:700;padding:4px 10px;border-radius:10px;margin:4px 0 6px}
+.wit-pocket.ok{background:color-mix(in srgb,var(--good) 12%,var(--surface));color:var(--good);border:1px solid color-mix(in srgb,var(--good) 32%,var(--line))}
+.wit-pocket.bad{background:color-mix(in srgb,var(--c150) 12%,var(--surface));color:var(--c150);border:1px solid color-mix(in srgb,var(--c150) 32%,var(--line))}
+.wit-site{font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--surface);border:1px solid var(--line);color:var(--muted)}
+
 </style>
 </head>
 <body>
@@ -2496,7 +2528,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-19-shiftpay-v27';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-19-shiftpay-v28';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -4511,9 +4543,14 @@ function renderPc(force){
   h += '<details class="pcwhy"><summary>Bu tutar nasıl hesaplandı?</summary><div class="sub">Şu an ayırdığın ' + eur(saved) + ' + haftalık net maaş <b class="num">' + eur(C.wk.use) + '</b> (' + (C.wk.mode === 'manual' ? 'senin yazdığın, “Bilgilerim”den değişir' : C.wk.mode === 'low' ? 'temkinli: en düşük bordro haftası' : 'otomatik: eklediğin ' + C.wk.n + ' bordronun ortalaması') + ') + gelirlerin − giderlerin. Harcamalar günlere yayılır.</div></details>';
   if (past) h += '<div class="pcst warn"><b>Hedef tarih geçmiş.</b> Aşağıdaki “Hedef tarih” kutusuna yeni bir tarih yaz.</div>';
   else if (noExp) h += '<div class="pcst warn">Gider yazmadığın için maaşın tamamı PC’ye gidiyormuş gibi hesaplandı. Aşağıya yeme içme, fatura ve harcamalarını yaz.</div>';
-  h += '<div class="subhead">Hangi plana yetiyor?</div><div class="pcgl">' + C.plans.map(function(p){
-    var d = r2(C.atT - p.g), pp = Math.max(0, Math.min(100, C.atT / (p.g || 1) * 100));
-    return '<button class="pcgr' + (p.id === sp.id ? ' sel' : '') + '" data-act="pcGoal" data-v="' + esc(p.id) + '"><span class="dot ' + (d >= 0 ? 'ok' : 'bad') + '"></span><span class="n">' + esc(p.name) + ' <small>' + pcTL(p.tl) + ' · ' + pcE0(p.g) + '</small></span><span class="s num ' + (d >= 0 ? 'ok' : 'bad') + '">' + (d >= 0 ? 'Yetiyor · +' + pcE0(d) : pcE0(-d) + ' eksik') + '</span><span class="pcmini ' + (d >= 0 ? 'ok' : 'bad') + '"><i style="width:' + pp + '%"></i></span></button>';
+  h += '<div class="subhead">' + L('Hedef Planların (Alınca Cebinde Kalan)', 'Your Target Plans (Cash Left After Purchase)') + '</div><div class="pcgl">' + C.plans.map(function(p){
+    var d = r2(C.atT - p.g), pp = Math.max(0, Math.min(100, C.atT > 0 ? (C.atT / (p.g || 1) * 100) : 0));
+    return '<button class="pcgr' + (p.id === sp.id ? ' sel' : '') + '" data-act="pcGoal" data-v="' + esc(p.id) + '">'
+      + '<div class="pcgr-top"><span class="pcgr-name"><span class="dot ' + (d >= 0 ? 'ok' : 'bad') + '"></span>' + esc(p.name) + '</span><span class="pcgr-cost num">' + pcE0(p.g) + '</span></div>'
+      + '<div class="pcgr-cost num">' + pcTL(p.tl) + '</div>'
+      + '<div class="pcgr-bar ' + (d >= 0 ? 'ok' : 'bad') + '"><i style="width:' + pp + '%"></i></div>'
+      + '<div class="pcgr-foot num ' + (d >= 0 ? 'ok' : 'bad') + '"><span>' + (d >= 0 ? L('Alınca cebinde:', 'Left in pocket:') + ' +' + pcE0(d) : pcE0(-d) + ' ' + L('eksik', 'short')) + '</span><span>' + Math.round(pp) + '%</span></div>'
+      + '</button>';
   }).join('') + '</div>';
   var pS = Math.min(100, saved / G * 100), pP = Math.min(100, Math.max(0, C.atT) / G * 100);
   h += '<div class="pcsel"><div class="k">' + esc(sp.name) + ' için kalan</div><div class="v num">' + eur(left) + '</div></div>';
@@ -4583,26 +4620,53 @@ function renderPcWhat(force){
   var wr = el.parentNode && el.parentNode.classList.contains('cw') ? el.parentNode : el; wr.style.display = past ? 'none' : '';
   if (past || !(force || !pcFocusIn('pcWhat'))) return;
   var W = view.pcWhat || (view.pcWhat = { s: 0, w: 0 }), tx = pcWhatTxt(W);
-  el.innerHTML = '<h2>Ya şöyle olsa?</h2><div class="sub" style="margin:-6px 0 0">Denemek için: gerçek ayarlarına dokunmaz.</div>' +
+  el.innerHTML = '<details class="bd"><summary><span class="l">🧪 ' + L('Ya şöyle olsa? (Simülatör)', 'What if? (Simulator)') + '</span><span class="chev">›</span></summary><div class="rows" style="padding-top:8px">' +
+    '<div class="sub" style="margin:0 0 6px">Denemek için: gerçek ayarlarına dokunmaz.</div>' +
     '<div class="pcsl"><div class="t"><span>Harcamalarım</span><b class="num" id="pcw_st">' + tx[0] + '</b></div><input type="range" id="pcw_s" min="-300" max="300" step="25" value="' + W.s + '" aria-label="Aylık harcama farkı"></div>' +
     '<div class="pcsl"><div class="t"><span>Haftalık maaşım</span><b class="num" id="pcw_wt">' + tx[1] + '</b></div><input type="range" id="pcw_w" min="-100" max="100" step="10" value="' + W.w + '" aria-label="Haftalık maaş farkı"></div>' +
     '<div id="pcw_out" style="margin-top:6px">' + pcWhatOut() + '</div>' +
-    '<button class="btn small" id="pcw_rs" data-act="pcWhatReset" style="margin-top:8px;display:' + ((W.s || W.w) ? '' : 'none') + '">Sıfırla</button>';
+    '<button class="btn small" id="pcw_rs" data-act="pcWhatReset" style="margin-top:8px;display:' + ((W.s || W.w) ? '' : 'none') + '">Sıfırla</button></div></details>';
 }
 /* ---------- İzlenen PC'ler (Otomasyon + OEM Sistem Takip Entegrasyonu) ---------- */
 var WLS = 'maas-takip-v1-watch', watchRef = null, watchAt = 0, W = null, wView = { tier: null, all: {}, open: {}, page: 'main', fil: 'all', aOpen: {}, fmode: 'all', q: '' };
 function wNormStr(s){
   return String(s || '').toLowerCase().replace(/İ/g, 'i').replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c');
 }
+function wNormSpec(s){
+  return wNormStr(s)
+    .replace(/(\d+)\s*(gb|tb)\b/g, '$1$2')
+    .replace(/(5060|5070|5080|5090|4060|4070|4080)\s*ti\b/g, '$1ti')
+    .replace(/rtx\s*(\d{4})/g, 'rtx$1');
+}
+function wShortSpec(x){
+  var out = [];
+  var cpuM = (x.cpu || '').match(/(Ryzen\s+[3579]\s+\d{4}X?3?D?F?|Core\s+(?:i[3579]|Ultra\s+[579])[\s-][\w]+)/i);
+  if (cpuM) out.push({ t: cpuM[1].replace(/\s+/g, ' '), x3d: /X3D/i.test(cpuM[1]) });
+  var gpuM = (x.gpu || '').match(/(RTX\s*\d{4}\s*(?:Ti|SUPER)?(?:\s*\d+GB)?|RX\s*\d{4}\s*XT?)/i);
+  if (gpuM) out.push({ t: gpuM[1].replace(/\s+/g, ' ') });
+  var ramS = x.ram || '';
+  var ramM = ramS.match(/(\d+\s*GB)/i);
+  var ramTot = /2\s*x\s*32/i.test(ramS) ? '64GB RAM' : /2\s*x\s*16/i.test(ramS) ? '32GB RAM' : /2\s*x\s*8/i.test(ramS) ? '16GB RAM' : (ramM ? ramM[1].replace(/\s+/g, '') + ' RAM' : '');
+  if (ramTot) out.push({ t: ramTot });
+  var ssdM = (x.ssd || '').match(/(\d+\s*(?:TB|GB))/i);
+  if (ssdM) out.push({ t: ssdM[1].replace(/\s+/g, '') + ' SSD' });
+  return out;
+}
 function wMatchQuery(x, rawQ){
   if (!rawQ || !String(rawQ).trim()) return true;
-  var stop = { 've': 1, 'ile': 1, 'veya': 1, 'icin': 1, 'de': 1, 'da': 1, 'olan': 1, 'sistem': 1, 'sistemler': 1, 'sistemleri': 1, 'pc': 1, 'hazir': 1 };
-  var tokens = wNormStr(rawQ).split(/[\s,+;/|]+/).filter(function(t){ return t && !stop[t]; });
+  var stop = { 've': 1, 'ile': 1, 'veya': 1, 'icin': 1, 'de': 1, 'da': 1, 'olan': 1, 'sistem': 1, 'sistemler': 1, 'sistemleri': 1, 'pc': 1, 'hazir': 1, 'ram': 1, 'ramli': 1, 'li': 1 };
+  var normQ = wNormSpec(rawQ);
+  var tokens = normQ.split(/[\s,+;/|]+/).filter(function(t){ return t && !stop[t]; });
   if (!tokens.length) return true;
-  var hay = wNormStr([x.name, x.cpu, x.gpu, x.gpu_category, x.tier, x.board, x.ram, x.ssd, x.psu, x.cooler, x.case, x.site, x.vendor, x.resolution_tier, (x.site === 'gamegaraj.com' ? 'gamegaraj' : 'gaminggen')].join(' '));
+  var ramS = wNormStr(x.ram || '');
+  var ramAlias = (/2\s*x\s*32|\b64\s*gb/.test(ramS) ? ' 64gb 64gbram' : '')
+    + (/2\s*x\s*16|\b32\s*gb/.test(ramS) ? ' 32gb 32gbram' : '')
+    + (/2\s*x\s*8|1\s*x\s*16|\b16\s*gb/.test(ramS) ? ' 16gb 16gbram' : '');
+  var hay = wNormSpec([x.name, x.cpu, x.gpu, x.gpu_category, x.tier, x.board, x.ram, ramAlias, x.ssd, x.psu, x.cooler, x.case, x.site, x.vendor, x.resolution_tier, (x.site === 'gamegaraj.com' ? 'gamegaraj' : 'gaminggen')].join(' '));
   var hayNoSpace = hay.replace(/[\s.-]+/g, '');
   return tokens.every(function(tk){
     var tkClean = tk.replace(/[\s.-]+/g, '');
+    if (/^\d+(gb|tb)$/.test(tkClean)) return new RegExp('(^|[^0-9])' + tkClean + '([^a-z0-9]|$)').test(hay);
     return hay.indexOf(tk) >= 0 || (tkClean.length >= 2 && hayNoSpace.indexOf(tkClean) >= 0);
   });
 }
@@ -5027,12 +5091,11 @@ function renderWatch(){
   /* Akıllı Çoklu Kelime Arama Kutusu */
   var qVal = wView.q || '';
   var qChips = [
-    ['9800x3d ve rtx 50', '🔥 9800X3D + RTX 50'],
-    ['7800x3d ve rtx 50', '⭐ 7800X3D + RTX 50'],
-    ['9800x3d 5080', '🚀 9800X3D + 5080'],
-    ['7800x3d 5070ti', '🎯 7800X3D + 5070 Ti'],
-    ['gold', '💎 80+ Gold PSU'],
-    ['sivi', '❄️ Sıvı Soğutma']
+    ['7800x3d 5070', '⭐ 7800X3D + 5070'],
+    ['9800x3d 5070', '🔥 9800X3D + 5070'],
+    ['32 gb', '💾 32GB RAM'],
+    ['5060ti 16gb', '🎯 5060 Ti 16GB'],
+    ['9800x3d 5070ti', '🚀 9800X3D + 5070 Ti']
   ];
   h += '<div class="wsearch-box">' +
     '<div class="wsearch-row">' +
@@ -5171,22 +5234,22 @@ function renderWatchBody(){
     var isOpen = !!wView.open[x.id], off = x.old && x.old > x.price ? Math.round((1 - x.price / x.old) * 100) : (prev && prev > x.price ? Math.round((1 - x.price / prev) * 100) : 0);
     var sc = x.score || 8.0, scCls = sc >= 8.2 ? 'hi' : sc >= 7.2 ? 'md' : 'lo';
     var inCmp = (oem.cmp || []).indexOf(x.id) >= 0, isFav = !!oem.favs[x.id], isHid = !!oem.hidden[x.id];
-    var is78 = is78or98(x);
-    var x3dBadge = /(9800X3D)/i.test((x.cpu || '') + ' ' + (x.name || '')) ? '⭐ 9800X3D' : '⭐ 7800X3D';
+    var pocketAtT = r2(C.atT - eurV);
+    var pocketHtml = pocketAtT >= 0
+      ? '<div class="wit-pocket ok num">💰 ' + pcDate(C.tgt) + ' ' + L('tarihinde alınca cebinde:', 'left in pocket:') + ' +' + pcE0(pocketAtT) + '</div>'
+      : '<div class="wit-pocket bad num">⏳ ' + pcDate(C.tgt) + ' ' + L('tarihinde', 'short by') + ' ' + pcE0(-pocketAtT) + ' ' + L('eksik', '') + (rd ? ' · ' + pcDate(rd) : '') + '</div>';
+    var shortSpecs = wShortSpec(x);
+    var specTags = shortSpecs.length
+      ? '<div class="wit-spec">' + shortSpecs.map(function(sp2){ return '<span class="wit-tag' + (sp2.x3d ? ' x3d' : '') + '">' + esc(sp2.t) + '</span>'; }).join('') + '</div>'
+      : '';
     h += '<div class="wit' + (x.id === pick ? ' pick' : '') + (x.stock === 'yok' ? ' gone' : '') + '">' +
       '<button class="wtop" data-act="wOpen" data-id="' + esc(x.id) + '" aria-expanded="' + isOpen + '">' +
-        '<span class="wl"><span class="wn">' + esc(x.name) + ' <span class="wres">' + esc(x.resolution_tier || '2K') + '</span> <span class="wscore ' + scCls + '" title="Donanım Kalite Puanı">★ ' + sc.toFixed(1) + '/10</span>' + (is78 ? ' <span class="wpk" style="background:rgba(234,179,8,0.18);color:#facc15;border:1px solid rgba(234,179,8,0.35);font-weight:700">' + x3dBadge + '</span>' : '') + (x.id === pick ? ' <span class="wpk">Bütçene en uygun</span>' : '') + (x.stock === 'yok' ? ' <span class="wso">Stokta yok</span>' : '') + '</span>' +
-        '<span class="ws"><b style="color:var(--text);opacity:0.9">' + (x.site === 'gamegaraj.com' ? 'GameGaraj' : 'GamingGen') + '</b> · ' + esc(x.cpu) + ' · ' + esc((x.psu || '').replace(/ \(kasayla\)/, '')) + '</span></span>' +
+        '<span class="wl"><span class="wn">' + esc(x.name) + ' <span class="wit-site">' + (x.site === 'gamegaraj.com' ? 'GameGaraj' : 'GamingGen') + '</span> <span class="wscore ' + scCls + '" title="Donanım Puanı">★ ' + sc.toFixed(1) + '</span>' + (x.stock === 'yok' ? ' <span class="wso">Stokta yok</span>' : '') + '</span>' +
+        specTags + '</span>' +
         '<span class="wr"><b class="num">' + wTL(x.price) + '</b><span class="num we">≈ ' + pcE0(eurV) + (off ? ' · <b style="color:var(--good)">−%' + off + '</b>' : '') + '</span>' +
         (ch ? '<span class="num wch ' + (ch < 0 ? 'dn' : 'up') + '">' + (ch < 0 ? '↓ ' : '↑ ') + wTL(Math.abs(ch)) + '</span>' : '') + '</span>' +
       '</button>' +
-      '<div class="wwhen">' + when + '</div>';
-    var allFlags = [];
-    (x.goodBadges || []).slice(0, 2).forEach(function(g){ allFlags.push('<span class="good">✓ ' + esc(g) + '</span>'); });
-    var rawFlags = x.flags || [];
-    rawFlags.slice(0, 2).forEach(function(f){ allFlags.push('<span>⚠ ' + esc(f) + '</span>'); });
-    if (rawFlags.length > 2) allFlags.push('<span style="opacity:0.75;background:none;border-style:dashed">+' + (rawFlags.length - 2) + ' parça notu</span>');
-    if (allFlags.length) h += '<div class="wflags">' + allFlags.join('') + '</div>';
+      pocketHtml;
     h += '<div class="wact">' +
       '<button type="button" class="wbtn" data-act="wOpen" data-id="' + esc(x.id) + '">' + (isOpen ? '▲ Detayı gizle' : '▼ Donanım & Teknik Analiz') + '</button>' +
       '<button type="button" class="wbtn' + (inCmp ? ' on' : '') + '" data-act="wCmp" data-id="' + esc(x.id) + '">⚖ ' + (inCmp ? 'Karşılaştırmada' : 'Karşılaştır') + '</button>' +
