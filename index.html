@@ -1185,6 +1185,12 @@ html:not(.ui-classic) .pcgrid[data-sub="bud"] [data-card="pcWhat"]{order:3}
 .sc-btns{display:flex;flex-direction:column;gap:8px}
 .sc-btns .sc-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
+
+/* v33: Planbition Değişen / Onay Bekleyen Vardiya Rozeti */
+.pb-pend-badge{grid-column:1/-1;margin-top:4px;padding:5px 9px;border-radius:9px;font-size:11.5px;font-weight:700;line-height:1.3;display:inline-flex;align-items:center;gap:5px;width:fit-content;max-width:100%}
+.pb-pend-badge.warn{background:color-mix(in srgb,var(--c150) 16%,var(--surface));border:1px solid color-mix(in srgb,var(--c150) 45%,var(--line));color:var(--c150)}
+.pb-pend-badge.info{background:color-mix(in srgb,var(--accent) 14%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 38%,var(--line));color:var(--accent)}
+
 </style>
 </head>
 <body>
@@ -2596,7 +2602,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-19-shiftpay-v32';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-19-shiftpay-v33';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3081,6 +3087,13 @@ function pbApplyPending(mode){
         delete state.del['pb_' + d.replace(/-/g, '') + '_l'];
       }
 
+      var isPend = (s.confirmed === false);
+      var chTxt = '';
+      if (oldShift && (oldShift.start !== s.start || oldShift.end !== s.end)){
+        chTxt = (oldShift.start || '?') + '–' + (oldShift.end || '?') + ' → ' + s.start + '–' + s.end;
+      } else if (oldShift && oldShift.pbChanged && isPend){
+        chTxt = oldShift.pbChanged;
+      }
       state.entries.push({
         id: newId,
         date: d,
@@ -3094,6 +3107,8 @@ function pbApplyPending(mode){
         dept: dept,
         tag: dept,
         planbition: true,
+        pbPending: isPend,
+        pbChanged: chTxt,
         userEdited: false,
         u: nowMs
       });
@@ -3242,7 +3257,16 @@ function itemHTML(e, S){
     if (x.over > 0) badges += '<span class="p185">' + pct(S.mOver) + ' ' + hm(x.over) + '</span>';
     var deptTag = (e.dept || e.tag) ? '<span class="chip dept">' + esc(e.dept || e.tag) + '</span>' : '';
     var drvTag = e.driver ? '<span class="chip drv" title="Şirket arabası (+€5/gün)">🚗</span>' : '';
-    return '<button class="item' + cls + '" data-act="edit" data-id="' + e.id + '"><div class="t num"><span class="chip">' + (e.shift === 'late' ? 'Öğle' : 'Sabah') + '</span>' + deptTag + drvTag + e.start + '–' + e.end + planned + '</div><div class="m num">' + badges + '</div><div class="amt num">' + eur(entryWage(e, S)) + '<small>' + hm(tot) + ' saat</small></div></button>';
+    var pbNotice = '';
+    if (e.pbPending || e.pbChanged){
+      var pbTxt = (e.pbChanged && e.pbPending)
+        ? ('⏳ ' + L('Değişen vardiya', 'Changed shift') + ' (' + esc(e.pbChanged) + ') · ' + L('Onaylanmasını bekliyor', 'Awaiting approval'))
+        : e.pbPending
+          ? ('⏳ ' + L('Yeni vardiya', 'New shift') + ' (' + esc(e.start + '–' + e.end) + ') · ' + L('Onaylanmasını bekliyor', 'Awaiting approval'))
+          : ('🔄 ' + L('Değişen vardiya', 'Changed shift') + ' (' + esc(e.pbChanged) + ')');
+      pbNotice = '<div class="pb-pend-badge' + (e.pbPending ? ' warn' : ' info') + '">' + pbTxt + '</div>';
+    }
+    return '<button class="item' + cls + '" data-act="edit" data-id="' + e.id + '"><div class="t num"><span class="chip">' + (e.shift === 'late' ? 'Öğle' : 'Sabah') + '</span>' + deptTag + drvTag + e.start + '–' + e.end + planned + '</div><div class="m num">' + badges + '</div>' + pbNotice + '<div class="amt num">' + eur(entryWage(e, S)) + '<small>' + hm(tot) + ' saat</small></div></button>';
   }
   if (e.type === 'vacation'){
     return '<button class="item' + cls + '" data-act="edit" data-id="' + e.id + '"><div class="t num"><span class="chip">Tatil</span>' + hm(+e.hours || 0) + ' saat' + planned + '</div><div class="m">' + (e.label ? esc(e.label) : 'Tatil günü ödemesi') + '</div><div class="amt num">' + eur(r2((+e.hours || 0) * S.rate)) + '</div></button>';
