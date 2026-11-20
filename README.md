@@ -14,6 +14,6 @@ ShiftPay bağımsız ve açık kaynaklı bir çalışan aracıdır; hiçbir ajan
 
 ## Sürüm & Sistem Durumu
 
-- **Aktif Sürüm:** `2026-11-20-shiftpay-v37` ([Canlı Uygulama](https://shiftpay-app.pages.dev/))
+- **Aktif Sürüm:** `2026-11-20-shiftpay-v38` ([Canlı Uygulama](https://shiftpay-app.pages.dev/))
 - **Otomatik Yayın & Test Kapısı:** Her `main` commit'inde GitHub Actions (`deploy-cloudflare.yml`) V8 JS sözdizimi, sürüm senkronizasyonu, tekrarlı ID ve gizli anahtar taraması yaparak Cloudflare Pages'e otomatik yayınlar.
 - **Son Canlı Doğrulama (2026-11-20 02:20):** Web (`200 OK`), Worker (`200 OK` · yetkisiz istekler `403` kilitli), kod/çeviri bütünlüğü (`0 hata`) doğrulandı. Ayrıntılı sürüm ve geliştirici notları için bkz. [`AI-HANDOFF.md`](AI-HANDOFF.md).
