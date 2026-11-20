@@ -14,6 +14,15 @@
 
 
 
+## Canlı Sistem Kontrolü (`2026-11-20 02:20` · `v37`) — **Antigravity**
+- **Canlı Web (Cloudflare Pages):** `version.json` = `2026-11-20-shiftpay-v37` (`200 OK`), `sw.js` güncel, `watch.json` (102 sistem), `watch.enc.json` (`200 OK`).
+- **Canlı Worker (`summer-mode-6176`):** `GET /` (`200`), `/api/pc-watch` (`200`, canlı kur `55,47 ₺`). Güvenlik testleri 6/6 geçti: anahtarsız veya yanlış anahtarlı `/api/myholland-slips` ve `/api/planbition` istekleri **`403 Red`**, geçerli `OWNER_TOKEN` ile **`200 Yetkili`**.
+- **Otomatik Test Kapısı (`deploy-cloudflare.yml` · commit `8dfa6ba`):** Her `main` commit'inde V8 JS sözdizimi (`node --check`), sürüm uyumu, tekrarlı HTML ID, `I18N_EN` JSON ve gizli anahtar sızıntısı kontrol edilir; hata varsa yayın durur, temizse ~20 sn'de Cloudflare Pages'e yayınlanır (Run #8 `Success`).
+- **Yerel Saatlik Bot (`sync.log`):** Yeni eşitleme koduyla `2026-11-20 02:11`'de hatasız tamamlandı.
+- **Claude İçin Not:** Tüm canlı sistem, güvenlik ve otomasyon katmanları Antigravity tarafından doğrulandı (`0 hata`). `README.md` de bu özetle güncellendi.
+
+---
+
 ## v37 (`2026-11-20-shiftpay-v37`) — **Antigravity**
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:**

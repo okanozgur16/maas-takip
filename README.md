@@ -1,22 +1,19 @@
-# Maaş Takip
+# ShiftPay · Vardiya ve Maaş Takibi (Wage & Shift Tracker)
 
-Haftalık vardiya ve maaş takibi. **Hesap, e-posta ya da yapay zeka gerekmez.**
+Haftalık vardiya, saatlik ücret ve bordro takibi. **Hesap, e-posta ya da yapay zeka gerekmez.**
 
-- Veriler (vardiyalar, bordro tutarları, ayarlar) kullanıcının kendi telefonunda/tarayıcısında saklanır.
-- Bordro PDF'i telefonda okunur. Ad, adres, BSN, IBAN kaydedilmez.
-- Eşitleme kapalıyken sayfa hiçbir dış siteye bağlanmaz. Bir kez açıldıktan sonra internetsiz de çalışır.
-- **Cihazlar arası eşitleme (isteğe bağlı):** Ayarlar › Eşitleme. Veriler cihazdan çıkmadan önce kişiye özel 16 karakterlik kodla AES-256-GCM ile şifrelenir (anahtar: PBKDF2-SHA256, 150.000 tur). Sunucuda (Google Firestore, Avrupa) sadece okunamayan metin durur; belge adı kodun SHA-256 özetidir. Listeleme ve silme kuralla kapalıdır. Kodu bilmeyen veriyi ne bulabilir ne okuyabilir. Kod sızarsa Ayarlar › Eşitleme › "Kodu yenile" eski kodu kalıcı olarak iptal eder; "Eşitlemeyi sil" sunucudaki kopyayı temizler.
-- Sayfa güvenlik politikası (CSP) ile sadece kendi dosyalarına ve Firestore'a bağlanabilir; API anahtarı sadece bu siteden ve sadece Firestore için çalışır.
-- Telefon değişirse: eşitleme kodunu yeni cihaza gir ya da Ayarlar › Yedek › "Yedeği indir" / "Dosyadan geri yükle".
+- **%100 Gizlilik:** Kişisel kimlik verileri (BSN, IBAN, ad, adres) asla kaydedilmez; tüm veriler kullanıcının kendi cihazında (`localStorage`) yerel olarak saklanır.
+- **İstemci Taraflı PDF Okuma:** Bordro PDF'i tarayıcının kendi içinde yerel olarak çözümlenir, hiçbir sunucuya yüklenmez.
+- **Hollanda Uitzendbureau Uyumluluğu:** Standart (%100), Gece/Haftasonu (%150), Fazla Mesai (%185), ADV saatlik ek ücreti, %8 Tatil Parası (Vakantiegeld), StiPP emeklilik kesintisi ve ET-regeling konaklama hesaplamaları dahildir.
+- **İnternetsiz Çalışma (PWA):** Bir kez açıldıktan sonra Service Worker ile tamamen internetsiz çalışabilir.
+- **Cihazlar Arası Eşitleme (İsteğe Bağlı):** Kişiye özel 16 haneli kod ile istemci tarafında AES-256-GCM ile uçtan uca şifrelenir.
 
-Kullanmak için: https://okanozgur16.github.io/maas-takip/
+## Yasal Uyarı / Disclaimer
 
-## PC planı kasası (gizli)
+ShiftPay bağımsız ve açık kaynaklı bir çalışan aracıdır; hiçbir ajans, istihdam bürosu (Carrière, Otto, Randstad vb.) veya işveren ile resmi bağlantısı veya ortaklığı yoktur. Uygulama yalnızca çalışanların vardiya ve tahmini net hak edişlerini kolayca takip edebilmeleri amacıyla geliştirilmiştir.
 
-Web sürümünde PC planı varsayılan olarak gizlidir. Sayfa altındaki yazıya 2,5 saniye içinde 5 kez basınca "PC planı" penceresi açılır.
-- PC planı, maaş verisinden ayrı olarak kişinin **özel şifresiyle** AES-GCM ile şifrelenir (PBKDF2-SHA256, 250 bin tur). Sunucudaki belge adı da şifreden türetilir; şifre bilinmeden bulunamaz ve okunamaz. Maaş eşitleme kodu bunu açamaz.
-- PC planı ana veriye (yedek, maaş eşitleme) girmez; sadece kasada durur.
-- "Bu cihazda hatırla" seçilirse anahtar o cihazın localStorage'ında saklanır; "Kilitle ve gizle" bunu siler.
-- Uygulama her açıldığında PC planı gizlidir; 5 dokunuşla tekrar gösterilir (hatırlanan cihazda şifre sorulmaz). "Gizle" planı yalnızca bu oturumda gizler, "Kilitle ve gizle" anahtarı da cihazdan siler.
-- Fiyat takibi bir kez bağlanınca (kasadaki bayrak cihazlara eşitlenir) bağlama düğmesi bir daha gösterilmez.
-- Fiyat takibi: günlük görev fiyat verisini kasanın **genel anahtarıyla** şifreleyip `watch.enc.json` olarak yayınlar; sadece kasanın özel anahtarı açabilir (ECDH P-256 + AES-GCM).
+## Sürüm & Sistem Durumu
+
+- **Aktif Sürüm:** `2026-11-20-shiftpay-v37` ([Canlı Uygulama](https://shiftpay-app.pages.dev/))
+- **Otomatik Yayın & Test Kapısı:** Her `main` commit'inde GitHub Actions (`deploy-cloudflare.yml`) V8 JS sözdizimi, sürüm senkronizasyonu, tekrarlı ID ve gizli anahtar taraması yaparak Cloudflare Pages'e otomatik yayınlar.
+- **Son Canlı Doğrulama (2026-11-20 02:20):** Web (`200 OK`), Worker (`200 OK` · yetkisiz istekler `403` kilitli), kod/çeviri bütünlüğü (`0 hata`) doğrulandı. Ayrıntılı sürüm ve geliştirici notları için bkz. [`AI-HANDOFF.md`](AI-HANDOFF.md).
