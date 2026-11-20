@@ -1,6 +1,6 @@
 # ShiftPay — Evrensel Yapay Zeka (Claude / GPT / Gemini / Antigravity) Mimari & Oto-Güncelleme Rehberi
 
-- **Proje Adı:** ShiftPay (`2026-11-19-shiftpay-v33`)
+- **Proje Adı:** ShiftPay (`2026-11-20-shiftpay-v34`)
 - **Canlı Web (Cloudflare Pages):** https://shiftpay-app.pages.dev/
 - **Tek Doğru Kaynak (GitHub Single Source of Truth):** https://github.com/okanozgur16/maas-takip (`main` dalı)
 - **Geri Dönüş (Rollback) Dalı:** `backup-pre-v19`
@@ -34,3 +34,10 @@
 
 6. **SEÇENEK SUNMA:**
    - Kritik tasarım veya işleyiş kararlarında tek bir dayatma yapmak yerine kullanıcıya A/B alternatifleri sun.
+
+---
+
+## 🔄 v34 Değişiklik Notları (2026-11-20)
+- **Planbition çift vardiya düzeltmesi:** Planbition'dan al / otomatik çekim artık o gündeki eski Planbition kaydını (vardiya + izin) yenisiyle DEĞİŞTİRİR; eski id'ler `state.del` içine tombstone olarak yazılır (`pbRetire`), böylece bulut/diğer cihaz birleşiminde eski vardiya geri dirilmez.
+- **Çakışma penceresi:** Planbition'a ait (kullanıcı düzenlemesi olmayan) değişen vardiyalar için artık onay penceresi çıkmaz; sadece kullanıcının kendi girdiği/düzenlediği kayıtlar korunur ve sorulur.
+- **Onarım + bot:** `selfHeal` içinde aynı güne ait çift Planbition vardiyaları (ve vardiya olan günde `off`) kendiliğinden temizlenir; `automation/planbition_bot.py` aynı mantıkla (`merge_shifts`) gün başına tek kayıt tutar ve tombstone yazar.

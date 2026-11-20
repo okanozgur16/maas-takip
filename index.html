@@ -1601,6 +1601,25 @@ function normalize(s){
       }
     });
     s.entries = dedup;
+    /* v34: aynı güne ait birden fazla Planbition kaydını tek vardiyaya indir (en yeni kalır; kullanıcının kendi kayıtlarına dokunulmaz) */
+    (function(){
+      var byDay = {};
+      s.entries.forEach(function(e){ if (e.planbition === true && !e.userEdited && (e.type === 'shift' || e.type === 'off')) (byDay[e.date] = byDay[e.date] || []).push(e); });
+      var drop = {};
+      Object.keys(byDay).forEach(function(d){
+        var list = byDay[d], shifts = list.filter(function(e){ return e.type === 'shift'; });
+        if (shifts.length > 1){
+          shifts.sort(function(a, b){ return (+b.u || 0) - (+a.u || 0); });
+          shifts.slice(1).forEach(function(e){ drop[e.id] = 1; });
+        }
+        if (shifts.length) list.forEach(function(e){ if (e.type === 'off') drop[e.id] = 1; });
+      });
+      var ids = Object.keys(drop);
+      if (!ids.length) return;
+      s.del = s.del || {};
+      ids.forEach(function(id){ s.del[id] = Date.now(); });
+      s.entries = s.entries.filter(function(e){ return !drop[e.id]; });
+    })();
     if (s.del && typeof s.del === 'object'){
       delete s.del['slip:2026-11-09'];
       var cutoffDel = Date.now() - 60 * 86400000;
@@ -2602,7 +2621,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-19-shiftpay-v33';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-20-shiftpay-v34';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3027,6 +3046,12 @@ async function pbSetCreds(){
   pbPull();
 }
 var PB_PEND = null;
+/* v34: Planbition eski kaydın yerine yenisini koyarken eski kayıt(lar)ı silinmiş sayar (bulut/diğer cihazdan geri gelmesin); yeni kimliğin silinme izini kaldırır. */
+function pbRetire(oldIds, newId){
+  state.del = state.del || {};
+  oldIds.forEach(function(id){ if (id && id !== newId) tomb(id); });
+  delete state.del[newId];
+}
 function pbApplyPending(mode){
   var o = $('ovPbConf'); if (o) o.hidden = true;
   if (!PB_PEND || mode === 'cancel'){
@@ -3050,7 +3075,7 @@ function pbApplyPending(mode){
       continue;
     }
     var oldList = state.entries.filter(function(e){ return e && e.date === d; });
-    var keptDept = '';
+    var keptDept = '', dayOld = [];
     var oldShift = oldList.filter(function(e){ return e && e.type === 'shift'; })[0];
     var wasOff = oldList.some(function(e){ return e && (e.type === 'off' || e.type === 'cancel'); });
     var dObj = parseISO(d), dName = DAYS[dObj.getDay()] + ' ' + dObj.getDate() + ' ' + MONTHS[dObj.getMonth()];
@@ -3058,7 +3083,7 @@ function pbApplyPending(mode){
     oldList.forEach(function(e){
       var dp = e.dept || e.tag || '';
       if (dp && e.type === 'shift') keptDept = dp;
-      if (e.id && !e.id.startsWith('pb_') && !e.id.startsWith('off_')) tomb(e.id);
+      dayOld.push(e.id);
     });
     state.entries = state.entries.filter(function(e){ return !e || e.date !== d; });
 
@@ -3080,12 +3105,7 @@ function pbApplyPending(mode){
         if (chp.length) changes.push(dName + ': ' + chp.join(', '));
       }
 
-      if (state.del){
-        delete state.del[newId];
-        delete state.del['off_' + d.replace(/-/g, '')];
-        delete state.del['pb_' + d.replace(/-/g, '') + '_m'];
-        delete state.del['pb_' + d.replace(/-/g, '') + '_l'];
-      }
+      pbRetire(dayOld, newId);
 
       var isPend = (s.confirmed === false);
       var chTxt = '';
@@ -3117,11 +3137,7 @@ function pbApplyPending(mode){
       if (oldShift && !wasOff){
         changes.push(dName + ': Vardiya kalktı (izinli)');
       }
-      if (state.del){
-        delete state.del[newId];
-        delete state.del['pb_' + d.replace(/-/g, '') + '_m'];
-        delete state.del['pb_' + d.replace(/-/g, '') + '_l'];
-      }
+      pbRetire(dayOld, newId);
       state.entries.push({ id: newId, type: 'off', date: d, planbition: true, u: nowMs });
     }
   }
@@ -3189,9 +3205,10 @@ async function pbPull(){
 
       if (oldShift){
         if (!pbS){
+          if (!isUserEntry) continue;
           skipDates[d] = 1;
           conflicts.push({ d: d, label: dName + ': Senin kaydın (' + (oldShift.start || 'Özel') + '–' + (oldShift.end || '') + ') ➔ Planbition’da boş (İzinli yapılacak)', user: isUserEntry });
-        } else if (oldShift.start !== pbS.start || oldShift.end !== pbS.end || (isUserEntry && oldShift.dept && pbS.dept && oldShift.dept !== pbS.dept)){
+        } else if (isUserEntry && (oldShift.start !== pbS.start || oldShift.end !== pbS.end || (oldShift.dept && pbS.dept && oldShift.dept !== pbS.dept))){
           skipDates[d] = 1;
           conflicts.push({ d: d, label: dName + ': Senin kaydın ' + (oldShift.start || '?') + '–' + (oldShift.end || '?') + (oldShift.dept ? ' (' + oldShift.dept + ')' : '') + ' ➔ Planbition ' + pbS.start + '–' + pbS.end + (pbS.dept ? ' (' + pbS.dept + ')' : ''), user: isUserEntry });
         } else if (isUserEntry){
