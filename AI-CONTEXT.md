@@ -1,6 +1,6 @@
 # ShiftPay — Evrensel Yapay Zeka (Claude / GPT / Gemini / Antigravity) Mimari & Oto-Güncelleme Rehberi
 
-- **Proje Adı:** ShiftPay (`2026-11-20-shiftpay-v38`)
+- **Proje Adı:** ShiftPay (`2026-11-20-shiftpay-v39`)
 - **Canlı Web (Cloudflare Pages):** https://shiftpay-app.pages.dev/
 - **Tek Doğru Kaynak (GitHub Single Source of Truth):** https://github.com/okanozgur16/maas-takip (`main` dalı)
 - **Geri Dönüş (Rollback) Dalı:** `backup-pre-v19`
@@ -51,3 +51,7 @@
 - **Sunucu yetkisi:** `/api/myholland-slips` ve `/api/planbition` yalnızca gizli `env.OWNER_TOKEN` ile açılır; `ownerHash` sadece arayüzde gizleme içindir.
 - **Anahtar saklama:** Yetki anahtarı sahibe özel Ayarlar kutusundan (`🔑`) girilir, yalnızca cihaz `localStorage`'ında durur; repoya/`state`'e yazılmaz.
 - **isOwner önbelleği:** Son başarılı hash sonucu `localStorage`'da tutulur, açılışta titreme olmaz.
+
+## 🔄 v39 Değişiklik Notları (2026-11-20)
+- **Hızlı Hesap:** PC Planı › Sonuç'ta elle yazılan toplam para, PC fiyatı (TL) ve iki haftalık birikim tutarıyla kalan/eksik tutar ve bitiş tarihi hesaplanır.
+- Veri `state.pc.q` altında, şifreli PC kasasıyla eşitlenir; mevcut hesap motoruna dokunulmadı.

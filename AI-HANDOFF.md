@@ -14,6 +14,17 @@
 
 
 
+## v39 (`2026-11-20-shiftpay-v39`) — **Claude Pro**
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:**
+  1. PC Planı › Sonuç sekmesine **🧮 Hızlı Hesap** kartı eklendi (`pcQuick`, `renderPcQuick`, `pcQuickOut`): sahibin elle yazdığı "Şu anki toplam param (€)", "PC fiyatı (TL)" ve iki haftalık birikim tutarı (varsayılan 300/500 €) ile "Ayırdığımla / toplam param ile alırsam cebinde kalan ya da eksik", her haftalık tutar için bitiş tarihi + hedef tarihe yetişme durumu ve hedef tarih için gereken haftalık tutar hesaplanır.
+  2. Veriler `state.pc.q` içinde durur (şifreli PC kasasıyla eşitlenir, ana veriye girmez). Mevcut PC planı hesaplarına ve `pcCompute()`'a dokunulmadı; sadece `pcCompute().wk.use` okunur (haftalık net ortalamayı aşan birikim uyarısı için).
+  3. Yeni metinler `L(tr, en)` ile çift dilli, mevcut `.field/.pcw/.ok/.bad` sınıflarıyla açık/koyu temada uyumlu. Kart yalnızca `isOwner()` PC planı içinde görünür.
+- **Test:** Tarayıcıda doğrulandı (150.000 TL, 1 € = 55,5 TL, ayrılan 1000 € → 300 €/hf = 6 hafta = 1 Oca 2027, 500 €/hf = 4 hafta; hedef 28 Şub için 114 €/hf).
+- **Antigravity İçin Not:** Worker değişmedi, canlı Worker'a bir şey yapıştırmak gerekmez.
+
+---
+
 ## v38 (`2026-11-20-shiftpay-v38`) — **Antigravity**
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `_headers`, `.github/workflows/deploy-cloudflare.yml`, `AI-CONTEXT.md`, `AI-HANDOFF.md`, `README.md`
 - **Ne Yapıldı (Teknik Hijyen + UI & Metin Restorasyonu):**

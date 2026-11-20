@@ -912,6 +912,8 @@ html:not(.ui-classic) .pcgrid[data-sub="sum"] [data-card="pcWhat"],
 html:not(.ui-classic) .pcgrid[data-sub="sum"] [data-card="pcSet"],
 html:not(.ui-classic) .pcgrid[data-sub="sum"] [data-card="pcItems"]{display:none !important}
 
+html:not(.ui-classic) .pcgrid[data-sub="sys"] [data-card="pcQuick"],
+html:not(.ui-classic) .pcgrid[data-sub="cfg"] [data-card="pcQuick"],
 html:not(.ui-classic) .pcgrid[data-sub="sys"] [data-card="pcHero"],
 html:not(.ui-classic) .pcgrid[data-sub="sys"] [data-card="pcWhat"],
 html:not(.ui-classic) .pcgrid[data-sub="sys"] [data-card="pcLog"],
@@ -1251,6 +1253,7 @@ html:not(.ui-classic) .pcgrid[data-sub="bud"] [data-card="pcWhat"]{order:3}
   <div class="pcgrid" id="pcPage" data-lay="pc" data-sub="sum">
     <div class="pccol" data-col="l">
       <div class="cw" data-card="pcHero"><section class="card" id="pcHero" aria-live="polite"></section></div>
+      <div class="cw" data-card="pcQuick"><section class="card" id="pcQuick"></section></div>
       <div class="cw" data-card="pcWatch"><section class="card" id="pcWatch"></section></div>
       <div class="cw" data-card="pcWhat"><section class="card" id="pcWhat"></section></div>
       <div class="cw" data-card="pcLog"><section class="card" id="pcLog"></section></div>
@@ -2666,7 +2669,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-20-shiftpay-v38';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-20-shiftpay-v39';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -4803,7 +4806,7 @@ function renderPc(force){
   } else {
     var sumEl = $('pcItemsSum'); if (sumEl) sumEl.innerHTML = pcItemsSumHTML();
   }
-  renderPcWhat(force); renderPcLog(); renderWatch();
+  renderPcQuick(force); renderPcWhat(force); renderPcLog(); renderWatch();
 }
 function pcWhatTxt(W){
   return [W.s === 0 ? 'şimdiki gibi' : W.s > 0 ? 'ayda +€' + W.s + ' fazla' : 'ayda €' + (-W.s) + ' az',
@@ -4816,6 +4819,59 @@ function pcWhatOut(){
   return '<div class="pctiles"><div class="tl"><span>Birikim</span><b class="num">' + eur(C2.atT) + '</b></div><div class="tl ' + (d0 >= 0 ? 'ok' : 'bad') + '"><span>Şimdikinden</span><b class="num">' + (d0 >= 0 ? '+' : '') + pcE0(d0) + '</b></div><div class="tl ' + (dd >= 0 ? 'ok' : 'bad') + '"><span>' + esc(sp.name) + '</span><b class="num">' + (dd >= 0 ? '+' + pcE0(dd) : pcE0(dd)) + '</b></div></div>' +
     '<div class="pcst' + (dd >= 0 ? '' : ' bad') + '">' + pcDate(C.tgt) + ' tarihinde tahmini birikim <b class="num">' + eur(C2.atT) + '</b>. <b>' + esc(sp.name) + ':</b> ' + (dd >= 0 ? L('yetiyor, <span class="num">+' + pcE0(dd) + '</span> pay kalıyor', 'enough, <span class="num">+' + pcE0(dd) + '</span> left over') : '<span class="num">' + pcE0(-dd) + '</span> ' + L('eksik kalıyor', 'short')) + '. ' +
     (rk ? L('Hedef tutar <b>' + pcDate(rk) + '</b> tarihinde hazır olur.', 'The target amount is ready on <b>' + pcDate(rk) + '</b>.') : L('Bu tempoyla 14 ay içinde ulaşılamıyor.', 'Not reachable within 14 months at this pace.')) + '</div>';
+}
+/* v39: Hızlı Hesap — toplam param, PC fiyatı ve haftalık birikim senaryoları (hepsi elle yazılır; sahibe özel PC planının içinde) */
+function pcQ(){
+  var P = state.pc || (state.pc = pcDefaults());
+  if (!P.q || typeof P.q !== 'object') P.q = { cash: 0, price: 0, w1: 300, w2: 500 };
+  return P.q;
+}
+function pcQuickOut(){
+  var P = state.pc, Q = pcQ(), rate = +P.rate > 0 ? +P.rate : 1, h = '';
+  var cash = +Q.cash || 0, price = +Q.price || 0, saved = +P.saved || 0;
+  if (!(price > 0)) return '<div class="sub">' + L('PC fiyatını (TL) yazınca sonuçlar burada çıkar.', 'Enter the PC price (TRY) to see results here.') + '</div>';
+  var pe = price / rate;
+  var line = function(lbl, have){
+    var d = have - pe;
+    return '<div class="pcw num"><span>' + lbl + '</span><b class="' + (d >= 0 ? 'ok' : 'bad') + '">' + (d >= 0 ? L('Cebinde kalır: +', 'Left in pocket: +') + pcE0(d) : pcE0(-d) + ' ' + L('eksik', 'short')) + '</b></div>';
+  };
+  h += '<div class="sub" style="margin:0 0 6px">' + L('Fiyat', 'Price') + ': <b class="num">' + pcTL(price) + '</b> ≈ <b class="num">' + pcE0(pe) + '</b> (1 € = ' + String(rate).replace('.', ',') + ' TL)</div>';
+  h += line(L('Ayırdığımla alırsam', 'With my set-aside'), saved);
+  if (cash > 0) h += line(L('Toplam param ile alırsam', 'With all my money'), cash);
+  var need = pe - saved, tgt = P.target || '', C = null;
+  try { C = pcCompute(); } catch (e) { C = null; }
+  var wk = C && C.wk ? +C.wk.use || 0 : 0;
+  [+Q.w1 || 0, +Q.w2 || 0].forEach(function(w){
+    if (!(w > 0)) return;
+    var txt;
+    if (need <= 0) txt = '<b class="ok">' + L('Şimdiden yeter', 'Already enough') + '</b>';
+    else {
+      var wks = Math.ceil(need / w), dt = addDays(today, wks * 7);
+      txt = '<b class="num">' + pcDate(dt) + '</b> <span class="sub">(' + wks + ' ' + L('hafta', 'weeks') + ')</span>';
+      if (tgt) txt += ' <span class="' + (dt <= tgt ? 'ok' : 'bad') + '">' + (dt <= tgt ? '✓ ' + L('hedef tarihe yetişir', 'meets target date') : L('hedeften ', '') + Math.ceil((parseISO(dt) - parseISO(tgt)) / 604800000) + ' ' + L('hafta geç', 'weeks late')) + '</span>';
+    }
+    h += '<div class="pcw num"><span>' + pcE0(w) + L('/hafta birikirse', '/week saved') + '</span><span>' + txt + '</span></div>';
+    if (wk > 0 && w > wk) h += '<div class="sub bad" style="margin:-2px 0 4px">' + L('Bu tutar haftalık net maaş ortalamanı (', 'This exceeds your average weekly net pay (') + pcE0(wk) + L(') aşıyor.', ').') + '</div>';
+  });
+  if (need > 0 && tgt && tgt > today){
+    var wl = Math.max(1, Math.ceil((parseISO(tgt) - parseISO(today)) / 604800000));
+    h += '<div class="pcw num"><span>' + pcDate(tgt) + L(' için gereken', ' needs')+ '</span><b>' + pcE0(need / wl) + L('/hafta', '/week') + '</b></div>';
+  }
+  return h + '<div class="sub" style="margin-top:6px">' + L('Senaryolar "PC için ayırdığım" tutarından başlar ve maaşından bağımsız ek birikimi gösterir.', 'Scenarios start from your "set aside" amount and show extra savings on top.') + '</div>';
+}
+function renderPcQuick(force){
+  var el = $('pcQuick'); if (!el) return;
+  if (!(force || !pcFocusIn('pcQuick'))) return;
+  var Q = pcQ();
+  if (force || !el.firstChild || !el.querySelector('#pcq_out')){
+    el.innerHTML = '<h2>🧮 ' + L('Hızlı Hesap', 'Quick Calc') + '</h2><div class="two">' +
+      '<div class="field"><label for="pcq_cash">' + L('Şu anki toplam param (€)', 'My total money now (€)') + '</label><input id="pcq_cash" data-pc="q" data-f="cash" inputmode="decimal" value="' + (Q.cash > 0 ? pcInp(Q.cash) : '') + '" placeholder="0"></div>' +
+      '<div class="field"><label for="pcq_price">' + L('PC fiyatı (TL)', 'PC price (TRY)') + '</label><input id="pcq_price" data-pc="q" data-f="price" inputmode="numeric" value="' + (Q.price > 0 ? pcInp(Q.price) : '') + '" placeholder="örn. 180000"></div>' +
+      '<div class="field"><label for="pcq_w1">' + L('Haftalık birikim 1 (€)', 'Weekly saving 1 (€)') + '</label><input id="pcq_w1" data-pc="q" data-f="w1" inputmode="decimal" value="' + (Q.w1 > 0 ? pcInp(Q.w1) : '') + '"></div>' +
+      '<div class="field"><label for="pcq_w2">' + L('Haftalık birikim 2 (€)', 'Weekly saving 2 (€)') + '</label><input id="pcq_w2" data-pc="q" data-f="w2" inputmode="decimal" value="' + (Q.w2 > 0 ? pcInp(Q.w2) : '') + '"></div></div>' +
+      '<div id="pcq_out" style="margin-top:10px"></div>';
+  }
+  $('pcq_out').innerHTML = pcQuickOut();
 }
 function renderPcWhat(force){
   var el = $('pcWhat'); if (!el) return;
@@ -5519,6 +5575,7 @@ function onPcInput(t){
     if (t.getAttribute('data-f') === 'name'){ if (v.trim()) pl.name = v.trim(); else bad = true; }
     else { var n = Math.round(pcNum(v)); if (n > 0) pl.tl = n; else bad = true; }
   }
+  else if (k === 'q'){ var Q = pcQ(), qf = t.getAttribute('data-f'); if (qf === 'cash' || qf === 'price' || qf === 'w1' || qf === 'w2') Q[qf] = Math.max(0, pcNum(v)); P.updated = Date.now(); commit(); if ($('pcq_out')) $('pcq_out').innerHTML = pcQuickOut(); return; }
   else if (k === 'rate'){ var r = pcNum(v); if (r > 0) P.rate = r; else bad = true; }
   else if (k === 'sal'){ P.salMode = v === 'low' || v === 'manual' ? v : 'avg'; bad = true; }
   else if (k === 'weekly'){ P.weekly = Math.max(0, pcNum(v)); }
@@ -5545,7 +5602,7 @@ function onPcInput(t){
 var LAYK = LS + '-layout';
 var LAY_DEF = {
   maas: [['hero', 'Özet', 'l'], ['days', 'Günler', 'r'], ['goal', 'Haftalık hedef', 'l'], ['brk', 'Maaş dökümü', 'l'], ['savGoal', 'Birikimim & Hedefim', 'l'], ['month', 'Aylık özet', 'l'], ['year', 'Yıl toplamları', 'l']],
-  pc: [['pcHero', 'Sonuç', 'l'], ['pcWatch', 'İzlenen PC’ler', 'l'], ['pcWhat', 'Ya şöyle olsa?', 'l'], ['pcSet', 'Bilgilerim', 'r'], ['pcItems', 'Gelir ve giderlerim', 'r'], ['pcLog', 'Birikim geçmişi', 'l'], ['pcWk', 'Ay ay tahmin', 'l']]
+  pc: [['pcHero', 'Sonuç', 'l'], ['pcQuick', 'Hızlı Hesap', 'l'], ['pcWatch', 'İzlenen PC’ler', 'l'], ['pcWhat', 'Ya şöyle olsa?', 'l'], ['pcSet', 'Bilgilerim', 'r'], ['pcItems', 'Gelir ve giderlerim', 'r'], ['pcLog', 'Birikim geçmişi', 'l'], ['pcWk', 'Ay ay tahmin', 'l']]
 };
 var layS = {}; try { layS = JSON.parse(localStorage.getItem(LAYK) || '{}') || {}; } catch (e) { layS = {}; }
 function laySave(){ try { localStorage.setItem(LAYK, JSON.stringify(layS)); } catch (e) {} }
@@ -5671,7 +5728,7 @@ function applyPcSub(){
 function setPcSub(v){
   view.pcSub = (v === 'sys' || v === 'cfg') ? v : 'sum';
   try { localStorage.setItem(LS + '-pcsub', view.pcSub); } catch (e) {}
-  var pL = layGet('pc'), cards = view.pcSub === 'sys' ? ['pcWatch'] : view.pcSub === 'cfg' ? ['pcWhat', 'pcSet', 'pcItems'] : ['pcHero', 'pcLog', 'pcWk'];
+  var pL = layGet('pc'), cards = view.pcSub === 'sys' ? ['pcWatch'] : view.pcSub === 'cfg' ? ['pcWhat', 'pcSet', 'pcItems'] : ['pcHero', 'pcQuick', 'pcLog', 'pcWk'];
   var chF = false;
   cards.forEach(function(cid){ if (pL.fold && pL.fold[cid]){ pL.fold[cid] = false; chF = true; } });
   if (chF){ laySave(); layApply(); }
