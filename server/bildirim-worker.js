@@ -9,7 +9,7 @@ const VAPID_PUBLIC = 'BNC8z6r6nw5KHuX-BHUvS_UtDme9G0J8InlDAtPo8mq38-Uz0ugRnoEia5
 const SUBJECT = 'https://shiftpay-app.pages.dev/';
 const PUSH_HOSTS = [/(^|\.)push\.apple\.com$/, /(^|\.)googleapis\.com$/, /(^|\.)push\.services\.mozilla\.com$/, /(^|\.)notify\.windows\.com$/];
 const MAX_USERS = 300;
-const OWNER_SYNC_ID = '334e83e9dfc83510848bfa0982e0b0d3e78958182732d79bc69025135cfe8612';
+const OWNER_HASH = '3c0c4a04bcce9ff2ccd3a228bf3dcaaf7420c595bfeec45623a3f31d7e69b10d';
 const PB_API = 'https://planbition.herokuapp.com';
 const enc = new TextEncoder();
 
@@ -266,7 +266,7 @@ async function handle(req, env) {
     let pbUser = (b && b.user) ? String(b.user).trim() : '';
     let pbPass = (b && b.pass) ? String(b.pass).trim() : '';
     const pbCust = (b && b.customer) ? String(b.customer).trim() : 'Carriere';
-    if (!pbUser && b && b.syncId === OWNER_SYNC_ID && env.PB_USER && env.PB_PASS) {
+    if (!pbUser && b && env.OWNER_TOKEN && b.ownerToken === env.OWNER_TOKEN && env.PB_USER && env.PB_PASS) {
       pbUser = env.PB_USER;
       pbPass = env.PB_PASS;
     }
@@ -276,6 +276,95 @@ async function handle(req, env) {
       return json(res, 200, env, req);
     } catch (e) {
       return json({ ok: false, err: 'Planbition sunucusuna ulaşılamadı.' }, 200, env, req);
+    }
+  }
+
+  /* 1b. myHolland Canlı Bordro PDF Çekme Endpoint'i (Sadece Owner) */
+  if (url.pathname === '/api/myholland-slips') {
+    const hasSecretAuth = !!(env.OWNER_TOKEN && b && b.ownerToken === env.OWNER_TOKEN);
+    if (!b || (b.ownerHash !== OWNER_HASH && !hasSecretAuth)) return json({ ok: false, err: 'Yetkisiz erişim.' }, 403, env, req);
+    let mhEmail = (b && b.email) ? String(b.email).trim() : (hasSecretAuth ? (env.MH_EMAIL || '') : '');
+    let mhPass = (b && b.pass) ? String(b.pass).trim() : (hasSecretAuth ? (env.MH_PASS || env.PB_PASS || '') : '');
+    if (!mhEmail || !mhPass) return json({ ok: false, needCreds: true, err: 'myHolland e-posta ve şifresi gerekli.' }, 200, env, req);
+    try {
+      const BASE = 'https://www.myholland.eu';
+      const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36';
+      const jar = {};
+      const takeCookies = (res) => {
+        const list = (typeof res.headers.getSetCookie === 'function')
+          ? res.headers.getSetCookie()
+          : (res.headers.get('set-cookie') ? [res.headers.get('set-cookie')] : []);
+        for (const c of list) {
+          const m = /^([^=;,\s]+)=([^;]*)/.exec(c || '');
+          if (m) jar[m[1]] = m[2];
+        }
+      };
+      const cookieHeader = () => Object.keys(jar).map(k => k + '=' + jar[k]).join('; ');
+
+      const rLoginGet = await fetch(BASE + '/login', { headers: { 'User-Agent': ua } });
+      takeCookies(rLoginGet);
+      const loginHtml = await rLoginGet.text();
+      const tokM = /name="_token"\s+value="([^"]+)"/.exec(loginHtml);
+      if (!tokM) return json({ ok: false, err: 'myHolland CSRF token alınamadı.' }, 200, env, req);
+
+      const form = new URLSearchParams({ _token: tokM[1], email: mhEmail, password: mhPass, remember: '1' });
+      const rLoginPost = await fetch(BASE + '/login', {
+        method: 'POST',
+        redirect: 'manual',
+        headers: { 'User-Agent': ua, 'Content-Type': 'application/x-www-form-urlencoded', 'Cookie': cookieHeader(), 'Referer': BASE + '/login' },
+        body: form.toString()
+      });
+      takeCookies(rLoginPost);
+
+      const rFin = await fetch(BASE + '/finances', { headers: { 'User-Agent': ua, 'Cookie': cookieHeader() } });
+      takeCookies(rFin);
+      const finHtml = await rFin.text();
+      if (/name="password"/i.test(finHtml) && !/logout/i.test(finHtml)) {
+        return json({ ok: false, needCreds: true, err: 'myHolland giriş bilgileri hatalı.' }, 200, env, req);
+      }
+      const csrfM = /name="csrf-token"\s+content="([^"]+)"/.exec(finHtml);
+      const ajaxHeaders = { 'User-Agent': ua, 'Cookie': cookieHeader(), 'X-Requested-With': 'XMLHttpRequest', 'Content-Type': 'application/json' };
+      if (csrfM) ajaxHeaders['X-CSRF-TOKEN'] = csrfM[1];
+
+      const rData = await fetch(BASE + '/finances/getFinancesData', { method: 'POST', headers: ajaxHeaders });
+      if (!rData.ok) return json({ ok: false, err: 'myHolland finans verisi alınamadı.' }, 200, env, req);
+      const finJson = await rData.json();
+      const haveSet = new Set(Array.isArray(b.existingNums) ? b.existingNums.map(String) : []);
+      const pdfs = [];
+
+      for (const yrEntry of (finJson.loons || [])) {
+        const yr = Number(yrEntry.year || 0);
+        if (yr < 2026) continue;
+        const weeks = ((yrEntry.data || {}).weeks || []).slice(-6);
+        for (const wk of weeks) {
+          if (yr === 2026 && Number(wk) < 32) continue;
+          const rWk = await fetch(BASE + '/finances/getLoonsForWeek', {
+            method: 'POST',
+            headers: ajaxHeaders,
+            body: JSON.stringify({ year: yr, week: String(wk) })
+          });
+          if (!rWk.ok) continue;
+          const loons = await rWk.json();
+          for (const l of (Array.isArray(loons) ? loons : [])) {
+            const lId = l.id, lNum = Number(l.loon_number || 0), lYr = Number(l.loon_year || yr);
+            if (!lId || haveSet.has(lYr + ':' + lNum)) continue;
+            const rPdf = await fetch(`${BASE}/finances/show/loon/${lId}/${lYr}`, { headers: { 'User-Agent': ua, 'Cookie': cookieHeader() } });
+            if (rPdf.ok) {
+              const buf = new Uint8Array(await rPdf.arrayBuffer());
+              if (buf.length > 100 && buf[0] === 0x25 && buf[1] === 0x50) {
+                let bin = '';
+                for (let i = 0; i < buf.length; i += 0x8000) bin += String.fromCharCode.apply(null, buf.subarray(i, i + 0x8000));
+                pdfs.push({ week: Number(wk), num: lNum, year: lYr, name: `myHolland-W${wk}-${lNum}.pdf`, b64: btoa(bin) });
+                if (pdfs.length >= 6) break;
+              }
+            }
+          }
+          if (pdfs.length >= 6) break;
+        }
+      }
+      return json({ ok: true, pdfs }, 200, env, req);
+    } catch (e) {
+      return json({ ok: false, err: 'myHolland sunucusuna ulaşılamadı.' }, 200, env, req);
     }
   }
 
