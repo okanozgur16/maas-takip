@@ -1,0 +1,32 @@
+name: Deploy ShiftPay to Cloudflare Pages
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'automation/**'
+      - 'README.md'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare clean web directory
+        run: |
+          mkdir -p dist
+          cp -r index.html version.json sw.js manifest.webmanifest watch.json watch.enc.json icon-192.png icon-512.png apple-touch-icon.png _redirects .nojekyll AI-CONTEXT.md CLAUDE.md fonts lib server dist/ 2>/dev/null || true
+
+      - name: Publish to Cloudflare Pages (shiftpay-app)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: 3bf7fc774af3ec087fc3d01b6856c0bd
+          command: pages deploy dist --project-name=shiftpay-app --branch=main
