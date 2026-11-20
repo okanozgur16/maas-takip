@@ -23,6 +23,19 @@
 
 ---
 
+## Claude Pro — Güvenlik & Hata Denetimi (2026-11-20, v37 üzerinde, sürüm değişmedi)
+- **Kontrol edilenler (temiz):** Repoda token/özel anahtar/IBAN/BSN/e-posta yok; ham eski ID HEAD'de yok; `/api/planbition` ve `/api/myholland-slips` yalnızca `env.OWNER_TOKEN` ile açılır; push ucu yalnızca Apple/Google/Mozilla/Microsoft host'larına gider; CSP `object-src/base-uri/form-action 'none'`; CI test kapısı (sürüm, JS sözdizimi, çift id, I18N_EN) çalışıyor.
+- **Açık maddeler (öncelik sırasıyla, kullanıcı onayı ile yapılacak):**
+  1. **Satır sonu şişmesi:** v37'de `index.html` (6199→12398 satır), `sw.js`, `AI-HANDOFF.md` vb. dosyalarda her satırdan sonra fazladan boş satır var (CRLF iki kez yazılmış). Fonksiyonel sorun yok; `\r\n\r\n → \r\n` ile temizleyince v36 ile fark sadece sürüm + `OWNER_HASH` (4 satır) kalıyor. Bunu üreten aracı düzelt, sonra temizle.
+  2. **Deploy klasörü:** `deploy-cloudflare.yml` `dist/` içine `server/`, `AI-CONTEXT.md`, `CLAUDE.md`, `AI-HANDOFF.md` kopyalıyor → site üzerinden herkese açık. Çıkar. Ayrıca `cp ... || true` eksik dosyayı (örn. `_redirects`) sessizce yutuyor; kaldır ya da dosya kontrolü ekle. CI'daki `sp_` token regex'i zayıf, güvenlik garantisi sayılmamalı.
+  3. **Bildirim uçları** (`/api/sync`, `/api/off`, `/api/test`) yalnızca rastgele `id` ile çalışıyor; hız sınırı yok, `MAX_USERS=300` kontenjanı sahte kayıtla doldurulabilir. Origin zorunluluğu + basit hız sınırı ekle. `/api/pc-watch` da herkese açık (cache var).
+  4. **CSP `'unsafe-inline'` script** + 60 `innerHTML` kullanımı: tüm kullanıcı verisinin `esc()` ile kaçtığı denetlenmeli (tam denetim yapılmadı).
+  5. **Cihaz depolaması:** myHolland şifresi (`-mhcreds`) ve yetki anahtarı (`-ownertok`) `localStorage`'da düz metin; Planbition şifresi (`-pbsec`) şifreli görünüyor ama anahtarın nerede durduğu doğrulanmadı.
+  6. **Eski GitHub Pages adresi** (`okanozgur16.github.io/maas-takip`, README'de yazıyor) hâlâ canlı olabilir → uygulamanın iki kopyası; kapat ya da yönlendir.
+- **Not:** Canlı Worker, Cloudflare ve canlı site Claude'un ortamından erişilemez; canlı doğrulamalar (403/200 testleri) Antigravity beyanına dayanır.
+
+---
+
 ## v37 (`2026-11-20-shiftpay-v37`) — **Antigravity**
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:**
