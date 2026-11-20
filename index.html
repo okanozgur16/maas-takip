@@ -2669,7 +2669,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-20-shiftpay-v39';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-20-shiftpay-v40';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -4837,7 +4837,16 @@ function pcQuickOut(){
   };
   h += '<div class="sub" style="margin:0 0 6px">' + L('Fiyat', 'Price') + ': <b class="num">' + pcTL(price) + '</b> ≈ <b class="num">' + pcE0(pe) + '</b> (1 € = ' + String(rate).replace('.', ',') + ' TL)</div>';
   h += line(L('Ayırdığımla alırsam', 'With my set-aside'), saved);
-  if (cash > 0) h += line(L('Toplam param ile alırsam', 'With all my money'), cash);
+  if (cash > 0){
+    h += line(L('Toplam param ile alırsam', 'With all my money'), cash);
+    var normal = cash - saved, fromNormal = Math.max(0, pe - saved), after = normal - fromNormal;
+    h += '<div class="sub" style="margin:8px 0 2px"><b>' + L('Normal paranı katmadan (ayırdığın hariç)', 'Without touching your regular money (set-aside excluded)') + '</b></div>';
+    h += '<div class="pcw num"><span>' + L('Normal paran (toplam − ayırdığın)', 'Regular money (total − set-aside)') + '</span><b>' + pcE0(normal) + '</b></div>';
+    h += '<div class="pcw num"><span>' + L('PC için ayırdığın karşılar', 'Your set-aside covers') + '</span><b>' + pcE0(Math.min(saved, pe)) + '</b></div>';
+    h += '<div class="pcw num"><span>' + L('Normal paradan gidecek', 'Taken from regular money') + '</span><b>' + pcE0(fromNormal) + '</b></div>';
+    h += '<div class="pcw num"><span>' + L('PC sonrası normal paran', 'Regular money after the PC') + '</span><b class="' + (after >= 0 ? 'ok' : 'bad') + '">' + (after >= 0 ? pcE0(after) : pcE0(-after) + ' ' + L('eksik', 'short')) + '</b></div>';
+    if (cash < saved) h += '<div class="sub bad">' + L('Toplam paran ayırdığından az görünüyor; toplam parayı kontrol et.', 'Your total looks lower than your set-aside; check the total.') + '</div>';
+  }
   var need = pe - saved, tgt = P.target || '', C = null;
   try { C = pcCompute(); } catch (e) { C = null; }
   var wk = C && C.wk ? +C.wk.use || 0 : 0;

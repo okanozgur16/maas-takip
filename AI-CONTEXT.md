@@ -1,6 +1,6 @@
 # ShiftPay — Evrensel Yapay Zeka (Claude / GPT / Gemini / Antigravity) Mimari & Oto-Güncelleme Rehberi
 
-- **Proje Adı:** ShiftPay (`2026-11-20-shiftpay-v39`)
+- **Proje Adı:** ShiftPay (`2026-11-20-shiftpay-v40`)
 - **Canlı Web (Cloudflare Pages):** https://shiftpay-app.pages.dev/
 - **Tek Doğru Kaynak (GitHub Single Source of Truth):** https://github.com/okanozgur16/maas-takip (`main` dalı)
 - **Geri Dönüş (Rollback) Dalı:** `backup-pre-v19`
@@ -55,3 +55,6 @@
 ## 🔄 v39 Değişiklik Notları (2026-11-20)
 - **Hızlı Hesap:** PC Planı › Sonuç'ta elle yazılan toplam para, PC fiyatı (TL) ve iki haftalık birikim tutarıyla kalan/eksik tutar ve bitiş tarihi hesaplanır.
 - Veri `state.pc.q` altında, şifreli PC kasasıyla eşitlenir; mevcut hesap motoruna dokunulmadı.
+
+## 🔄 v40 Değişiklik Notları (2026-11-20)
+- **Hızlı Hesap:** "Normal paranı katmadan" bloğu: toplam − ayırdığım = normal para; PC önce ayrılandan, kalan normal paradan düşer.

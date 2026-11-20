@@ -14,6 +14,14 @@
 
 
 
+## v40 (`2026-11-20-shiftpay-v40`) — **Claude Pro**
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:** PC Planı › Hızlı Hesap kartına "Normal paranı katmadan" bloğu eklendi: toplam para ayırdığı tutarı da içerir; `normal = toplam − ayırdığım`, PC önce ayrılan tutardan karşılanır, kalan fiyat normal paradan düşer ve "PC sonrası normal paran" gösterilir (toplam < ayırdığım ise uyarı). Çift dil `L()`, mevcut sınıflar; hesap motoruna dokunulmadı.
+- **Test:** 3500 € toplam, 500 € ayrılan, 500 € PC → normal 3000 € kalır; 160.000 TL (≈2.884 €) → 2.384 € normal paradan gider, 616 € kalır.
+- **Antigravity İçin Not:** Worker değişmedi.
+
+---
+
 ## v39 (`2026-11-20-shiftpay-v39`) — **Claude Pro**
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:**
