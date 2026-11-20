@@ -12,7 +12,18 @@
 
 ---
 
+## v41 (`2026-11-21-shiftpay-v41`) — **Antigravity**
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Geri Dönüş Yedeği:** GitHub `backup-v40` dalı + yerel `maas-takip-backup-v40/` (v40 birebir yedeği).
+- **Ne Yapıldı (Fintech / Neo-Bank & Mobile-First UI/UX Revizyonu — sıfır iş mantığı değişikliği):**
+  1. **Görsel Dil & Renk Paleti:** `#09090B` derin antrasit arka plan, `#121215` kartlar, `rgba(255,255,255,0.08)` kenarlıklar, `18px` köşe yuvarlama, `#25C974`/`#10B981` zümrüt yeşili net/buton aksanı, `#F59E0B` amber kesinti aksanı, `#38BDF8`/`#6366F1` PC Planı aksanı, global `font-variant-numeric: tabular-nums` ve Açık Tema uyumu.
+  2. **Navigasyon:** Tek satır minimal üst bar (sol `ShiftPay` + `Bu cihazda`, orta kompakt `< Hf 47 >` hafta seçici, sağ ⚙️ çark); mobilde cam bulanıklıklı (`backdrop-filter: blur`) sabit alt menü (`Maaş`, `Döküm`, `İstatistikler`, sahibe özel gizli `PC Planı`, `Ayarlar`), masaüstünde 216px ince sol kenar çubuğu (Sidebar). Normal kullanıcılarda `.app.nopc` ile `PC Planı` hem menüden hem Bento Grid'den %100 gizlidir.
+  3. **Bento Dashboard:** En üstte kalın yeşil Hero net maaş kartı + `Toplam Saat` & `Bordro Farkı` kapsülleri, hemen altında yan yana `+ Vardiya Ekle` (dolgulu) ve `+ PDF Bordro Yükle` (çerçeveli) hızlı aksiyon butonları, altında 2x2 Bento Grid (`Brüt Gelir`, `Vergi & Kesinti`, `Saatlik Ort.`, sahibe açıkken `PC Planı` / herkeste `Haftalık Hedef`).
+  4. **Bottom Sheet Modaller:** `#ov`, `#ov3`, `#ov4`, `#ov5` mobilde alttan kayan drag-handle çizgili Bottom Sheet çekmecesine dönüştürüldü; hızlı saat ve bölüm seçiciler dokunmatik kapsül çip oldu.
+  5. **Footer Temizliği:** Ana ekrandaki yasal/teşekkür metinleri kaldırılıp Ayarlar içine `ℹ️ Hakkında & Yasal Bilgiler` akordeonuna taşındı (`pcSecret` 5-tık hem orada hem logo rozetinde korundu).
+- **Claude İçin Not:** Hesap motoru (`calcPay`, `weekResult`), PDF ayrıştırıcı, Firebase eşitleme, PC kasası (`VAULT`), `v39`/`v40` `Hızlı Hesap` ve Worker koduna hiç dokunulmadı.
 
+---
 
 ## v40 (`2026-11-20-shiftpay-v40`) — **Claude Pro**
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
