@@ -19,10 +19,64 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Pre-Deploy Safety Guard (Syntax, Version Sync, Duplicate IDs & Secret Check)
+        run: |
+          python3 - << 'EOF'
+          import re, json, subprocess, tempfile, sys
+
+          html = open('index.html', encoding='utf-8').read()
+          v_json = json.load(open('version.json', encoding='utf-8'))
+          sw_js = open('sw.js', encoding='utf-8').read()
+
+          # 1. Version consistency check
+          m_app = re.search(r"APP_VER\s*=\s*'([^']+)'", html)
+          m_sw = re.search(r"CACHE\s*=\s*'([^']+)'", sw_js)
+          v_v = v_json.get('v')
+          assert m_app and m_sw and v_v, "Missing version strings!"
+          assert m_app.group(1) == v_v, f"APP_VER ({m_app.group(1)}) != version.json ({v_v})"
+          assert v_v in m_sw.group(1), f"sw.js CACHE ({m_sw.group(1)}) does not contain {v_v}"
+          print(f"[OK] Version sync: {v_v}")
+
+          # 2. Real V8 JavaScript syntax check on all inline scripts + sw.js
+          scripts = re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', html, re.S)
+          assert len(scripts) >= 1, "No inline scripts found!"
+          for idx, sc in enumerate(scripts):
+              with tempfile.NamedTemporaryFile('w', suffix='.js', encoding='utf-8', delete=False) as tf:
+                  tf.write(sc)
+                  tf_path = tf.name
+              res = subprocess.run(['node', '--check', tf_path], capture_output=True, text=True)
+              if res.returncode != 0:
+                  print(f"[FAIL] JS syntax error in inline script #{idx+1}:\n{res.stderr}", file=sys.stderr)
+                  sys.exit(1)
+          res_sw = subprocess.run(['node', '--check', 'sw.js'], capture_output=True, text=True)
+          if res_sw.returncode != 0:
+              print(f"[FAIL] JS syntax error in sw.js:\n{res_sw.stderr}", file=sys.stderr)
+              sys.exit(1)
+          print(f"[OK] V8 JS syntax check passed ({len(scripts)} inline scripts + sw.js)")
+
+          # 3. Duplicate HTML IDs check
+          body = html[html.find('<body>'):html.find('<script')]
+          ids = re.findall(r'\bid="([^"]+)"', body)
+          dups = sorted(set(x for x in ids if ids.count(x) > 1))
+          assert not dups, f"Duplicate HTML IDs found: {dups}"
+          print("[OK] Zero duplicate HTML IDs")
+
+          # 4. I18N_EN JSON validity check
+          m_en = re.search(r'var I18N_EN = (\{.*?\});', html)
+          assert m_en, "I18N_EN not found!"
+          i18n = json.loads(m_en.group(1))
+          print(f"[OK] I18N_EN valid ({len(i18n)} entries)")
+
+          # 5. Generic secret leak check (no hardcoded personal values in workflow!)
+          assert not re.search(r"OWNER_SYNC_ID\s*=", html), "Raw OWNER_SYNC_ID variable found in index.html!"
+          assert not re.search(r"\bsp_[A-Za-z0-9_-]{30,}", html), "OWNER_TOKEN leak detected in index.html!"
+          print("[OK] Zero leaked secrets")
+          EOF
+
       - name: Prepare clean web directory
         run: |
           mkdir -p dist
-          cp -r index.html version.json sw.js manifest.webmanifest watch.json watch.enc.json icon-192.png icon-512.png apple-touch-icon.png _redirects .nojekyll AI-CONTEXT.md CLAUDE.md fonts lib server dist/ 2>/dev/null || true
+          cp -r index.html version.json sw.js manifest.webmanifest watch.json watch.enc.json icon-192.png icon-512.png apple-touch-icon.png _redirects .nojekyll AI-CONTEXT.md CLAUDE.md AI-HANDOFF.md fonts lib server dist/ 2>/dev/null || true
 
       - name: Publish to Cloudflare Pages (shiftpay-app)
         uses: cloudflare/wrangler-action@v3
