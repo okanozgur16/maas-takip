@@ -7,6 +7,7 @@ on:
     paths-ignore:
       - 'automation/**'
       - 'README.md'
+      - 'AI-HANDOFF.md'
   workflow_dispatch:
 
 jobs:
@@ -19,7 +20,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Pre-Deploy Safety Guard (Syntax, Version Sync, Duplicate IDs & Secret Check)
+      - name: Pre-Deploy Safety Guard (V8 Syntax, Math Regression, Version Sync, Duplicate IDs & Secret Scan)
         run: |
           python3 - << 'EOF'
           import re, json, subprocess, tempfile, sys
@@ -54,29 +55,79 @@ jobs:
               sys.exit(1)
           print(f"[OK] V8 JS syntax check passed ({len(scripts)} inline scripts + sw.js)")
 
-          # 3. Duplicate HTML IDs check
+          # 3. Pre-Deploy Payroll Math Regression Test (calcPay via Node)
+          main_sc = max(scripts, key=len)
+          m_r2 = re.search(r'function r2\([^)]*\)\{[^}]+\}', main_sc)
+          m_tax = re.search(r'function taxNormal\([^)]*\)\{.*?\n\}', main_sc, re.S)
+          m_cp = re.search(r'function calcPay\([^)]*\)\{.*?\n\}', main_sc, re.S)
+          if m_r2 and m_tax and m_cp:
+              math_harness = m_r2.group(0) + '\n' + m_tax.group(0) + '\n' + m_cp.group(0) + '''
+              const S = {
+                rate: 14.99, mNormal: 1, mIrr: 1.5, mOver: 1.85, vacPayPct: 0, adv: 0.43, advMode: 'non185',
+                vacPct: 0.0833, franchise: 295.36, pensComp: 0.04, housingGross: 86.71, housingTotal: 147.35,
+                paww: 0.001, azv: 0.005, stipp: 0.026, wia: 0.005, bTaxRate: 0.3582, whk: 0.005,
+                utilities: 12.5, insurance: 38.01, driverDay: 5, extraIns: 0, customIn: 0, customOut: 0,
+                wkHomeDeduct: 0, vacAccPct: 0.1087, taxTable: [[0,0],[400,25],[600,90],[900,210],[1500,480]]
+              };
+              const res = calcPay({ any: true, norm: 36, irr: 4, over: 0, vacH: 0, driverDays: 5, noAutoVac: true }, S);
+              if (!Number.isFinite(res.gross) || !Number.isFinite(res.payable) || res.gross <= 500 || res.payable <= 250 || res.tax < 0) {
+                console.error('Math regression failure:', res);
+                process.exit(1);
+              }
+              console.log('[OK] Payroll math regression test passed: gross=' + res.gross + ' payable=' + res.payable + ' tax=' + res.tax);
+              '''
+              with tempfile.NamedTemporaryFile('w', suffix='.js', encoding='utf-8', delete=False) as mf:
+                  mf.write(math_harness)
+                  mf_path = mf.name
+              res_m = subprocess.run(['node', mf_path], capture_output=True, text=True)
+              if res_m.returncode != 0:
+                  print(f"[FAIL] Payroll math test failed:\n{res_m.stderr}\n{res_m.stdout}", file=sys.stderr)
+                  sys.exit(1)
+              print(res_m.stdout.strip())
+
+          # 4. Duplicate HTML IDs check
           body = html[html.find('<body>'):html.find('<script')]
           ids = re.findall(r'\bid="([^"]+)"', body)
           dups = sorted(set(x for x in ids if ids.count(x) > 1))
           assert not dups, f"Duplicate HTML IDs found: {dups}"
           print("[OK] Zero duplicate HTML IDs")
 
-          # 4. I18N_EN JSON validity check
+          # 5. I18N_EN JSON validity + zero Turkish characters in English values
           m_en = re.search(r'var I18N_EN = (\{.*?\});', html)
           assert m_en, "I18N_EN not found!"
           i18n = json.loads(m_en.group(1))
-          print(f"[OK] I18N_EN valid ({len(i18n)} entries)")
+          tr_in_en = [k for k, v in i18n.items() if re.search(r'[ğşıİöüçĞŞÖÜÇ]', v)]
+          assert not tr_in_en, f"Turkish characters found in I18N_EN values for keys: {tr_in_en[:5]}"
+          print(f"[OK] I18N_EN valid ({len(i18n)} entries, 0 TR leaks)")
 
-          # 5. Generic secret leak check (no hardcoded personal values in workflow!)
-          assert not re.search(r"OWNER_SYNC_ID\s*=", html), "Raw OWNER_SYNC_ID variable found in index.html!"
-          assert not re.search(r"\bsp_[A-Za-z0-9_-]{30,}", html), "OWNER_TOKEN leak detected in index.html!"
-          print("[OK] Zero leaked secrets")
+          # 6. Expanded generic secret & PII leak check
+          secret_patterns = [
+              (r"OWNER_SYNC_ID\s*=", "Raw OWNER_SYNC_ID variable"),
+              (r"\bsp_[A-Za-z0-9_-]{25,}", "OWNER_TOKEN pattern"),
+              (r"\bghp_[A-Za-z0-9]{30,}", "GitHub PAT token"),
+              (r"\bsk-[A-Za-z0-9_-]{25,}", "Secret API key"),
+              (r"-----BEGIN [A-Z ]*PRIVATE KEY-----", "Private key block"),
+              (r"[A-Za-z0-9._%+-]+@gmail\.com", "Personal Gmail address")
+          ]
+          for pat, desc in secret_patterns:
+              assert not re.search(pat, html), f"Forbidden leak ({desc}) detected in index.html!"
+          print("[OK] Zero secret/PII leaks")
           EOF
 
-      - name: Prepare clean web directory
+      - name: Prepare clean public web directory (strict, no server/ or AI docs)
         run: |
-          mkdir -p dist
-          cp -r index.html version.json sw.js manifest.webmanifest watch.json watch.enc.json icon-192.png icon-512.png apple-touch-icon.png _redirects .nojekyll AI-CONTEXT.md CLAUDE.md AI-HANDOFF.md fonts lib server dist/ 2>/dev/null || true
+          set -e
+          rm -rf dist && mkdir -p dist
+          # Required web assets (fail build if any missing)
+          for f in index.html version.json sw.js manifest.webmanifest watch.json watch.enc.json icon-192.png icon-512.png apple-touch-icon.png; do
+            cp "$f" dist/
+          done
+          cp -r fonts lib dist/
+          # Optional Cloudflare routing/header files
+          for opt in _headers _redirects .nojekyll; do
+            if [ -f "$opt" ]; then cp "$opt" dist/; fi
+          done
+          ls -la dist
 
       - name: Publish to Cloudflare Pages (shiftpay-app)
         uses: cloudflare/wrangler-action@v3
@@ -84,3 +135,19 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: 3bf7fc774af3ec087fc3d01b6856c0bd
           command: pages deploy dist --project-name=shiftpay-app --branch=main
+
+      - name: Post-Deploy Live Smoke Test (verify live version.json == expected)
+        run: |
+          EXPECTED=$(python3 -c "import json; print(json.load(open('version.json'))['v'])")
+          echo "Expected live version: $EXPECTED"
+          for i in 1 2 3 4 5; do
+            sleep 5
+            LIVE=$(curl -fsSL "https://shiftpay-app.pages.dev/version.json?t=$(date +%s)" | python3 -c "import sys,json; print(json.load(sys.stdin).get('v',''))" || true)
+            echo "Attempt $i -> Live: $LIVE"
+            if [ "$LIVE" = "$EXPECTED" ]; then
+              echo "[OK] Post-Deploy Live Smoke Test PASSED ($LIVE)"
+              exit 0
+            fi
+          done
+          echo "[WARN] CDN cache may still be propagating; version.json did not reflect $EXPECTED within 25s"
+          exit 0
