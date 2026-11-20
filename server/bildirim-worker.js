@@ -9,7 +9,6 @@ const VAPID_PUBLIC = 'BNC8z6r6nw5KHuX-BHUvS_UtDme9G0J8InlDAtPo8mq38-Uz0ugRnoEia5
 const SUBJECT = 'https://shiftpay-app.pages.dev/';
 const PUSH_HOSTS = [/(^|\.)push\.apple\.com$/, /(^|\.)googleapis\.com$/, /(^|\.)push\.services\.mozilla\.com$/, /(^|\.)notify\.windows\.com$/];
 const MAX_USERS = 300;
-const OWNER_HASH = '3c0c4a04bcce9ff2ccd3a228bf3dcaaf7420c595bfeec45623a3f31d7e69b10d';
 const PB_API = 'https://planbition.herokuapp.com';
 const enc = new TextEncoder();
 
@@ -252,6 +251,16 @@ const cors = (env, req) => {
 };
 const json = (o, s, env, req) => new Response(JSON.stringify(o), { status: s || 200, headers: Object.assign({ 'Content-Type': 'application/json' }, cors(env, req)) });
 
+/* Sahip yetkisi: SADECE gizli Cloudflare secret'i env.OWNER_TOKEN ile (sabit zamanlı karşılaştırma). Repoda hiçbir yetki değeri yoktur. */
+const ownerAuth = (b, env) => {
+  const t = env.OWNER_TOKEN ? String(env.OWNER_TOKEN) : '';
+  const g = (b && typeof b.ownerToken === 'string') ? b.ownerToken : '';
+  if (!t || t.length < 16 || g.length !== t.length) return false;
+  let d = 0;
+  for (let i = 0; i < t.length; i++) d |= t.charCodeAt(i) ^ g.charCodeAt(i);
+  return d === 0;
+};
+
 async function handle(req, env) {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors(env, req) });
   const url = new URL(req.url);
@@ -263,10 +272,11 @@ async function handle(req, env) {
 
   /* 1. Planbition Canlı Vardiya Çekme Endpoint'i */
   if (url.pathname === '/api/planbition') {
+    if (!ownerAuth(b, env)) return json({ ok: false, err: 'Yetkisiz erişim.' }, 403, env, req);
     let pbUser = (b && b.user) ? String(b.user).trim() : '';
     let pbPass = (b && b.pass) ? String(b.pass).trim() : '';
     const pbCust = (b && b.customer) ? String(b.customer).trim() : 'Carriere';
-    if (!pbUser && b && env.OWNER_TOKEN && b.ownerToken === env.OWNER_TOKEN && env.PB_USER && env.PB_PASS) {
+    if (!pbUser && env.PB_USER && env.PB_PASS) {
       pbUser = env.PB_USER;
       pbPass = env.PB_PASS;
     }
@@ -281,10 +291,9 @@ async function handle(req, env) {
 
   /* 1b. myHolland Canlı Bordro PDF Çekme Endpoint'i (Sadece Owner) */
   if (url.pathname === '/api/myholland-slips') {
-    const hasSecretAuth = !!(env.OWNER_TOKEN && b && b.ownerToken === env.OWNER_TOKEN);
-    if (!b || (b.ownerHash !== OWNER_HASH && !hasSecretAuth)) return json({ ok: false, err: 'Yetkisiz erişim.' }, 403, env, req);
-    let mhEmail = (b && b.email) ? String(b.email).trim() : (hasSecretAuth ? (env.MH_EMAIL || '') : '');
-    let mhPass = (b && b.pass) ? String(b.pass).trim() : (hasSecretAuth ? (env.MH_PASS || env.PB_PASS || '') : '');
+    if (!ownerAuth(b, env)) return json({ ok: false, err: 'Yetkisiz erişim.' }, 403, env, req);
+    let mhEmail = (b && b.email) ? String(b.email).trim() : (env.MH_EMAIL || '');
+    let mhPass = (b && b.pass) ? String(b.pass).trim() : (env.MH_PASS || env.PB_PASS || '');
     if (!mhEmail || !mhPass) return json({ ok: false, needCreds: true, err: 'myHolland e-posta ve şifresi gerekli.' }, 200, env, req);
     try {
       const BASE = 'https://www.myholland.eu';

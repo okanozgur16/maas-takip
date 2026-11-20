@@ -2399,7 +2399,9 @@ function ntfCardHTML(){
   return h + '</div>';
 }
 var OWNER_HASH = '3c0c4a04bcce9ff2ccd3a228bf3dcaaf7420c595bfeec45623a3f31d7e69b10d';
-var __OWNER_OK = false, __OWNER_CHK_ID = '';
+var OWNER_LS = LS + '-ownc';
+var __OWNER_OK = (function(){ try { return localStorage.getItem(OWNER_LS) === '1'; } catch (e) { return false; } })(), __OWNER_CHK_ID = '';
+function ownerCacheSet(v){ try { if (v) localStorage.setItem(OWNER_LS, '1'); else localStorage.removeItem(OWNER_LS); } catch (e) {} }
 function checkOwnerHash(){
   try {
     var sid = (typeof sync !== 'undefined' && sync && sync.id) ? String(sync.id) : '';
@@ -2410,8 +2412,10 @@ function checkOwnerHash(){
         var hex = Array.from(new Uint8Array(buf)).map(function(b){ return ('0' + b.toString(16)).slice(-2); }).join('');
         var was = __OWNER_OK;
         __OWNER_OK = (hex === OWNER_HASH);
-        if (__OWNER_OK && !was){
+        ownerCacheSet(__OWNER_OK);
+        if (__OWNER_OK !== was){
           if (typeof renderOwnerAutoSlipBox === 'function') renderOwnerAutoSlipBox();
+          if (typeof renderAll === 'function') { try { renderAll(); } catch (e) {} }
           if ($('ov2') && !$('ov2').hidden && typeof renderSettings === 'function') renderSettings();
         }
       }).catch(function(){});
@@ -2640,7 +2644,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-20-shiftpay-v35';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-20-shiftpay-v36';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -4219,6 +4223,18 @@ function saveManualSlip(){
 function mhGetCreds(){
   try { return JSON.parse(localStorage.getItem(LS + '-mhcreds') || 'null') || {}; } catch (e) { return {}; }
 }
+/* Sahip yetki anahtarı: yalnızca bu cihazın localStorage'ında durur; state'e, buluta, repoya veya index.html'e yazılmaz. */
+var OWNER_TOK_LS = LS + '-ownertok';
+function ownerTokGet(){ try { return localStorage.getItem(OWNER_TOK_LS) || ''; } catch (e) { return ''; } }
+function ownerTokPrompt(){
+  if (!isOwner()) return null;
+  var cur = ownerTokGet();
+  var t = window.prompt(L('Yetki anahtarı (sunucuda tanımlı gizli anahtar; sadece bu cihazda saklanır, boş bırakırsan silinir):', 'Access key (the secret set on your server; stored only on this device, leave blank to clear):'), '');
+  if (t === null) return null;
+  t = t.trim();
+  try { if (!t) localStorage.removeItem(OWNER_TOK_LS); else localStorage.setItem(OWNER_TOK_LS, t); } catch (e) {}
+  return t || (cur && '');
+}
 function mhSetCredsPrompt(){
   if (!isOwner()) return null;
   var cur = mhGetCreds();
@@ -4244,6 +4260,7 @@ function renderOwnerAutoSlipBox(){
       '<div style="display:flex;gap:6px;align-items:center">' +
         '<button type="button" class="btn small primary" data-act="mhAutoPull"' + (MH_AUTO_UI.busy ? ' disabled' : '') + '>' + (MH_AUTO_UI.busy ? L('⏳ Çekiliyor…', '⏳ Fetching…') : L('⚡ Şimdi Otomatik Çek', '⚡ Auto Pull Now')) + '</button>' +
         '<button type="button" class="btn small" data-act="mhSetCreds" title="' + L('myHolland giriş bilgilerini ayarla', 'Configure myHolland login') + '">⚙ ' + (cr.p ? L('Hesap Bağlı', 'Account Linked') : L('Şifre Tanımla', 'Set Login')) + '</button>' +
+        '<button type="button" class="btn small" data-act="ownerTok" title="' + L('Sunucu yetki anahtarını bu cihaza kaydet', 'Save the server access key on this device') + '">🔑 ' + (ownerTokGet() ? L('Anahtar Kayıtlı', 'Key Saved') : L('Yetki Anahtarı', 'Access Key')) + '</button>' +
       '</div>' +
     '</div>' +
     (MH_AUTO_UI.msg ? '<div class="sub" style="margin-top:6px;font-weight:600;color:' + (MH_AUTO_UI.err ? 'var(--bad)' : 'var(--good)') + '">' + esc(MH_AUTO_UI.msg) + '</div>' : '') +
@@ -4256,7 +4273,7 @@ async function mhAutoPull(){
   renderHero(); renderOwnerAutoSlipBox();
 
   var beforeKeys = Object.keys(state.slips || {}).sort();
-  var beforeCount = beforeKeys.length;
+  var beforeCount = beforeKeys.length, authFail = false;
   try {
     if (state.del){
       Object.keys(state.del).forEach(function(k){ if (k.indexOf('slip:') === 0) delete state.del[k]; });
@@ -4282,12 +4299,14 @@ async function mhAutoPull(){
     });
     var pbC = (state.settings && state.settings.pbCreds) || {};
     var reqBody = {
-      ownerHash: OWNER_HASH,
+      ownerToken: ownerTokGet(),
       email: cr.e || '',
       pass: cr.p || pbC.p || '',
       existingNums: existingNums
     };
+    if (!reqBody.ownerToken){ MH_AUTO_UI.busy = false; MH_AUTO_UI.err = true; MH_AUTO_UI.msg = L('Önce 🔑 Yetki Anahtarı tanımla.', 'Set the 🔑 Access Key first.'); renderHero(); renderOwnerAutoSlipBox(); return; }
     var res = await ntfPost('/api/myholland-slips', reqBody).catch(function(){ return null; });
+    if (res && res.ok === false && /yetkisiz/i.test(String(res.err || ''))){ authFail = true; }
     if (res && res.ok && Array.isArray(res.pdfs) && res.pdfs.length){
       var files = [];
       res.pdfs.forEach(function(p){
@@ -4314,6 +4333,10 @@ async function mhAutoPull(){
     MH_AUTO_UI.err = false;
     MH_AUTO_UI.msg = L('✓ Yeni bordro otomatik çekildi ve eklendi! (Hafta ' + (latestSlip ? latestSlip.week : isoWeek(latestW)) + ' · ' + (latestSlip ? eur(latestSlip.payable) : '') + ')', '✓ New payslip pulled & added! (Week ' + (latestSlip ? latestSlip.week : isoWeek(latestW)) + ')');
     commit();
+  } else if (authFail){
+    MH_AUTO_UI.err = true;
+    MH_AUTO_UI.msg = L('Yetki anahtarı kabul edilmedi. 🔑 butonundan doğru anahtarı gir.', 'Access key was rejected. Enter the correct key via the 🔑 button.');
+    renderHero();
   } else if (latestSlip){
     if (view.week !== latestW && !state.slips[view.week]) view.week = latestW;
     MH_AUTO_UI.err = false;
@@ -5704,6 +5727,7 @@ document.addEventListener('click', function(ev){
   else if (a === 'themeCycle'){ cycleTheme(); }
   else if (a === 'mhAutoPull'){ mhAutoPull(); }
   else if (a === 'mhSetCreds'){ mhSetCredsPrompt(); renderOwnerAutoSlipBox(); }
+  else if (a === 'ownerTok'){ ownerTokPrompt(); renderOwnerAutoSlipBox(); }
   else if (a === 'copyPrevWeek'){
     var curW = view.week, prvW = addDays(curW, -7), prvEnd = addDays(curW, -1);
     var prvList = state.entries.filter(function(e){ return e && e.type === 'shift' && e.date >= prvW && e.date <= prvEnd; });

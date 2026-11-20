@@ -1,6 +1,6 @@
 # ShiftPay — Evrensel Yapay Zeka (Claude / GPT / Gemini / Antigravity) Mimari & Oto-Güncelleme Rehberi
 
-- **Proje Adı:** ShiftPay (`2026-11-20-shiftpay-v35`)
+- **Proje Adı:** ShiftPay (`2026-11-20-shiftpay-v36`)
 - **Canlı Web (Cloudflare Pages):** https://shiftpay-app.pages.dev/
 - **Tek Doğru Kaynak (GitHub Single Source of Truth):** https://github.com/okanozgur16/maas-takip (`main` dalı)
 - **Geri Dönüş (Rollback) Dalı:** `backup-pre-v19`
@@ -46,3 +46,8 @@
 ## 🤝 ORTAK YAPAY ZEKA DEVİR PROTOKOLÜ (`AI-HANDOFF.md`)
 - Her oturum başında önce **`AI-HANDOFF.md`** dosyasındaki son 3 kaydı oku (kimin ne yaptığını ve açık notları gör).
 - Yaptığın her sürüm güncellemesinde (`v36`, `v37`...) **`AI-HANDOFF.md`** dosyasının en üstüne kendi adını (`Antigravity` veya `Claude Pro`), sürüm numarasını, değişen dosyaları ve diğer asistan için notları ekle.
+
+## 🔄 v36 Değişiklik Notları (2026-11-20)
+- **Sunucu yetkisi:** `/api/myholland-slips` ve `/api/planbition` yalnızca gizli `env.OWNER_TOKEN` ile açılır; `ownerHash` sadece arayüzde gizleme içindir.
+- **Anahtar saklama:** Yetki anahtarı sahibe özel Ayarlar kutusundan (`🔑`) girilir, yalnızca cihaz `localStorage`'ında durur; repoya/`state`'e yazılmaz.
+- **isOwner önbelleği:** Son başarılı hash sonucu `localStorage`'da tutulur, açılışta titreme olmaz.

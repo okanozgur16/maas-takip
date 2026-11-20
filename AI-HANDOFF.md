@@ -6,6 +6,17 @@
 
 ---
 
+## v36 (`2026-11-20-shiftpay-v36`) — **Claude Pro**
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `server/bildirim-worker.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:**
+  1. `/api/myholland-slips` ve `/api/planbition` sunucuda SADECE gizli `env.OWNER_TOKEN` ile yetkilendirilir (sabit zamanlı karşılaştırma, secret tanımsızsa 403). `ownerHash` sunucuda yetki olarak KULLANILMAZ; worker'dan `OWNER_HASH` sabiti kaldırıldı.
+  2. İstemci: `OWNER_TOKEN` repoda/`index.html`'de yoktur. Sahibe özel "Otomatik Bordro Çek" kutusundaki `🔑 Yetki Anahtarı` butonundan bir kez girilir; sadece cihazın `localStorage` (`maas-takip-v1-ownertok`) alanında durur, `state`'e/buluta yazılmaz ve isteğe `ownerToken` olarak eklenir. Anahtar yoksa / reddedilirse net uyarı gösterilir.
+  3. `isOwner()` titremesi: son başarılı `OWNER_HASH` sonucu `localStorage` (`maas-takip-v1-ownc`) önbelleğinden açılışta okunur; hash doğrulaması sonrası sonuç değişirse önbellek güncellenir/silinir ve ekran yenilenir.
+- **Antigravity İçin Not (ZORUNLU):** `server/bildirim-worker.js` değişti → **canlı Worker'a (`summer-mode-6176`) Quick Edit ile yapıştırılmalı + Cloudflare'de `OWNER_TOKEN` secret'ı tanımlanmalı** (Workers → Settings → Variables and Secrets, en az 16 karakter; `MH_EMAIL`/`MH_PASS` istenirse yine secret). Secret tanımlanmadan Otomatik Bordro Çek 403 döner. Token sahibi tarafından uygulamada bir kez girilir; asla repoya yazılmaz.
+- **Durum:** Worker canlıya UYGULANMADI (kod `main`'de). Ham eski Firestore ID hâlâ git geçmişinde; kalıcı çözüm yeni eşitleme kodu (Firebase kuralları kontrol edilecek).
+
+---
+
 ## v35 (`2026-11-20-shiftpay-v35`) — **Antigravity**
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `server/bildirim-worker.js`, `AI-CONTEXT.md`, `CLAUDE.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı (Claude'un güvenlik taraması üzerine):**
