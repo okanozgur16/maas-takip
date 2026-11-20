@@ -2398,11 +2398,30 @@ function ntfCardHTML(){
   if (NTF.msg) h += '<small class="fh" role="status">' + esc(NTF.msg) + '</small>';
   return h + '</div>';
 }
-var OWNER_SYNC_ID = '334e83e9dfc83510848bfa0982e0b0d3e78958182732d79bc69025135cfe8612';
+var OWNER_HASH = '3c0c4a04bcce9ff2ccd3a228bf3dcaaf7420c595bfeec45623a3f31d7e69b10d';
+var __OWNER_OK = false, __OWNER_CHK_ID = '';
+function checkOwnerHash(){
+  try {
+    var sid = (typeof sync !== 'undefined' && sync && sync.id) ? String(sync.id) : '';
+    if (!sid || sid === __OWNER_CHK_ID) return;
+    __OWNER_CHK_ID = sid;
+    if (typeof crypto !== 'undefined' && crypto.subtle){
+      crypto.subtle.digest('SHA-256', new TextEncoder().encode(sid + ':shiftpay-owner-v1')).then(function(buf){
+        var hex = Array.from(new Uint8Array(buf)).map(function(b){ return ('0' + b.toString(16)).slice(-2); }).join('');
+        var was = __OWNER_OK;
+        __OWNER_OK = (hex === OWNER_HASH);
+        if (__OWNER_OK && !was){
+          if (typeof renderOwnerAutoSlipBox === 'function') renderOwnerAutoSlipBox();
+          if ($('ov2') && !$('ov2').hidden && typeof renderSettings === 'function') renderSettings();
+        }
+      }).catch(function(){});
+    }
+  } catch (e) {}
+}
 function isOwner(){
   if (typeof pcOk === 'function' && pcOk()) return true;
-  if (typeof sync !== 'undefined' && sync && sync.id === OWNER_SYNC_ID) return true;
-  return false;
+  checkOwnerHash();
+  return __OWNER_OK;
 }
 function vaultTail(){
   var el = $('vTail'); if (!el) return;
@@ -2621,7 +2640,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-20-shiftpay-v34';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-20-shiftpay-v35';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -4203,7 +4222,7 @@ function mhGetCreds(){
 function mhSetCredsPrompt(){
   if (!isOwner()) return null;
   var cur = mhGetCreds();
-  var em = window.prompt(L('myHolland e-posta adresin (boş bırakırsan kayıtlı şifre silinir):', 'Your myHolland email address (leave blank to clear):'), cur.e || 'okanzgur@gmail.com');
+  var em = window.prompt(L('myHolland e-posta adresin (boş bırakırsan kayıtlı şifre silinir):', 'Your myHolland email address (leave blank to clear):'), cur.e || '');
   if (em === null) return null;
   em = em.trim();
   if (!em){ try { localStorage.removeItem(LS + '-mhcreds'); } catch (e) {} return null; }
@@ -4263,8 +4282,8 @@ async function mhAutoPull(){
     });
     var pbC = (state.settings && state.settings.pbCreds) || {};
     var reqBody = {
-      syncId: OWNER_SYNC_ID,
-      email: cr.e || 'okanzgur@gmail.com',
+      ownerHash: OWNER_HASH,
+      email: cr.e || '',
       pass: cr.p || pbC.p || '',
       existingNums: existingNums
     };
@@ -5657,7 +5676,7 @@ function buildAiContinuationPrompt(){
     '--- YAPAY ZEKA İÇİN ZORUNLU OTO-KODLAMA VE GÜNCELLEME KURALLARI (BANA TEKRAR SORMA, DOĞRUDAN UYGULA) ---',
     '1. EKSİKSİZ VE OTOMATİK KOD ÜRETİMİ: Bana yarım kod, "..." ile kısaltılmış blok veya teorik açıklama verme. Yaptığın her değişikliği doğrudan index.html, sw.js, version.json ve Python otomasyon dosyalarına uygulanabilir tam, hatasız ve kendi kendini güncelleyen kod blokları olarak yaz; erişimin varsa doğrudan GitHub (okanozgur16/maas-takip) ve Cloudflare Pages (shiftpay-app) üzerine deploy et.',
     '2. SÜRÜM SENKRONİZASYONU: Her kod güncellemesinde index.html (APP_VER), version.json ve sw.js (CACHE) içindeki sürüm numarasını aynı anda bir üst sürüme yükselt. Asla eski sürüm veya varsayım üzerinden gitme; her zaman yukarıdaki son sürümü ve GitHub main dalını baz al.',
-    '3. GİZLİLİK VE ŞİFRELEME DOKUNULMAZLIĞI: Normal maaş kullanıcıları Gizli PC Planını, Otomatik Bordro Çek butonunu (mhAutoPull) ve bu AI Devam Köprüsünü ASLA görmemelidir. isOwner() kontrolünü (OWNER_SYNC_ID = "334e83e9dfc83510848bfa0982e0b0d3e78958182732d79bc69025135cfe8612"), AES-256-GCM eşitlemeyi (sync) ve PBKDF2-250k PC kasasını (VAULT) %100 koru. mergeStates() içinde bordro zaman damgası (slip.u) korumasını bozma.',
+    '3. GİZLİLİK VE ŞİFRELEME DOKUNULMAZLIĞI: Normal maaş kullanıcıları Gizli PC Planını, Otomatik Bordro Çek butonunu (mhAutoPull) ve bu AI Devam Köprüsünü ASLA görmemelidir. isOwner() kontrolünü (çift SHA-256 OWNER_HASH), AES-256-GCM eşitlemeyi (sync) ve PBKDF2-250k PC kasasını (VAULT) %100 koru. mergeStates() içinde bordro zaman damgası (slip.u) korumasını bozma.',
     '4. ÇİFT ARAYÜZ, ÇİFT TEMA VE ÇİFT DİL UYUMU: Uygulama açılışta varsayılan olarak yeni Kategori Tasarımı (🎯 Haftalık Plan, 🧾 Haftalık Döküm, 📈 Aylık, Yıllık & Birikim) ile açılır; kullanıcı Sıralamalı Tasarıma geçerse tercihi kaydedilir. Eklediğin her özellik hem Kategori hem Sıralamalı tasarımda, hem Açık (Beyaz) hem Koyu (Siyah) temada, hem de Türkçe ve İngilizce (I18N_EN / L(tr, en)) dillerinde sıfır taşma ve sıfır eksik çeviri ile çalışmalıdır.',
     '5. SIFIR KOTA / SIFIR TOKEN: Uygulama çalışma zamanında hiçbir ücretli AI/LLM API\'sine ihtiyaç duymadan %100 saf JS ve arka plan Python botlarıyla (myholland_bot.py, gmail_bot.py, planbition_bot.py, pc_watch_bot.py) kendi kendini onaracak (selfHeal) şekilde çalışmalıdır.',
     '6. SEÇENEK SUNMA: Kritik tasarım veya akış kararlarında tek bir dayatma yapmak yerine A/B seçenekleri sun.',

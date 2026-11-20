@@ -1,6 +1,6 @@
 # ShiftPay — Evrensel Yapay Zeka (Claude / GPT / Gemini / Antigravity) Mimari & Oto-Güncelleme Rehberi
 
-- **Proje Adı:** ShiftPay (`2026-11-20-shiftpay-v34`)
+- **Proje Adı:** ShiftPay (`2026-11-20-shiftpay-v35`)
 - **Canlı Web (Cloudflare Pages):** https://shiftpay-app.pages.dev/
 - **Tek Doğru Kaynak (GitHub Single Source of Truth):** https://github.com/okanozgur16/maas-takip (`main` dalı)
 - **Geri Dönüş (Rollback) Dalı:** `backup-pre-v19`
@@ -21,7 +21,7 @@
 
 3. **GİZLİLİK VE ŞİFRELEME DOKUNULMAZLIĞI (`isOwner()`):**
    - Normal maaş kullanıcıları **Gizli PC Planını**, **Otomatik Bordro Çek (`mhAutoPull`)** butonunu ve **Yapay Zeka Köprüsünü (`copyAiCtx`)** ASLA görmemelidir.
-   - `isOwner()` kontrolünü (`OWNER_SYNC_ID = '334e83e9dfc83510848bfa0982e0b0d3e78958182732d79bc69025135cfe8612'`), AES-256-GCM cihazlar arası eşitlemeyi (`sync`) ve PBKDF2-250k PC kasasını (`VAULT`) %100 koru.
+   - `isOwner()` kontrolünü (`çift SHA-256 `OWNER_HASH` (ham Firestore doküman ID'si repoda tutulmaz)`), AES-256-GCM cihazlar arası eşitlemeyi (`sync`) ve PBKDF2-250k PC kasasını (`VAULT`) %100 koru.
    - `mergeStates()` içinde bordro zaman damgası (`slip.u`) korumasını asla bozma.
 
 4. **ÇİFT ARAYÜZ, ÇİFT TEMA VE ÇİFT DİL UYUMU:**
@@ -41,3 +41,8 @@
 - **Planbition çift vardiya düzeltmesi:** Planbition'dan al / otomatik çekim artık o gündeki eski Planbition kaydını (vardiya + izin) yenisiyle DEĞİŞTİRİR; eski id'ler `state.del` içine tombstone olarak yazılır (`pbRetire`), böylece bulut/diğer cihaz birleşiminde eski vardiya geri dirilmez.
 - **Çakışma penceresi:** Planbition'a ait (kullanıcı düzenlemesi olmayan) değişen vardiyalar için artık onay penceresi çıkmaz; sadece kullanıcının kendi girdiği/düzenlediği kayıtlar korunur ve sorulur.
 - **Onarım + bot:** `selfHeal` içinde aynı güne ait çift Planbition vardiyaları (ve vardiya olan günde `off`) kendiliğinden temizlenir; `automation/planbition_bot.py` aynı mantıkla (`merge_shifts`) gün başına tek kayıt tutar ve tombstone yazar.
+
+
+## 🤝 ORTAK YAPAY ZEKA DEVİR PROTOKOLÜ (`AI-HANDOFF.md`)
+- Her oturum başında önce **`AI-HANDOFF.md`** dosyasındaki son 3 kaydı oku (kimin ne yaptığını ve açık notları gör).
+- Yaptığın her sürüm güncellemesinde (`v36`, `v37`...) **`AI-HANDOFF.md`** dosyasının en üstüne kendi adını (`Antigravity` veya `Claude Pro`), sürüm numarasını, değişen dosyaları ve diğer asistan için notları ekle.
