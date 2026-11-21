@@ -64,7 +64,7 @@ function cleanSync(b, env) {
   if (b.sub.keys.p256dh.length > 100 || b.sub.keys.auth.length > 40 || b.sub.endpoint.length > 600 || !okTz(b.tz)) return null;
   const days = Array.isArray(b.days) ? [...new Set(b.days.map(Number).filter(n => n >= 0 && n <= 6))] : [1, 2, 3, 4, 5, 6];
   const plan = (Array.isArray(b.plan) ? b.plan : []).slice(0, 8).filter(p => p && rxD.test(p.d)).map(p => ({ d: p.d, s: p.s ? 1 : 0, e: typeof p.e === 'string' && rxDT.test(p.e) ? p.e : null, b: typeof p.b === 'string' && rxDT.test(p.b) ? p.b : null }));
-  return { sub: { endpoint: b.sub.endpoint, keys: { p256dh: b.sub.keys.p256dh, auth: b.sub.keys.auth } }, tz: b.tz, lang: b.lang === 'en' ? 'en' : 'tr', days, at: rxT.test(b.at) ? b.at : '07:00', rel: b.rel ? 1 : 0, plan, pcWatch: (b.pcWatch === 0 || b.pcWatch === false) ? 0 : 1, pcBudget: Number(b.pcBudget) || 0 };
+  return { ve: (typeof b.ve === 'string' && rxD.test(b.ve)) ? b.ve : '', sub: { endpoint: b.sub.endpoint, keys: { p256dh: b.sub.keys.p256dh, auth: b.sub.keys.auth } }, tz: b.tz, lang: b.lang === 'en' ? 'en' : 'tr', days, at: rxT.test(b.at) ? b.at : '07:00', rel: b.rel ? 1 : 0, plan, pcWatch: (b.pcWatch === 0 || b.pcWatch === false) ? 0 : 1, pcBudget: Number(b.pcBudget) || 0 };
 }
 
 /* ---------- Zaman ---------- */
@@ -77,8 +77,8 @@ const addDaysISO = (iso, n) => { const p = iso.split('-').map(Number); const d =
 
 /* ---------- Metinler ---------- */
 const TXT = {
-  tr: { a: ['Vardiyanı ayarla', 'Bugün için vardiya girilmemiş. Vardiyanı ayarla ki tahmin doğru çıksın.'], b: t => ['Vardiyan 1 saat sonra başlıyor', 'Planlanan vardiyan ' + t + ' gibi başlıyor. Saat değiştiyse uygulamada güncelle.'], e: t => ['Bu saatte mi çıktın?', 'Vardiyan ' + t + ' gibi bitiyordu. Gerçek çıkış saatini güncelle, tahmin doğru çıksın.'], t: ['Deneme bildirimi', 'ShiftPay vardiya ve fiyat bildirimleri aktif!'] },
-  en: { a: ['Set your shift', 'No shift is set for today. Set it so your estimate stays accurate.'], b: t => ['Your shift starts in 1 hour', 'Your planned shift starts around ' + t + '. If the time changed, update it in the app.'], e: t => ['Did you leave at this time?', 'Your shift was due to end around ' + t + '. Update the real finishing time so your estimate stays accurate.'], t: ['Test notification', 'ShiftPay notifications are working!'] }
+  tr: { v: () => ['Tatilin bitti', 'Güncel tatil saatlerin ve doğru hesaplamalar için yeni gelecek bordronu ekle.'], a: ['Vardiyanı ayarla', 'Bugün için vardiya girilmemiş. Vardiyanı ayarla ki tahmin doğru çıksın.'], b: t => ['Vardiyan 1 saat sonra başlıyor', 'Planlanan vardiyan ' + t + ' gibi başlıyor. Saat değiştiyse uygulamada güncelle.'], e: t => ['Bu saatte mi çıktın?', 'Vardiyan ' + t + ' gibi bitiyordu. Gerçek çıkış saatini güncelle, tahmin doğru çıksın.'], t: ['Deneme bildirimi', 'ShiftPay vardiya ve fiyat bildirimleri aktif!'] },
+  en: { v: () => ['Your holiday is over', 'Add your next payslip for up-to-date holiday hours and accurate figures.'], a: ['Set your shift', 'No shift is set for today. Set it so your estimate stays accurate.'], b: t => ['Your shift starts in 1 hour', 'Your planned shift starts around ' + t + '. If the time changed, update it in the app.'], e: t => ['Did you leave at this time?', 'Your shift was due to end around ' + t + '. Update the real finishing time so your estimate stays accurate.'], t: ['Test notification', 'ShiftPay notifications are working!'] }
 };
 
 /* ---------- Karar ---------- */
@@ -98,6 +98,11 @@ function due(u, nowMs) {
     if (!p.e) continue;
     const from = addMin(p.e, u.rel ? 60 : 10), to = addMin(p.e, 240);
     if (now >= from && now <= to && !sent['e' + p.e] && !(seen && seen >= p.e)) out.push({ k: 'e' + p.e, kind: 'e', t: p.e.slice(11) });
+  }
+  /* v46: tatil bitişinin ertesi günü (veya 1 gün sonrası) seçili saatte tek bildirim */
+  if (u.ve && rxD.test(u.ve)) {
+    const d1 = addDaysISO(u.ve, 1), d2 = addDaysISO(u.ve, 2);
+    if ((today === d1 || today === d2) && now >= today + 'T' + u.at && !sent['v' + u.ve]) out.push({ k: 'v' + u.ve, kind: 'v', t: '' });
   }
   return out;
 }

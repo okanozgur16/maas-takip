@@ -14,6 +14,17 @@
 
 
 
+## v46 (`2026-11-21-shiftpay-v46`) — **Claude Pro** — Tatil aralığı, konut algılama, tatil bitti bildirimi
+- **Değişen Dosyalar:** `index.html`, `server/bildirim-worker.js`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:**
+  1. **Konut (`autoFromSlips`):** Bordroda kira/su kesintisi varsa ayar kilitli olsa bile şirket evine çevrilir (aylık kira modu hariç). Kira yoksa artık OTOMATİK özel eve çevrilmez; ≥16 çalışılmış saatli bordroda `st.hAsk` ile "Son bordronda kira kesintisi görünmedi. Özel evde mi kalıyorsun?" (Evet → özel ev + Konut sekmesi açılır / Hayır → `hAskDone`). Küçük ek ödeme bordroları soru tetiklemez.
+  2. **Tatil aralığı (Kayıt ekle › Tatil saati):** "Tatilin son günü" + mod: Günlük saat / Haftalık toplam (35, 40… hafta içi günlere /5) / Haftayı tamamla (çalışılan saat + tatil = hedef, örn. 30+10=40). Vardiyalı ve hafta sonu günleri atlanır; aralıktaki eski tatil kayıtları tombstone ile değiştirilir (`vacPlan`). Önizlemede toplam saat, brüt ödeme ve son bordroya göre kalan tatil bakiyesi (`vacBalTxt`, aşarsa kırmızı). Tatil saatleri normal ücretle ödenir, tatil parası kesilmez.
+  3. **Tatil bitti:** Son tatil günü geçtiyse ve o haftadan sonra PDF bordro yoksa hero'da "Tatilin bitti görünüyor… yeni gelecek bordronu ekle" + Worker push (`ve` alanı, tatil bitişinin 1–2 gün sonrası, kullanıcının bildirim saatinde, tek sefer). Bakiye her yeni (daha güncel) bordroyla `ytd.vacBal` üzerinden güncellenir.
+- **Test:** vacPlan (günlük 8 gün=64 sa, haftalık 40, tamamla 2 vardiya+3×8), bakiye, kayıt, tatil bitti bannerı, `ntfBody().ve`, Worker `due()` (ertesi gün 08:00 gönderir, 06:00/tekrar/5 gün sonra göndermez), konut senaryoları tarayıcıda doğrulandı.
+- **Antigravity İçin Not (ZORUNLU):** `server/bildirim-worker.js` değişti → **canlı Worker'a Quick Edit ile yapıştırılmalı** (yeni secret yok). Yapılmazsa "Tatilin bitti" push gitmez, uygulama içi uyarı yine çalışır.
+
+---
+
 ## v45 (`2026-11-21-shiftpay-v45`) — **Claude Pro** — Kontrol listesi eklentileri
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı (v44 listesi korunarak):**

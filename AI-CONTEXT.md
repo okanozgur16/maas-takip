@@ -1,6 +1,6 @@
 # ShiftPay — Evrensel Yapay Zeka (Claude / GPT / Gemini / Antigravity) Mimari & Oto-Güncelleme Rehberi
 
-- **Proje Adı:** ShiftPay (`2026-11-21-shiftpay-v45`)
+- **Proje Adı:** ShiftPay (`2026-11-21-shiftpay-v46`)
 - **Canlı Web (Cloudflare Pages):** https://shiftpay-app.pages.dev/
 - **Tek Doğru Kaynak (GitHub Single Source of Truth):** https://github.com/okanozgur16/maas-takip (`main` dalı)
 - **Geri Dönüş (Rollback) Dalı:** `backup-pre-v19`
@@ -74,3 +74,8 @@
 
 ## 🔄 v45 Değişiklik Notları (2026-11-21)
 - Kontrol listesine **Son bordromdan getir**, bordrodan gelmeyen ayar etiketleri, **eksik ayar uyarısı** (`chkMissing`) ve **haftalık "hâlâ doğru mu?"** hatırlatması eklendi.
+
+## 🔄 v46 Değişiklik Notları (2026-11-21)
+- Konut: bordroda kira/su varsa şirket evi; yoksa otomatik değişmez, ≥16 saatli bordroda kullanıcıya sorulur (`hAsk`).
+- Tatil aralığı (günlük / haftalık toplam / haftayı tamamla) + kalan bakiye önizlemesi (`vacPlan`, `vacBalTxt`).
+- Tatil bitti uyarısı + Worker push (`ve`); canlı Worker'a yapıştırılmalı.
