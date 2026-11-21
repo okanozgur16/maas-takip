@@ -2669,7 +2669,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-20-shiftpay-v40';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-21-shiftpay-v42';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2985,7 +2985,7 @@ async function pbFetchDirect(u, p, cust, baseW){
     var cRes = await fetch(cUrl).then(function(x){ return x.json(); });
     totalConfirm = parseInt((cRes && cRes.DashBoard_ConfirmShiftsResult && cRes.DashBoard_ConfirmShiftsResult.TotalConfirm) || '0', 10) || 0;
   } catch (e) {}
-  var w1 = baseW || view.week, w2 = addDays(w1, 7), shifts = [];
+  var w1 = baseW || view.week, w2 = addDays(w1, 7), shifts = [], wOk = [false, false];
   for (var wi = 0; wi < 2; wi++){
     var wk = wi === 0 ? w1 : w2;
     try {
@@ -2993,6 +2993,8 @@ async function pbFetchDirect(u, p, cust, baseW){
       var wRes = await fetch(wUrl).then(function(x){ return x.json(); });
       var days = (wRes && wRes.Schedule_ShowWeekResult && wRes.Schedule_ShowWeekResult.ScheduleDay) || [];
       if (!Array.isArray(days)) days = [days];
+      /* v41: hafta ancak Planbition gerçekten gün verisi döndürdüyse güvenilir sayılır; hata/boş yanıt mevcut kayıtları silmesin */
+      wOk[wi] = days.filter(function(x){ return x && x.ScheduledDate; }).length > 0;
       days.forEach(function(day){
         if (!day || !day.ScheduledDate) return;
         var dDate = String(day.ScheduledDate).split('T')[0];
@@ -3006,7 +3008,8 @@ async function pbFetchDirect(u, p, cust, baseW){
       });
     } catch (e) {}
   }
-  return { ok: true, shifts: shifts, totalConfirm: totalConfirm, weeks: [w1, w2] };
+  if (!wOk[0] && !wOk[1]) return { ok: false, err: 'Planbition programı şu an okunamadı ya da henüz yayınlanmamış. Mevcut kayıtların korundu.' };
+  return { ok: true, shifts: shifts, totalConfirm: totalConfirm, weeks: [w1, w2], weeksOk: wOk };
 }
 /* ---------- Hassas Veri Koruması: Planbition Şifresi AES-256-GCM (IndexedDB CryptoKey) ---------- */
 function pbKeyDb(){
@@ -3018,7 +3021,10 @@ function pbKeyDb(){
     rq.onerror = function(){ rej(rq.error); };
   });
 }
-async function pbDevKey(){
+/* v42: anahtar oluşturma yarışını önle (aynı anda iki şifreleme tek anahtarı paylaşsın) */
+var PB_KEY_P = null;
+function pbDevKey(){ return PB_KEY_P || (PB_KEY_P = pbDevKeyInner().catch(function(e){ PB_KEY_P = null; throw e; })); }
+async function pbDevKeyInner(){
   var db = await pbKeyDb();
   var key = await new Promise(function(res){
     var tx = db.transaction('k', 'readonly'), g = tx.objectStore('k').get('pb');
@@ -3114,10 +3120,11 @@ function pbApplyPending(mode){
   PB_PEND = null;
   var byD = {};
   (res.shifts || []).forEach(function(s){ if (s && s.date) byD[s.date] = s; });
-  var nowMs = Date.now(), changes = [], keptCount = 0;
+  var nowMs = Date.now(), changes = [], keptCount = 0, wOkA = res.weeksOk || [true, true], unreadW = 0;
 
   for (var di = 0; di < 14; di++){
     var d = addDays(wStart, di);
+    if (wOkA[di < 7 ? 0 : 1] === false){ if (di === 0 || di === 7) unreadW++; continue; }
     if (mode === 'keep' && skipDates[d]){
       keptCount++;
       continue;
@@ -3191,7 +3198,8 @@ function pbApplyPending(mode){
   }
   PB_UI.err = false;
   var nShifts = (res.shifts || []).length;
-  var keptNote = keptCount > 0 ? ' (' + keptCount + ' gün kendi girdiğin saat olarak korundu)' : '';
+  var keptNote = unreadW > 0 ? ' ' + L('(Planbition bir haftanın programını vermedi; o hafta olduğu gibi korundu)', '(Planbition returned no schedule for one week; that week was left unchanged)') + ' ' : '';
+  keptNote += keptCount > 0 ? ' (' + keptCount + ' gün kendi girdiğin saat olarak korundu)' : '';
   var chMsg = changes.length
     ? ' Değişiklikler: ' + changes.slice(0, 3).join(', ') + (changes.length > 3 ? ' ve ' + (changes.length - 3) + ' gün daha' : '') + '.'
     : ' Tüm vardiyaların güncel.';
@@ -4245,19 +4253,50 @@ function saveManualSlip(){
 }
 
 /* ---------- Sadece Owner (Okan) İçin myHolland & Mail Otomatik Bordro Çekici ---------- */
-function mhGetCreds(){
-  try { return JSON.parse(localStorage.getItem(LS + '-mhcreds') || 'null') || {}; } catch (e) { return {}; }
+/* v42: Sahibe özel şifre/anahtar artık düz metin değil; cihazdaki dışarı çıkarılamaz CryptoKey (IndexedDB) ile AES-256-GCM şifreli saklanır. */
+var SEC_MEM = {};
+async function secPut(name, plain){
+  var key = await pbDevKey(), iv = crypto.getRandomValues(new Uint8Array(12));
+  var ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, new TextEncoder().encode(String(plain)));
+  localStorage.setItem(LS + '-sec-' + name, JSON.stringify({ iv: b64(iv), c: b64(new Uint8Array(ct)) }));
+  try { localStorage.removeItem(LS + '-sec-' + name + '-plain'); } catch (e) {}
 }
-/* Sahip yetki anahtarı: yalnızca bu cihazın localStorage'ında durur; state'e, buluta, repoya veya index.html'e yazılmaz. */
-var OWNER_TOK_LS = LS + '-ownertok';
-function ownerTokGet(){ try { return localStorage.getItem(OWNER_TOK_LS) || ''; } catch (e) { return ''; } }
+async function secGet(name){
+  var raw = null; try { raw = localStorage.getItem(LS + '-sec-' + name); } catch (e) {}
+  if (raw){
+    try { var o = JSON.parse(raw), key = await pbDevKey(); var pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(o.iv) }, key, unb64(o.c)); return new TextDecoder().decode(pt); } catch (e) { return ''; }
+  }
+  try { return localStorage.getItem(LS + '-sec-' + name + '-plain') || ''; } catch (e) { return ''; }
+}
+function secSave(name, plain){
+  SEC_MEM[name] = plain;
+  secPut(name, plain).catch(function(){ try { localStorage.setItem(LS + '-sec-' + name + '-plain', plain); } catch (e) {} });
+}
+function secDel(name){ delete SEC_MEM[name]; try { localStorage.removeItem(LS + '-sec-' + name); localStorage.removeItem(LS + '-sec-' + name + '-plain'); } catch (e) {} }
+async function secInit(){
+  try {
+    var old = null; try { old = JSON.parse(localStorage.getItem(LS + '-mhcreds') || 'null'); } catch (e) {}
+    if (old && old.p){ secSave('mh', old.p); localStorage.setItem(LS + '-mhcreds', JSON.stringify({ e: old.e || '', h: 1 })); }
+    var ot = ''; try { ot = localStorage.getItem(LS + '-ownertok') || ''; } catch (e) {}
+    if (ot){ secSave('tok', ot); localStorage.removeItem(LS + '-ownertok'); }
+    if (!SEC_MEM.mh){ var a = await secGet('mh'); if (a) SEC_MEM.mh = a; }
+    if (!SEC_MEM.tok){ var b = await secGet('tok'); if (b) SEC_MEM.tok = b; }
+  } catch (e) {}
+  if (typeof renderOwnerAutoSlipBox === 'function') renderOwnerAutoSlipBox();
+}
+function mhGetCreds(){
+  var o = {}; try { o = JSON.parse(localStorage.getItem(LS + '-mhcreds') || 'null') || {}; } catch (e) { o = {}; }
+  return { e: o.e || '', p: SEC_MEM.mh || '', h: !!(o.h || o.p || SEC_MEM.mh) };
+}
+/* Sahip yetki anahtarı: yalnızca bu cihazda ŞİFRELİ durur; state'e, buluta, repoya veya index.html'e yazılmaz. */
+function ownerTokGet(){ return SEC_MEM.tok || ''; }
 function ownerTokPrompt(){
   if (!isOwner()) return null;
   var cur = ownerTokGet();
   var t = window.prompt(L('Yetki anahtarı (sunucuda tanımlı gizli anahtar; sadece bu cihazda saklanır, boş bırakırsan silinir):', 'Access key (the secret set on your server; stored only on this device, leave blank to clear):'), '');
   if (t === null) return null;
   t = t.trim();
-  try { if (!t) localStorage.removeItem(OWNER_TOK_LS); else localStorage.setItem(OWNER_TOK_LS, t); } catch (e) {}
+  if (!t) secDel('tok'); else secSave('tok', t);
   return t || (cur && '');
 }
 function mhSetCredsPrompt(){
@@ -4266,12 +4305,14 @@ function mhSetCredsPrompt(){
   var em = window.prompt(L('myHolland e-posta adresin (boş bırakırsan kayıtlı şifre silinir):', 'Your myHolland email address (leave blank to clear):'), cur.e || '');
   if (em === null) return null;
   em = em.trim();
-  if (!em){ try { localStorage.removeItem(LS + '-mhcreds'); } catch (e) {} return null; }
-  var pw = window.prompt(L('myHolland şifren (cihazında saklanır, tek tıkla bordro çekmek için kullanılır):', 'Your myHolland password (stored locally on this device for one-tap payslip fetch):'), cur.p || '');
-  if (pw === null || !pw.trim()) return null;
-  var obj = { e: em, p: pw.trim() };
-  try { localStorage.setItem(LS + '-mhcreds', JSON.stringify(obj)); } catch (e) {}
-  return obj;
+  if (!em){ try { localStorage.removeItem(LS + '-mhcreds'); } catch (e) {} secDel('mh'); return null; }
+  var pw = window.prompt(L('myHolland şifren (cihazında şifreli saklanır; boş bırakırsan mevcut şifre korunur):', 'Your myHolland password (stored encrypted on this device; leave blank to keep the current one):'), '');
+  if (pw === null) return null;
+  pw = pw.trim();
+  if (!pw && !cur.p) return null;
+  if (pw) secSave('mh', pw);
+  try { localStorage.setItem(LS + '-mhcreds', JSON.stringify({ e: em, h: 1 })); } catch (e) {}
+  return { e: em, p: pw || cur.p };
 }
 function renderOwnerAutoSlipBox(){
   var box = $('ownerAutoSlipBox'); if (!box) return;
@@ -4284,7 +4325,7 @@ function renderOwnerAutoSlipBox(){
       '<small class="fh">' + L('Bulut senkronizasyonunu ve myHolland hesabını kontrol ederek yeni düşen bordroları PDF indirmeden doğrudan ekler.', 'Checks cloud sync and your myHolland account to import new payslips automatically without downloading PDFs.') + '</small></div>' +
       '<div style="display:flex;gap:6px;align-items:center">' +
         '<button type="button" class="btn small primary" data-act="mhAutoPull"' + (MH_AUTO_UI.busy ? ' disabled' : '') + '>' + (MH_AUTO_UI.busy ? L('⏳ Çekiliyor…', '⏳ Fetching…') : L('⚡ Şimdi Otomatik Çek', '⚡ Auto Pull Now')) + '</button>' +
-        '<button type="button" class="btn small" data-act="mhSetCreds" title="' + L('myHolland giriş bilgilerini ayarla', 'Configure myHolland login') + '">⚙ ' + (cr.p ? L('Hesap Bağlı', 'Account Linked') : L('Şifre Tanımla', 'Set Login')) + '</button>' +
+        '<button type="button" class="btn small" data-act="mhSetCreds" title="' + L('myHolland giriş bilgilerini ayarla', 'Configure myHolland login') + '">⚙ ' + ((cr.p || cr.h) ? L('Hesap Bağlı', 'Account Linked') : L('Şifre Tanımla', 'Set Login')) + '</button>' +
         '<button type="button" class="btn small" data-act="ownerTok" title="' + L('Sunucu yetki anahtarını bu cihaza kaydet', 'Save the server access key on this device') + '">🔑 ' + (ownerTokGet() ? L('Anahtar Kayıtlı', 'Key Saved') : L('Yetki Anahtarı', 'Access Key')) + '</button>' +
       '</div>' +
     '</div>' +
@@ -4550,6 +4591,7 @@ function tick(){
   if (view.week === undefined) return;
   renderAll();
 }
+secInit();
 setInterval(tick, 30000); window.addEventListener('focus', function(){ loadWatch(); }); setInterval(function(){ if (!document.hidden) loadWatch(); }, 600000); window.addEventListener('focus', tick); document.addEventListener('visibilitychange', function(){ if (!document.hidden) tick(); });
 /* ---------- PC planı ---------- */
 function pcDefaults(){

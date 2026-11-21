@@ -14,6 +14,24 @@
 
 
 
+## v42 (`2026-11-21-shiftpay-v42`) — **Claude Pro** — Güvenlik & Veri Koruma Paketi
+- **Değişen Dosyalar:** `index.html`, `server/bildirim-worker.js`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md` (v41 Planbition düzeltmesi de bu sürümle birlikte yayınlanır).
+- **Düzeltilenler:**
+  1. **Planbition veri kaybı riski (v41):** Hafta yanıtı boş/hatalıysa mevcut planlı günler artık `off` yapılmaz (`weeksOk`); okunamayan hafta korunur ve kullanıcıya bildirilir.
+  2. **Düz metin şifre/anahtar:** myHolland şifresi ve `OWNER_TOKEN` yetki anahtarı artık `localStorage`'da düz metin değil; `secPut/secGet/secInit` ile cihazdaki dışarı çıkarılamaz `CryptoKey` (IndexedDB, AES-256-GCM) ile şifreli saklanır. Eski düz metin kayıtlar açılışta otomatik şifrelenip silinir. myHolland şifre penceresi artık mevcut şifreyi önceden doldurmaz (boş bırakılırsa mevcut korunur). IndexedDB yoksa eski davranışa düşer.
+  3. **Anahtar yarışı:** `pbDevKey` iki eşzamanlı şifrelemede iki ayrı anahtar üretebiliyordu (ilk şifre okunamaz hale gelirdi); tek `Promise` ile önbelleğe alındı.
+  4. **Worker (`server/bildirim-worker.js`):** `POST /api/sync|off|test` artık Origin başlığı olmadan (curl) ve izinli olmayan Origin ile 403; isolate başına IP başına dakikada 30 istek sınırı (aşılınca 429, en-iyi-çaba).
+- **Düzeltilemeyenler / kullanıcı veya ayrı iş gerektirenler:**
+  - Repo hâlâ herkese açık (PC planı kodu, `watch.json`, mimari görünür) → GitHub'da Private yapılmalı (kullanıcı); eski `github.io` adresi bununla kapanır.
+  - CSP'de `'unsafe-inline'` script duruyor → `index.html` içindeki satıriçi script'in ayrı dosyaya taşınıp nonce/hash'e geçmesi büyük refactor.
+  - `innerHTML` (60+ kullanım) için tam `esc()` denetimi yapılmadı.
+  - Eşitleme kodu kaybı/paylaşımı: kurtarma yok; kodu bilen herkes veriyi çözer (tasarım gereği).
+  - Hız sınırı isolate-bellek tabanlı: dağıtık/kalıcı değil; `MAX_USERS=300` doldurma saldırısı tamamen kapanmadı (Cloudflare WAF kuralı önerilir).
+  - Bordro/myHolland ve Planbition canlı uç testleri Claude ortamından yapılamaz (Cloudflare/Planbition erişimi yok).
+- **Antigravity İçin Not (ZORUNLU):** `server/bildirim-worker.js` değişti → **canlı Worker'a Quick Edit ile yapıştırılmalı** (secret'lar aynı kalır, yeni secret gerekmez). `planbition_bot.py`: yalnızca bulunan vardiyaları işler, boş gün için `off` üretmez, bu yüzden v41 riski botta yok (önceki not düzeltildi).
+
+---
+
 ## Geri Dönüş: 40 (2026-11-20-shiftpay-v40) — **Antigravity**
 - **Durum:** Kullanıcı tercihiyle 41 (Fintech/Neo-Bank tasarım denemesi) geri alınarak ackup-v40 (4a2add5) sürümüne birebir dönüldü.
 - **Not:** 40 dosyaları (index.html, ersion.json, sw.js, AI-CONTEXT.md) ackup-v40 yedeğinden eksiksiz geri yüklendi; tüm 39/40 Hızlı Hesap özellikleri ve önceki arayüz %100 korunuyor.

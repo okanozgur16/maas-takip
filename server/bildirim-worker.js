@@ -9,6 +9,7 @@ const VAPID_PUBLIC = 'BNC8z6r6nw5KHuX-BHUvS_UtDme9G0J8InlDAtPo8mq38-Uz0ugRnoEia5
 const SUBJECT = 'https://shiftpay-app.pages.dev/';
 const PUSH_HOSTS = [/(^|\.)push\.apple\.com$/, /(^|\.)googleapis\.com$/, /(^|\.)push\.services\.mozilla\.com$/, /(^|\.)notify\.windows\.com$/];
 const MAX_USERS = 300;
+const RL = new Map();
 const PB_API = 'https://planbition.herokuapp.com';
 const enc = new TextEncoder();
 
@@ -267,6 +268,14 @@ async function handle(req, env) {
   if (req.method !== 'POST') return json({ ok: true, name: 'shiftpay-bildirim-ve-otomasyon' }, 200, env, req);
   const origin = req.headers.get('Origin');
   if (origin && !isAllowedOrigin(origin, env)) return json({ ok: false }, 403, env, req);
+  /* v42: bildirim kayıt uçları yalnızca izinli bir web sayfasından (Origin başlığı ile) çağrılabilir + isolate başına basit hız sınırı */
+  if (req.method === 'POST' && /^\/api\/(sync|off|test)$/.test(new URL(req.url).pathname)) {
+    if (!origin) return json({ ok: false }, 403, env, req);
+    const ip = req.headers.get('CF-Connecting-IP') || 'x', now = Date.now();
+    RL.set(ip, (RL.get(ip) || []).filter(x => now - x < 60000).concat(now));
+    if (RL.get(ip).length > 30) return json({ ok: false, err: 'Çok fazla istek. Biraz bekle.' }, 429, env, req);
+    if (RL.size > 500) RL.clear();
+  }
   const raw = await req.text(); if (raw.length > 65536) return json({ ok: false }, 413, env, req);
   let b; try { b = JSON.parse(raw); } catch (e) { return json({ ok: false }, 400, env, req); }
 
