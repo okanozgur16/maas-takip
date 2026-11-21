@@ -14,6 +14,17 @@
 
 
 
+## v43 (`2026-11-21-shiftpay-v43`) — **Claude Pro** — Doğruluk Rehberi
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı (Haftalık Plan › hero kartının üstü, `accuracyHtml()`):**
+  1. **İlk açılış kurulumu:** `state.settings.setupOk` yoksa (yeni ve mevcut tüm kullanıcılarda bir kez) "Doğru hesap için 2 hızlı soru": Konut (şirket evi / kendi evim-özel kira) + Sigorta (bordrodan/şirket / kendim). Kaydet → `housingMode`, `insMode` yazılır, `lock.housingMode/insMode` ile bordro otomatiği bu seçimi ezmez, `setupOk=1` (bulutla eşitlenir, bir daha çıkmaz). Aylık kira (`monthly`) seçmiş kullanıcının ayarı "şirket evi" seçilirse korunur.
+  2. **2 bordro uyarısı:** PDF bordro sayısı (`pdfSlipCount`) 2'den azsa "En iyi sonuç için en az 2 bordro yükle (n/2) — tatil ödeneği + tahmin doğruluğu" + Bordro ekle butonu; 2 ve üstünde kendiliğinden kaybolur.
+  3. **Büyük fark uyarısı:** `slipGap(w)` = tahmin − bordro (park hariç). |fark| > max(30 €, bordronun %10'u) ise bordrolu haftada "Tahmin bu bordrodan €X farklı çıktı", bordrosuz haftada son bordroya göre "farklıydı; bu haftanın tahmini de sapabilir" + Ayarları kontrol et / Bordro ekle butonları.
+- **Test:** Kurulum kaydı, 0/2 ve 1/2 bordro bannerı, 158 € fark uyarısı tarayıcıda doğrulandı; açık/koyu tema kontrast OK; TR/EN `L()` ile.
+- **Antigravity İçin Not:** Worker değişmedi. (v42'deki Worker değişikliği canlıya yapıştırıldı mı kontrol et.)
+
+---
+
 ## v42 (`2026-11-21-shiftpay-v42`) — **Claude Pro** — Güvenlik & Veri Koruma Paketi
 - **Değişen Dosyalar:** `index.html`, `server/bildirim-worker.js`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md` (v41 Planbition düzeltmesi de bu sürümle birlikte yayınlanır).
 - **Düzeltilenler:**

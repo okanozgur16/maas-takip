@@ -2669,7 +2669,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-21-shiftpay-v42';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-21-shiftpay-v43';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2878,6 +2878,41 @@ function weekResult(ws, mode){
   return { t: t, p: p, est: est, slip: slip };
 }
 function parkOf(p){ return r2(p.extraTravel || 0); }
+/* v43: Doğruluk rehberi — ilk açılış kurulumu (konut + sigorta), 2 bordro uyarısı ve büyük tahmin farkı uyarısı */
+var SETUP_TMP = null;
+function pdfSlipCount(){ return Object.keys(state.slips || {}).filter(function(w){ var x = state.slips[w]; return x && x.source === 'pdf'; }).length; }
+function slipGap(w){
+  var x = state.slips[w]; if (!x) return null;
+  var r = weekResult(w, 'done'); if (!r || !r.est || !r.p) return null;
+  var real = r2(r.p.payable - parkOf(r.p)), d = r2(r.est.payable - real);
+  return { d: d, big: Math.abs(d) > Math.max(30, Math.abs(real) * 0.1) };
+}
+function accuracyHtml(ws, slip){
+  var st = state.settings || {}, h = '';
+  if (!st.setupOk){
+    var T = SETUP_TMP || (SETUP_TMP = { h: (st.housingMode === 'none' ? 'none' : (st.housingMode === 'monthly' ? 'monthly' : 'company')), i: (st.insMode === 'self' ? 'self' : 'slip') });
+    var b = function(act, v, cur, lbl){ return '<button type="button" class="btn small' + (cur === v ? ' primary' : '') + '" data-act="' + act + '" data-v="' + v + '" aria-pressed="' + (cur === v) + '">' + lbl + '</button>'; };
+    h += '<div class="callout" style="display:block;margin:0 0 10px"><b>⚙️ ' + L('Doğru hesap için 2 hızlı soru', '2 quick questions for an accurate estimate') + '</b>' +
+      '<div class="sub" style="margin:8px 0 4px">' + L('1. Nerede kalıyorsun?', '1. Where do you live?') + '</div><div style="display:flex;gap:6px;flex-wrap:wrap">' +
+        b('setupH', 'company', T.h, L('Şirket evi (kira bordrodan kesilir)', 'Company housing (rent on payslip)')) +
+        b('setupH', 'none', T.h, L('Kendi evim / özel kira', 'Own home / private rent')) + '</div>' +
+      '<div class="sub" style="margin:10px 0 4px">' + L('2. Sağlık sigortanı kim ödüyor?', '2. Who pays your health insurance?') + '</div><div style="display:flex;gap:6px;flex-wrap:wrap">' +
+        b('setupI', 'slip', T.i, L('Bordrodan kesiliyor (şirket)', 'Deducted on payslip (company)')) +
+        b('setupI', 'self', T.i, L('Kendim ödüyorum', 'I pay it myself')) + '</div>' +
+      '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn small primary" data-act="setupOk">✓ ' + L('Kaydet', 'Save') + '</button></div>' +
+      (T.h === 'none' ? '<div class="sub" style="margin-top:6px">' + L('Kaydettikten sonra kiranı Ayarlar › Konut bölümüne gir.', 'After saving, enter your rent in Settings › Housing.') + '</div>' : '') +
+      '</div>';
+  }
+  var n = pdfSlipCount();
+  if (n < 2){
+    h += '<div class="callout" style="display:block;margin:0 0 10px">📄 <b>' + L('En iyi sonuç için en az 2 bordro yükle', 'Upload at least 2 payslips for the best result') + '</b> <span class="num">(' + n + '/2)</span><div class="sub" style="margin-top:4px">' + L('Tatil ödeneğin bordrolardan hesaplanır ve tahmini rakamın doğruluğu artar.', 'Your holiday pay is calculated from your payslips and the estimate becomes more accurate.') + '</div><div style="margin-top:8px"><button type="button" class="btn small primary" data-act="slipAdd">+ ' + L('Bordro ekle', 'Add payslip') + '</button></div></div>';
+  }
+  var ref = slip ? ws : Object.keys(state.slips || {}).filter(function(w){ return state.slips[w] && w <= ws; }).sort().pop(), g = ref ? slipGap(ref) : null;
+  if (g && g.big){
+    h += '<div class="callout" style="display:block;margin:0 0 10px;border-color:var(--bad)">⚠️ <b>' + (slip ? L('Tahmin bu bordrodan ', 'The estimate differs from this payslip by ') : L('Son bordroda tahmin ', 'On your last payslip the estimate was off by ')) + '<span class="num">' + eur(Math.abs(g.d)) + '</span>' + (slip ? L(' farklı çıktı.', '.') : L(' farklıydı; bu haftanın tahmini de sapabilir.', '; this week may be off too.')) + '</b><div class="sub" style="margin-top:4px">' + L('Ayarlarını kontrol et: konut (şirket evi / özel kira), sigorta (şirket / kendin), araç eki ve kira kesinti şekli. Daha fazla bordro eklemek de tahmini düzeltir.', 'Check your settings: housing (company / private), insurance (company / self), driver allowance and how rent is deducted. Adding more payslips also improves the estimate.') + '</div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn small" data-act="settings">⚙ ' + L('Ayarları kontrol et', 'Check settings') + '</button><button type="button" class="btn small" data-act="slipAdd">+ ' + L('Bordro ekle', 'Add payslip') + '</button></div></div>';
+  }
+  return h;
+}
 function renderHero(){
   var S = SET(), ws = view.week, mode = state.ui.mode;
   var cur = weekResult(ws, mode), t = cur.t, p = cur.p, slip = cur.slip, est = cur.est;
@@ -2885,6 +2920,7 @@ function renderHero(){
   var payDay = addDays(ws, 10), slipDay = addDays(ws, 9);
   var h = '<div class="hero-top"><div class="eyebrow">' + (slip ? (p.wkHomeDeduct > 0 ? 'Kira & Giderler Düşüldükten Sonra Kalan' : 'Hesabına yatan') : (S.wkHomeDeduct > 0 ? 'Kira & Giderler Düşülmüş Tahmin' : 'Hesabına yatacak')) + '</div>' +
     (slip ? '<span class="chip">Bordro ile kesinleşti</span>' : '<div class="seg" role="group" aria-label="Hesap türü"><button data-act="mode" data-v="done" aria-pressed="' + (mode === 'done') + '">Yapılan</button><button data-act="mode" data-v="all" aria-pressed="' + (mode === 'all') + '">Planlı dahil</button></div>') + '</div>';
+  h = accuracyHtml(ws, slip) + h;
   h += '<div class="big num' + (!p.empty && p.payable < 0 ? ' neg' : '') + (p.empty ? ' empty' : '') + '">' + (p.empty ? eur(0) : eur(p.payable)) + '</div>';
   h += '<div class="sub">Bordro ' + dlabel(slipDay) + ' · maaş ' + dlabel(payDay) + '</div>';
   var allR0 = (!slip ? weekResult(ws, 'all') : null);
@@ -6129,6 +6165,16 @@ document.addEventListener('click', function(ev){
   }
   else if (a === 'setConfirmBack'){
     $('ovSetConfirm').hidden = true;
+  }
+  else if (a === 'setupH' || a === 'setupI'){
+    SETUP_TMP = SETUP_TMP || {}; SETUP_TMP[a === 'setupH' ? 'h' : 'i'] = el.getAttribute('data-v'); renderHero();
+  }
+  else if (a === 'setupOk'){
+    var stS = state.settings, TT = SETUP_TMP || {};
+    if (TT.h === 'company' || TT.h === 'none'){ if (stS.housingMode !== 'monthly' || TT.h === 'none') stS.housingMode = TT.h; if (TT.h === 'none' && !(stS.lock || {}).utilities) stS.utilities = 0; }
+    if (TT.i) stS.insMode = TT.i === 'self' ? 'self' : 'slip';
+    stS.lock = stS.lock || {}; stS.lock.housingMode = 1; stS.lock.insMode = 1;
+    stS.setupOk = 1; SETUP_TMP = null; commit(); renderAll();
   }
   else if (a === 'slipAdd'){
     try { localStorage.setItem(LS + '-slipclicked-' + addDays(weekStart(today), -7), '1'); } catch (e) {}

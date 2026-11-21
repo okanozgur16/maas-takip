@@ -1,6 +1,6 @@
 # ShiftPay — Evrensel Yapay Zeka (Claude / GPT / Gemini / Antigravity) Mimari & Oto-Güncelleme Rehberi
 
-- **Proje Adı:** ShiftPay (`2026-11-21-shiftpay-v42`)
+- **Proje Adı:** ShiftPay (`2026-11-21-shiftpay-v43`)
 - **Canlı Web (Cloudflare Pages):** https://shiftpay-app.pages.dev/
 - **Tek Doğru Kaynak (GitHub Single Source of Truth):** https://github.com/okanozgur16/maas-takip (`main` dalı)
 - **Geri Dönüş (Rollback) Dalı:** `backup-pre-v19`
@@ -63,3 +63,7 @@
 - **Şifreli saklama:** myHolland şifresi ve yetki anahtarı cihazda şifreli (CryptoKey/IndexedDB); eski düz metin kayıtlar otomatik taşınır.
 - **Worker sertleştirme:** `/api/sync|off|test` Origin zorunlu + dakikada 30 istek sınırı (canlı Worker'a yapıştırılmalı).
 - **Planbition:** boş/hatalı hafta yanıtı mevcut kayıtları silmez; `pbDevKey` yarış durumu giderildi.
+
+## 🔄 v43 Değişiklik Notları (2026-11-21)
+- **İlk kurulum:** Konut + sigorta 2 soruluk kart (`setupOk`), seçim kilitlenir.
+- **2 bordro uyarısı** (`pdfSlipCount` < 2) ve **büyük tahmin farkı uyarısı** (`slipGap`, > max(30 €, %10)).
