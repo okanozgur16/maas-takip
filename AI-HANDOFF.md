@@ -14,6 +14,14 @@
 
 
 
+## v47 (`2026-11-21-shiftpay-v47`) — **Claude Pro** — Tatil girişi sadeleştirildi
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:** v46'daki 3 modlu tatil seçimi (günlük / haftalık toplam ÷5 / haftayı tamamla) KALDIRILDI (kullanıcı: karışık). Yeni akış: tek gün → eskisi gibi saat; "Tatilin son günü" farklıysa aralıktaki **her hafta için ayrı saat kutusu** (ofise bildirildiği gibi, örn. Hf 48: 25, Hf 49: 30) + her satırda "40’a tamamla" (40 − o haftanın çalışılan saati). Her hafta tek tatil kaydı (aralığın o haftadaki ilk günü). Bakiye önizlemesi (`vacBalTxt`), tombstone'lu değiştirme, tatil bitti uyarısı/push (v46) aynen duruyor.
+- **Test:** 2 haftalık aralık, 25+30=55 sa kayıt, haftalık hesap 25/30, "40’a tamamla" tarayıcıda doğrulandı.
+- **Antigravity İçin Not:** Worker bu sürümde değişmedi (v46 Worker'ı canlıya yapıştırılmadıysa hâlâ gerekli).
+
+---
+
 ## v46 (`2026-11-21-shiftpay-v46`) — **Claude Pro** — Tatil aralığı, konut algılama, tatil bitti bildirimi
 - **Değişen Dosyalar:** `index.html`, `server/bildirim-worker.js`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:**
