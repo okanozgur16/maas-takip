@@ -14,6 +14,17 @@
 
 
 
+## v44 (`2026-11-21-shiftpay-v44`) — **Claude Pro** — Ayar Kontrol Listesi
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:**
+  1. v43'teki 2 soruluk kurulum kartı yerine **"Bu ayarlar doğru mu?"** kontrol listesi (`chkItems`, `checklistHtml`, `chkMark`): konut (şirket evi/özel kira/aylık + tutar), sigorta (şirket/kendim + tutar), araç eki, saatlik ücret, diğer haftalık satırlar. Her madde ✓ Evet, doğru / ✕ Hayır, güncelle (ilgili Ayarlar sekmesini açar: `home`/`ded`/`pay`) + "Hepsi doğru". Onaylar `state.settings.chk` (bulutla eşitlenir).
+  2. Tekrar sorma: tümü onaylanınca gizlenir; **28 günde bir** veya **büyük tahmin farkı çıkan yeni bir bordroda** (`slipGap` + `chk.ref`) yeniden gösterilir. Her açılışta sormuyor (kullanıcı yorulmasın diye).
+  3. **Yol ücreti (özel evde kalanlar):** ayrı seçenek eklenmedi; bordrodaki `reis/woon-werk/kilometer/travel` içeren net satırlar artık ilk bordroda tekrar eden gelir olarak `custom`'a otomatik eklenir (önceden 2. bordroyu bekliyordu). Brüt bölümdeki yol satırları için otomatik ekleme yok → fark uyarısı devreye girer.
+- **Test:** Liste, sekme açma (`ded`), Hepsi doğru, 28 gün sıfırlama ve `Reiskostenvergoeding` ilk bordroda tanıma tarayıcıda doğrulandı; açık/koyu tema OK.
+- **Antigravity İçin Not:** Worker değişmedi.
+
+---
+
 ## v43 (`2026-11-21-shiftpay-v43`) — **Claude Pro** — Doğruluk Rehberi
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı (Haftalık Plan › hero kartının üstü, `accuracyHtml()`):**

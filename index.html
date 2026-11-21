@@ -2669,7 +2669,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-21-shiftpay-v43';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-21-shiftpay-v44';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2887,22 +2887,44 @@ function slipGap(w){
   var real = r2(r.p.payable - parkOf(r.p)), d = r2(r.est.payable - real);
   return { d: d, big: Math.abs(d) > Math.max(30, Math.abs(real) * 0.1) };
 }
+/* v44: Ayar kontrol listesi — mevcut ayarları madde madde gösterir; ✓ Evet doğru / ✗ Hayır, güncelle (ilgili Ayarlar sekmesini açar).
+   Tümü onaylanana kadar görünür; 28 günde bir veya büyük tahmin farkı çıkan yeni bir bordroda yeniden sorar. */
+function chkItems(){
+  var S = SET(), st = state.settings || {}, hm0 = st.housingMode || 'company', it = [];
+  it.push({ k: 'h', tab: 'home', t: hm0 === 'none' ? L('Kendi evimde / özel kirada kalıyorum', 'I live in my own home / private rent') + ((+st.homeRent || 0) > 0 ? ' (' + eur(+st.homeRent) + L('/ay', '/mo') + ')' : ' — ' + L('kira girilmemiş', 'no rent entered')) : (hm0 === 'monthly' ? L('Kiram ayda bir bordrodan kesiliyor', 'Rent is deducted monthly on my payslip') + ' (' + eur(+st.rentMonthly || 0) + ')' : L('Şirket evinde kalıyorum, kira bordrodan kesiliyor', 'I live in company housing, rent is on my payslip') + ' (' + eur(+S.housingTotal || 0) + L('/hf', '/wk') + ')') });
+  it.push({ k: 'i', tab: 'ded', t: st.insMode === 'self' ? L('Sağlık sigortamı kendim ödüyorum', 'I pay my health insurance myself') : L('Sağlık sigortamı şirket bordrodan kesiyor', 'Health insurance is deducted on my payslip') + ' (' + eur(r2((+S.insurance || 0) + (+S.extraIns || 0))) + L('/hf', '/wk') + ')' });
+  it.push({ k: 'd', tab: 'pay', t: (st.driverMode || 'on') === 'off' ? L('Araç eki almıyorum', 'I do not get a driver allowance') : L('Araç eki alıyorum', 'I get a driver allowance') + ' (' + eur(+S.driverDay || 0) + L('/gün', '/day') + ')' });
+  it.push({ k: 'r', tab: 'pay', t: L('Saatlik ücretim', 'My hourly wage') + ' ' + eur(+S.rate || 0) });
+  var cu = (Array.isArray(st.custom) ? st.custom : []).filter(function(c){ return c && (+c.a || 0) > 0; });
+  it.push({ k: 'x', tab: 'ded', t: cu.length ? L('Diğer haftalık satırlar: ', 'Other weekly lines: ') + cu.slice(0, 3).map(function(c){ return c.n + ' ' + (c.kind === 'in' ? '+' : '−') + eur(+c.a); }).join(', ') + (cu.length > 3 ? '…' : '') : L('Bordromda başka her hafta tekrar eden gelir/kesinti yok (örn. yol ücreti)', 'No other recurring income/deduction on my payslip (e.g. travel allowance)') });
+  return it;
+}
+function checklistHtml(gapRef){
+  var st = state.settings || {}, C = st.chk || {}, now = Date.now();
+  if (C.at && now - C.at > 28 * 86400000){ C = {}; }
+  if (gapRef && C.ref !== gapRef){ C = { ref: C.ref }; }
+  var items = chkItems(), open = items.filter(function(x){ return !C[x.k]; });
+  if (!open.length) return '';
+  var h = '<div class="callout" style="display:block;margin:0 0 10px"><b>✅ ' + L('Bu ayarlar doğru mu?', 'Are these settings right?') + '</b><div class="sub" style="margin:2px 0 6px">' + (gapRef ? L('Son bordroda tahmin farklı çıktı; lütfen tekrar kontrol et.', 'Your last payslip differed from the estimate; please check again.') : L('Tahminin doğru çıkması için bir kez kontrol et.', 'Check once so your estimate is accurate.')) + '</div>';
+  items.forEach(function(x){
+    var ok = !!C[x.k];
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)"><span>' + (ok ? '✓ ' : '• ') + esc(x.t) + '</span>' +
+      (ok ? '<span class="sub ok">' + L('Onaylandı', 'Confirmed') + '</span>' : '<span style="display:flex;gap:6px"><button type="button" class="btn small primary" data-act="chkYes" data-v="' + x.k + '">✓ ' + L('Evet, doğru', 'Yes, correct') + '</button><button type="button" class="btn small" data-act="chkNo" data-v="' + x.k + '" data-tab="' + x.tab + '">✕ ' + L('Hayır, güncelle', 'No, update') + '</button></span>') + '</div>';
+  });
+  if (open.length > 1) h += '<div style="margin-top:8px"><button type="button" class="btn small" data-act="chkAll">✓ ' + L('Hepsi doğru', 'All correct') + '</button></div>';
+  return h + '</div>';
+}
+function chkMark(keys, gapRef){
+  var st = state.settings, C = st.chk || {}, now = Date.now();
+  if (C.at && now - C.at > 28 * 86400000) C = {};
+  keys.forEach(function(k){ C[k] = 1; });
+  if (chkItems().every(function(x){ return C[x.k]; })){ C.at = now; var ws0 = view.week, rw = Object.keys(state.slips || {}).filter(function(w){ return state.slips[w] && w <= ws0; }).sort().pop(); if (rw) C.ref = rw; }
+  st.chk = C; st.setupOk = 1; commit();
+}
 function accuracyHtml(ws, slip){
   var st = state.settings || {}, h = '';
-  if (!st.setupOk){
-    var T = SETUP_TMP || (SETUP_TMP = { h: (st.housingMode === 'none' ? 'none' : (st.housingMode === 'monthly' ? 'monthly' : 'company')), i: (st.insMode === 'self' ? 'self' : 'slip') });
-    var b = function(act, v, cur, lbl){ return '<button type="button" class="btn small' + (cur === v ? ' primary' : '') + '" data-act="' + act + '" data-v="' + v + '" aria-pressed="' + (cur === v) + '">' + lbl + '</button>'; };
-    h += '<div class="callout" style="display:block;margin:0 0 10px"><b>⚙️ ' + L('Doğru hesap için 2 hızlı soru', '2 quick questions for an accurate estimate') + '</b>' +
-      '<div class="sub" style="margin:8px 0 4px">' + L('1. Nerede kalıyorsun?', '1. Where do you live?') + '</div><div style="display:flex;gap:6px;flex-wrap:wrap">' +
-        b('setupH', 'company', T.h, L('Şirket evi (kira bordrodan kesilir)', 'Company housing (rent on payslip)')) +
-        b('setupH', 'none', T.h, L('Kendi evim / özel kira', 'Own home / private rent')) + '</div>' +
-      '<div class="sub" style="margin:10px 0 4px">' + L('2. Sağlık sigortanı kim ödüyor?', '2. Who pays your health insurance?') + '</div><div style="display:flex;gap:6px;flex-wrap:wrap">' +
-        b('setupI', 'slip', T.i, L('Bordrodan kesiliyor (şirket)', 'Deducted on payslip (company)')) +
-        b('setupI', 'self', T.i, L('Kendim ödüyorum', 'I pay it myself')) + '</div>' +
-      '<div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn small primary" data-act="setupOk">✓ ' + L('Kaydet', 'Save') + '</button></div>' +
-      (T.h === 'none' ? '<div class="sub" style="margin-top:6px">' + L('Kaydettikten sonra kiranı Ayarlar › Konut bölümüne gir.', 'After saving, enter your rent in Settings › Housing.') + '</div>' : '') +
-      '</div>';
-  }
+  var refW = Object.keys(state.slips || {}).filter(function(w){ return state.slips[w] && w <= ws; }).sort().pop(), gg = refW ? slipGap(refW) : null;
+  h += checklistHtml(gg && gg.big ? refW : '');
   var n = pdfSlipCount();
   if (n < 2){
     h += '<div class="callout" style="display:block;margin:0 0 10px">📄 <b>' + L('En iyi sonuç için en az 2 bordro yükle', 'Upload at least 2 payslips for the best result') + '</b> <span class="num">(' + n + '/2)</span><div class="sub" style="margin-top:4px">' + L('Tatil ödeneğin bordrolardan hesaplanır ve tahmini rakamın doğruluğu artar.', 'Your holiday pay is calculated from your payslips and the estimate becomes more accurate.') + '</div><div style="margin-top:8px"><button type="button" class="btn small primary" data-act="slipAdd">+ ' + L('Bordro ekle', 'Add payslip') + '</button></div></div>';
@@ -4194,7 +4216,7 @@ function autoFromSlips(force){
   var older = keys.slice(-4, -1).map(function(w){ return (state.slips[w].other || []).map(function(o){ return o.l; }); });
   var cust = (Array.isArray(st.custom) ? st.custom : []).filter(function(c){ return !c.auto; });
   lastO.forEach(function(o){
-    var rec = older.some(function(arr){ return arr.indexOf(o.l) >= 0; }); if (!rec) return;
+    var rec = older.some(function(arr){ return arr.indexOf(o.l) >= 0; }) || /reis|woon.?werk|kilomet|travel|commut/i.test(o.l); if (!rec) return;
     if (cust.some(function(c){ return c.n === o.l; })) return;
     cust.push({ n: o.l, a: Math.abs(o.a), kind: o.a < 0 ? 'out' : 'in', auto: true });
     ch.push('“' + o.l + '” ' + (o.a < 0 ? 'kesintisi' : 'geliri'));
@@ -6165,6 +6187,13 @@ document.addEventListener('click', function(ev){
   }
   else if (a === 'setConfirmBack'){
     $('ovSetConfirm').hidden = true;
+  }
+  else if (a === 'chkYes'){ chkMark([el.getAttribute('data-v')]); renderHero(); }
+  else if (a === 'chkAll'){ chkMark(chkItems().map(function(x){ return x.k; })); renderHero(); }
+  else if (a === 'chkNo'){
+    chkMark([el.getAttribute('data-v')]);
+    window.__SET_SNAP = JSON.parse(JSON.stringify(state.settings || {}));
+    setTabSel = el.getAttribute('data-tab') || 'pay'; renderSettings(); $('ov2').hidden = false; var sbx = $('setBody'); if (sbx) sbx.scrollTop = 0;
   }
   else if (a === 'setupH' || a === 'setupI'){
     SETUP_TMP = SETUP_TMP || {}; SETUP_TMP[a === 'setupH' ? 'h' : 'i'] = el.getAttribute('data-v'); renderHero();
