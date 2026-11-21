@@ -2673,7 +2673,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-21-shiftpay-v48';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-21-shiftpay-v49';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2883,7 +2883,6 @@ function weekResult(ws, mode){
 }
 function parkOf(p){ return r2(p.extraTravel || 0); }
 /* v43: Doğruluk rehberi — ilk açılış kurulumu (konut + sigorta), 2 bordro uyarısı ve büyük tahmin farkı uyarısı */
-var SETUP_TMP = null;
 function pdfSlipCount(){ return Object.keys(state.slips || {}).filter(function(w){ var x = state.slips[w]; return x && x.source === 'pdf'; }).length; }
 function slipGap(w){
   var x = state.slips[w]; if (!x) return null;
@@ -2946,7 +2945,8 @@ function checklistHtml(gapRef){
 function chkMark(keys, gapRef){
   var st = state.settings, C = st.chk || {}, now = Date.now();
   if (C.at && now - C.at > 28 * 86400000) C = {};
-  keys.forEach(function(k){ C[k] = 1; });
+  delete C[''];
+  keys.filter(Boolean).forEach(function(k){ C[k] = 1; });
   if (chkItems().every(function(x){ return C[x.k]; })){ C.at = now; var ws0 = view.week, rw = Object.keys(state.slips || {}).filter(function(w){ return state.slips[w] && w <= ws0; }).sort().pop(); if (rw) C.ref = rw; }
   st.chk = C; st.setupOk = 1; commit();
 }
@@ -3905,7 +3905,6 @@ function drvDefault(S, planned){ return S.driverMode === 'auto' && (+S.driverDay
    Her hafta tek bir tatil kaydı olarak, aralığın o haftadaki ilk gününe yazılır. */
 var VACW = {}, VACW_SIG = '';
 function vacWeekList(from, to){ var out = [], w = weekStart(from), n = 0; while (w <= to && n < 60){ out.push(w); w = addDays(w, 7); n++; } return out; }
-function vacWorked(w){ var S = SET(), t = 0; weekEntries(w, 'all').forEach(function(x){ if (x.type === 'vacation') return; var eh = entryHours(x, S); t += eh.norm + eh.irr + eh.over; }); return t; }
 /* v48: son normal bordrodaki haftalık çalışılan saat — tatil haftaları varsayılan olarak buna göre doldurulur */
 function lastSlipWeekHours(){
   var k = Object.keys(state.slips || {}).filter(function(w){ var x = state.slips[w], hh = x && x.hours; return x && x.source === 'pdf' && hh && (+hh.norm || 0) + (+hh.irr || 0) + (+hh.over || 0) >= 16; }).sort().pop();
@@ -3933,7 +3932,8 @@ function vacPlan(from, to){
   vacWeekList(from, to).forEach(function(w){
     var inp = document.querySelector('#fVacWeeks [data-vw="' + w + '"]'), hrs = inp ? parseHM(inp.value) : 0;
     VACW[w] = inp ? inp.value : '';
-    if (hrs > 0) list.push({ date: w < from ? from : w, hours: hrs, w: w });
+    var z = addDays(w, 6) > to ? to : addDays(w, 6);
+    if (hrs > 0) list.push({ date: w < from ? from : w, to: z, hours: hrs, w: w });
   });
   if (!list.length) return { err: L('En az bir hafta için tatil saati gir.', 'Enter holiday hours for at least one week.') };
   return { from: from, to: to, list: list, total: r2(list.reduce(function(a, x){ return a + x.hours; }, 0)) };
@@ -3946,13 +3946,11 @@ function vacBalTxt(useH, dates){
   var left = r2(bal - used - useH);
   return L('Kalan tatil saatin', 'Holiday hours left') + ' (' + L('Hafta ', 'Week ') + isoWeek(y.asOf) + L(' bordrosu', ' payslip') + '): <b>' + hm(bal) + '</b> · ' + L('bu tatilden sonra', 'after this holiday') + ' ≈ <b class="' + (left < 0 ? 'bad' : 'ok') + '">' + (left < 0 ? '−' + hm(-left) : hm(left)) + '</b>' + (left < 0 ? ' ' + L('(bakiyeni aşıyor)', '(exceeds your balance)') : '');
 }
-/* Son tatil bloğunun bitiş günü (son 21 gün / gelecek) */
+/* v49: Son tatil bloğunun gerçek bitiş günü (çok haftalık kayıtta vacTo alanını kullanır) */
 function vacEndDay(){
-  var v = state.entries.filter(function(x){ return x && x.type === 'vacation' && x.date >= addDays(today, -21); }).map(function(x){ return x.date; }).sort();
-  if (!v.length) return '';
-  var end = v[v.length - 1];
-  for (var i = v.length - 2; i >= 0; i--){ if (v[i] < addDays(end, -60)) break; }
-  return end;
+  var cut = addDays(today, -21);
+  var v = state.entries.filter(function(x){ return x && x.type === 'vacation' && ((x.vacTo && x.vacTo >= x.date) ? x.vacTo : x.date) >= cut; }).map(function(x){ return (x.vacTo && x.vacTo >= x.date) ? x.vacTo : x.date; }).sort();
+  return v.length ? v[v.length - 1] : '';
 }
 function openSheet(o){
   var S = SET(), e = o.id ? state.entries.filter(function(x){ return x.id === o.id; })[0] : null;
@@ -3972,7 +3970,7 @@ function openSheet(o){
   if (e && e.type === 'vacation') $('fVacH').value = hm(+e.hours || 0);
   if (e && e.type === 'manual'){ $('fDrv').value = e.driverDays || ''; $('fH100').value = hm(+e.h100 || 0); $('fH150').value = hm(+e.h150 || 0); $('fH185').value = hm(+e.h185 || 0); $('fLabel').value = e.label || ''; }
   if (!e && (o.tab === 'vac')) $('fVacH').value = '';
-  $('fVacTo').value = e ? e.date : (o.date || today); VACW = {}; VACW_SIG = '';
+  $('fVacTo').value = e ? (e.vacTo || e.date) : (o.date || today); VACW = {}; VACW_SIG = '';
   $('ov').hidden = false;
   showTab(tab);
   setTimeout(function(){ var f = tab === 'shift' ? $('fStart') : tab === 'vac' ? $('fVacH') : $('fH100'); f.focus(); }, 30);
@@ -4052,7 +4050,7 @@ function saveSheet(){
   if (r.range){
     var rg = r.range, nowV = Date.now();
     state.entries = state.entries.filter(function(x){ if (x && x.type === 'vacation' && ((x.date >= rg.from && x.date <= rg.to) || x.id === sh.editId)){ tomb(x.id); return false; } return true; });
-    rg.list.forEach(function(v){ state.entries.push({ id: uid(), date: v.date, type: 'vacation', hours: v.hours, planned: v.date > today, userEdited: true, planbition: false, u: nowV }); });
+    rg.list.forEach(function(v){ state.entries.push({ id: uid(), date: v.date, vacTo: v.to, type: 'vacation', hours: v.hours, planned: v.date > today, userEdited: true, planbition: false, u: nowV }); });
     view.week = weekStart(rg.from); closeSheet(); commit(); ntfSoon(); return;
   }
   if (e.type === 'shift' && (entryHours(e, SET()).norm + entryHours(e, SET()).irr + entryHours(e, SET()).over) <= 0){ updatePreview(); return; }
@@ -6307,7 +6305,6 @@ document.addEventListener('click', function(ev){
     var Cy = sY.chk || {}; delete Cy.h; sY.chk = Cy; commit(); renderAll();
     window.__SET_SNAP = JSON.parse(JSON.stringify(sY)); setTabSel = 'home'; renderSettings(); $('ov2').hidden = false;
   }
-  else if (a === 'vacFill'){ var vw = el.getAttribute('data-w'), vi = document.querySelector('#fVacWeeks [data-vw="' + vw + '"]'); if (vi){ var need = Math.max(0, 40 - vacWorked(vw)); vi.value = hm(need); VACW[vw] = vi.value; } updatePreview(); }
   else if (a === 'chkWeekOk'){ var Cw = state.settings.chk || {}; Cw.wk = Date.now(); state.settings.chk = Cw; CHK_MSG = ''; commit(); renderHero(); }
   else if (a === 'chkReopen'){ var Cr = state.settings.chk || {}; state.settings.chk = { ref: Cr.ref }; CHK_MSG = ''; commit(); renderHero(); }
   else if (a === 'chkFromSlip'){
@@ -6325,19 +6322,9 @@ document.addEventListener('click', function(ev){
   }
   else if (a === 'chkAll'){ chkMark(chkItems().map(function(x){ return x.k; })); renderHero(); }
   else if (a === 'chkNo'){
-    chkMark([el.getAttribute('data-v')]);
+    if (state.settings && state.settings.chk && '' in state.settings.chk){ delete state.settings.chk['']; commit(); }
     window.__SET_SNAP = JSON.parse(JSON.stringify(state.settings || {}));
     setTabSel = el.getAttribute('data-tab') || 'pay'; renderSettings(); $('ov2').hidden = false; var sbx = $('setBody'); if (sbx) sbx.scrollTop = 0;
-  }
-  else if (a === 'setupH' || a === 'setupI'){
-    SETUP_TMP = SETUP_TMP || {}; SETUP_TMP[a === 'setupH' ? 'h' : 'i'] = el.getAttribute('data-v'); renderHero();
-  }
-  else if (a === 'setupOk'){
-    var stS = state.settings, TT = SETUP_TMP || {};
-    if (TT.h === 'company' || TT.h === 'none'){ if (stS.housingMode !== 'monthly' || TT.h === 'none') stS.housingMode = TT.h; if (TT.h === 'none' && !(stS.lock || {}).utilities) stS.utilities = 0; }
-    if (TT.i) stS.insMode = TT.i === 'self' ? 'self' : 'slip';
-    stS.lock = stS.lock || {}; stS.lock.housingMode = 1; stS.lock.insMode = 1;
-    stS.setupOk = 1; SETUP_TMP = null; commit(); renderAll();
   }
   else if (a === 'slipAdd'){
     try { localStorage.setItem(LS + '-slipclicked-' + addDays(weekStart(today), -7), '1'); } catch (e) {}

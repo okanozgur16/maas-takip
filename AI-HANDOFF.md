@@ -14,6 +14,16 @@
 
 
 
+## v49 (`2026-11-21-shiftpay-v49`) — **Antigravity** — Denetim Düzeltmeleri (Tatil Bitişi & Kontrol Listesi)
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Düzeltilen Hatalar:**
+  1. **Çok haftalık tatil bitiş tarihi bug'ı (`vacEndDay` + `vacTo`):** `v47`/`v48`'de her tatil haftası tek kayıt olarak haftanın ilk gününe (`date`) kaydedildiği için `vacEndDay()` 2. haftanın Pazartesi'sini bitiş sanıp tatil bitmeden 6 gün önce "Tatilin bitti" uyarısı/push tetikliyordu. Artık her haftalık tatil kaydına gerçek dilim bitişi (`vacTo`) yazılıyor, düzenlemede korunuyor ve `vacEndDay()` gerçek bitiş tarihini (`vacTo || date`) döndürüyor.
+  2. **Kontrol listesi (`chkNo` / `chkMark`):** Eksik ayar uyarısındaki "Şimdi düzelt" (`data-v=""`) artık `state.settings.chk[""]` çöp anahtarı yazmıyor (varsa temizlenir); `"✕ Hayır, güncelle"` butonuna basıldığında kullanıcı Ayarlar'da değişiklik yapmadan maddeyi erken "Onaylandı" diye işaretlemiyor.
+  3. **Ölü kod temizliği:** `v43`/`v47`'den kalan kullanılmayan `SETUP_TMP`, `setupH`/`setupI`/`setupOk`, `vacWorked`, `vacFill` ve `vacEndDay` içindeki boş döngü kaldırıldı.
+- **Claude İçin Not:** Canlı Cloudflare Worker (`summer-mode-6176`) testinde hâlâ `v36` çalıştığı tespit edildi (`v42` Origin/rate-limit ve `v46` tatil bitti push henüz canlıda değildi); güncel `server/bildirim-worker.js` kullanıcıya panodan Quick Edit ile yapıştırmak üzere verildi.
+
+---
+
 ## v48 (`2026-11-21-shiftpay-v48`) — **Claude Pro**
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:** Tatil aralığında her haftanın kutusu artık **son normal PDF bordrodaki haftalık çalışılan saatle** (≥16 sa, `lastSlipWeekHours`) otomatik dolar (örn. memlekete 2 hafta → her hafta 38 sa); kullanıcı ofise farklı yazdıysa değiştirir. "40’a tamamla" butonu kaldırıldı (sade).
