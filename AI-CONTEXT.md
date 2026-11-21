@@ -1,6 +1,6 @@
 # ShiftPay — Evrensel Yapay Zeka (Claude / GPT / Gemini / Antigravity) Mimari & Oto-Güncelleme Rehberi
 
-- **Proje Adı:** ShiftPay (`2026-11-21-shiftpay-v47`)
+- **Proje Adı:** ShiftPay (`2026-11-21-shiftpay-v48`)
 - **Canlı Web (Cloudflare Pages):** https://shiftpay-app.pages.dev/
 - **Tek Doğru Kaynak (GitHub Single Source of Truth):** https://github.com/okanozgur16/maas-takip (`main` dalı)
 - **Geri Dönüş (Rollback) Dalı:** `backup-pre-v19`
@@ -82,3 +82,6 @@
 
 ## 🔄 v47 Değişiklik Notları (2026-11-21)
 - Tatil aralığı: modlar kaldırıldı; her hafta için ayrı tatil saati (+ "40’a tamamla"), hafta başına tek kayıt.
+
+## 🔄 v48 Değişiklik Notları (2026-11-21)
+- Tatil haftaları son bordrodaki haftalık saatle otomatik dolar; "40’a tamamla" kaldırıldı.

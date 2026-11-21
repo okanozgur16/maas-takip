@@ -2673,7 +2673,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-21-shiftpay-v47';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-21-shiftpay-v48';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3906,6 +3906,11 @@ function drvDefault(S, planned){ return S.driverMode === 'auto' && (+S.driverDay
 var VACW = {}, VACW_SIG = '';
 function vacWeekList(from, to){ var out = [], w = weekStart(from), n = 0; while (w <= to && n < 60){ out.push(w); w = addDays(w, 7); n++; } return out; }
 function vacWorked(w){ var S = SET(), t = 0; weekEntries(w, 'all').forEach(function(x){ if (x.type === 'vacation') return; var eh = entryHours(x, S); t += eh.norm + eh.irr + eh.over; }); return t; }
+/* v48: son normal bordrodaki haftalık çalışılan saat — tatil haftaları varsayılan olarak buna göre doldurulur */
+function lastSlipWeekHours(){
+  var k = Object.keys(state.slips || {}).filter(function(w){ var x = state.slips[w], hh = x && x.hours; return x && x.source === 'pdf' && hh && (+hh.norm || 0) + (+hh.irr || 0) + (+hh.over || 0) >= 16; }).sort().pop();
+  if (!k) return 0; var hh = state.slips[k].hours; return r2((+hh.norm || 0) + (+hh.irr || 0) + (+hh.over || 0));
+}
 function vacWeeksSync(from, to){
   var box = $('fVacWeeks'), one = $('fVacOne'); if (!box) return;
   var range = to > from;
@@ -3914,12 +3919,12 @@ function vacWeeksSync(from, to){
   var wl = vacWeekList(from, to), sig = from + '|' + to;
   if (sig === VACW_SIG) return;
   VACW_SIG = sig;
-  var h = '<label>' + L('Her hafta ödenecek tatil saati (ofise bildirdiğin gibi)', 'Holiday hours paid each week (as you told the office)') + '</label>';
+  var dflt = lastSlipWeekHours();
+  var h = '<label>' + L('Her hafta ödenecek tatil saati', 'Holiday hours paid each week') + '</label><small class="fh">' + (dflt > 0 ? L('Son bordrondaki gibi haftada ', 'Filled like your last payslip: ') + hm(dflt) + L(' saat dolduruldu; ofise farklı saat yazdıysan değiştir.', ' hrs per week; change it if you told the office otherwise.') : L('Ofise bildirdiğin haftalık tatil saatini yaz.', 'Enter the weekly holiday hours you told the office.')) + '</small>';
   wl.forEach(function(w){
-    var a = w < from ? from : w, z = addDays(w, 6) > to ? to : addDays(w, 6), v = VACW[w] !== undefined ? VACW[w] : '';
+    var a = w < from ? from : w, z = addDays(w, 6) > to ? to : addDays(w, 6), v = VACW[w] !== undefined ? VACW[w] : (dflt > 0 ? hm(dflt) : '');
     h += '<div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap"><span style="min-width:120px">' + L('Hafta ', 'Week ') + isoWeek(w) + ' <small class="fh">(' + dlabel(a) + (a !== z ? ' – ' + dlabel(z) : '') + ')</small></span>' +
-      '<input type="text" inputmode="decimal" data-vw="' + w + '" value="' + esc(String(v)) + '" placeholder="0" style="width:80px">' +
-      '<button type="button" class="qchip" data-act="vacFill" data-w="' + w + '">' + L('40’a tamamla', 'Top up to 40') + '</button></div>';
+      '<input type="text" inputmode="decimal" data-vw="' + w + '" value="' + esc(String(v)) + '" placeholder="0" style="width:80px"></div>';
   });
   box.innerHTML = h;
 }

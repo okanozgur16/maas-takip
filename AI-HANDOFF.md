@@ -14,6 +14,14 @@
 
 
 
+## v48 (`2026-11-21-shiftpay-v48`) — **Claude Pro**
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:** Tatil aralığında her haftanın kutusu artık **son normal PDF bordrodaki haftalık çalışılan saatle** (≥16 sa, `lastSlipWeekHours`) otomatik dolar (örn. memlekete 2 hafta → her hafta 38 sa); kullanıcı ofise farklı yazdıysa değiştirir. "40’a tamamla" butonu kaldırıldı (sade).
+- **Not:** Tatil saati %100 ücretle ödendiği için %150/%185 saatleri olan biri tatil haftasında normal haftadan daha az görür (doğru davranış).
+- **Antigravity İçin Not:** Worker değişmedi.
+
+---
+
 ## v47 (`2026-11-21-shiftpay-v47`) — **Claude Pro** — Tatil girişi sadeleştirildi
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:** v46'daki 3 modlu tatil seçimi (günlük / haftalık toplam ÷5 / haftayı tamamla) KALDIRILDI (kullanıcı: karışık). Yeni akış: tek gün → eskisi gibi saat; "Tatilin son günü" farklıysa aralıktaki **her hafta için ayrı saat kutusu** (ofise bildirildiği gibi, örn. Hf 48: 25, Hf 49: 30) + her satırda "40’a tamamla" (40 − o haftanın çalışılan saati). Her hafta tek tatil kaydı (aralığın o haftadaki ilk günü). Bakiye önizlemesi (`vacBalTxt`), tombstone'lu değiştirme, tatil bitti uyarısı/push (v46) aynen duruyor.
