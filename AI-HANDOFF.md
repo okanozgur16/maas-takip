@@ -14,6 +14,18 @@
 
 
 
+## v45 (`2026-11-21-shiftpay-v45`) — **Claude Pro** — Kontrol listesi eklentileri
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı (v44 listesi korunarak):**
+  1. **📄 Son bordromdan getir** butonu (liste ve haftalık hatırlatma içinde, PDF bordro varsa): `autoFromSlips(true)`; kullanıcının özel kira (kira girilmişse) ve "sigortayı kendim ödüyorum" seçimi korunur, `lock.housingMode/insMode` geri yazılır. Sonuç mesajı (`CHK_MSG`): neler güncellendi + "Bunlar bordrodan gelmez, şimdi kontrol et: kira tutarı/kapsamı, aylık sigorta, haftalık hedef".
+  2. Maddelerde etiket: `(bordrodan)` / `(bordrodan gelmez, elle kontrol et)` (`manual`).
+  3. **Eksik ayar uyarısı** (`chkMissing`, onaylanamaz, düzeltilince kaybolur): özel kira seçili + kira 0; aylık kira seçili + tutar 0; sigorta kendim + aylık tutar 0 → "Şimdi düzelt" ilgili sekmeyi açar.
+  4. **Haftalık hatırlatma:** liste onaylıyken 7 günde bir kısa "🔁 Ayarların hâlâ doğru mu?" (`chkWeekOk` → `chk.wk`, `chkReopen` → listeyi yeniden açar). 28 gün / büyük fark kuralları aynen duruyor.
+- **Test:** Eksik ayar, bordrodan getir (ücret güncellendi, seçimler korundu), haftalık hatırlatma ve kaybolma tarayıcıda doğrulandı.
+- **Antigravity İçin Not:** Worker değişmedi.
+
+---
+
 ## v44 (`2026-11-21-shiftpay-v44`) — **Claude Pro** — Ayar Kontrol Listesi
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:**

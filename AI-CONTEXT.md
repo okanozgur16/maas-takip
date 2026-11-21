@@ -1,6 +1,6 @@
 # ShiftPay — Evrensel Yapay Zeka (Claude / GPT / Gemini / Antigravity) Mimari & Oto-Güncelleme Rehberi
 
-- **Proje Adı:** ShiftPay (`2026-11-21-shiftpay-v44`)
+- **Proje Adı:** ShiftPay (`2026-11-21-shiftpay-v45`)
 - **Canlı Web (Cloudflare Pages):** https://shiftpay-app.pages.dev/
 - **Tek Doğru Kaynak (GitHub Single Source of Truth):** https://github.com/okanozgur16/maas-takip (`main` dalı)
 - **Geri Dönüş (Rollback) Dalı:** `backup-pre-v19`
@@ -71,3 +71,6 @@
 ## 🔄 v44 Değişiklik Notları (2026-11-21)
 - **Ayar kontrol listesi** (`checklistHtml`): ✓ Evet doğru / ✕ Hayır güncelle (ilgili sekme açılır); 28 günde bir veya büyük bordro farkında tekrar.
 - Bordrodaki yol ücreti satırları (`reis/woon-werk/...`) ilk bordroda tekrar eden gelir olarak eklenir.
+
+## 🔄 v45 Değişiklik Notları (2026-11-21)
+- Kontrol listesine **Son bordromdan getir**, bordrodan gelmeyen ayar etiketleri, **eksik ayar uyarısı** (`chkMissing`) ve **haftalık "hâlâ doğru mu?"** hatırlatması eklendi.

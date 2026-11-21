@@ -2669,7 +2669,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-21-shiftpay-v44';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-21-shiftpay-v45';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2891,27 +2891,52 @@ function slipGap(w){
    Tümü onaylanana kadar görünür; 28 günde bir veya büyük tahmin farkı çıkan yeni bir bordroda yeniden sorar. */
 function chkItems(){
   var S = SET(), st = state.settings || {}, hm0 = st.housingMode || 'company', it = [];
-  it.push({ k: 'h', tab: 'home', t: hm0 === 'none' ? L('Kendi evimde / özel kirada kalıyorum', 'I live in my own home / private rent') + ((+st.homeRent || 0) > 0 ? ' (' + eur(+st.homeRent) + L('/ay', '/mo') + ')' : ' — ' + L('kira girilmemiş', 'no rent entered')) : (hm0 === 'monthly' ? L('Kiram ayda bir bordrodan kesiliyor', 'Rent is deducted monthly on my payslip') + ' (' + eur(+st.rentMonthly || 0) + ')' : L('Şirket evinde kalıyorum, kira bordrodan kesiliyor', 'I live in company housing, rent is on my payslip') + ' (' + eur(+S.housingTotal || 0) + L('/hf', '/wk') + ')') });
-  it.push({ k: 'i', tab: 'ded', t: st.insMode === 'self' ? L('Sağlık sigortamı kendim ödüyorum', 'I pay my health insurance myself') : L('Sağlık sigortamı şirket bordrodan kesiyor', 'Health insurance is deducted on my payslip') + ' (' + eur(r2((+S.insurance || 0) + (+S.extraIns || 0))) + L('/hf', '/wk') + ')' });
+  it.push({ k: 'h', tab: 'home', manual: hm0 !== 'company', t: hm0 === 'none' ? L('Kendi evimde / özel kirada kalıyorum', 'I live in my own home / private rent') + ((+st.homeRent || 0) > 0 ? ' (' + eur(+st.homeRent) + L('/ay', '/mo') + ')' : ' — ' + L('kira girilmemiş', 'no rent entered')) : (hm0 === 'monthly' ? L('Kiram ayda bir bordrodan kesiliyor', 'Rent is deducted monthly on my payslip') + ' (' + eur(+st.rentMonthly || 0) + ')' : L('Şirket evinde kalıyorum, kira bordrodan kesiliyor', 'I live in company housing, rent is on my payslip') + ' (' + eur(+S.housingTotal || 0) + L('/hf', '/wk') + ')') });
+  it.push({ k: 'i', tab: 'ded', manual: st.insMode === 'self', t: st.insMode === 'self' ? L('Sağlık sigortamı kendim ödüyorum', 'I pay my health insurance myself') : L('Sağlık sigortamı şirket bordrodan kesiyor', 'Health insurance is deducted on my payslip') + ' (' + eur(r2((+S.insurance || 0) + (+S.extraIns || 0))) + L('/hf', '/wk') + ')' });
   it.push({ k: 'd', tab: 'pay', t: (st.driverMode || 'on') === 'off' ? L('Araç eki almıyorum', 'I do not get a driver allowance') : L('Araç eki alıyorum', 'I get a driver allowance') + ' (' + eur(+S.driverDay || 0) + L('/gün', '/day') + ')' });
   it.push({ k: 'r', tab: 'pay', t: L('Saatlik ücretim', 'My hourly wage') + ' ' + eur(+S.rate || 0) });
   var cu = (Array.isArray(st.custom) ? st.custom : []).filter(function(c){ return c && (+c.a || 0) > 0; });
   it.push({ k: 'x', tab: 'ded', t: cu.length ? L('Diğer haftalık satırlar: ', 'Other weekly lines: ') + cu.slice(0, 3).map(function(c){ return c.n + ' ' + (c.kind === 'in' ? '+' : '−') + eur(+c.a); }).join(', ') + (cu.length > 3 ? '…' : '') : L('Bordromda başka her hafta tekrar eden gelir/kesinti yok (örn. yol ücreti)', 'No other recurring income/deduction on my payslip (e.g. travel allowance)') });
   return it;
 }
+var CHK_MSG = '';
+function chkMissing(){
+  var st = state.settings || {}, hm0 = st.housingMode || 'company', m = [];
+  if (hm0 === 'none' && !((+st.homeRent || 0) > 0)) m.push({ tab: 'home', t: L('Özel kira seçili ama aylık kira tutarı girilmemiş.', 'Private rent is selected but no monthly rent is entered.') });
+  if (hm0 === 'monthly' && !((+st.rentMonthly || 0) > 0)) m.push({ tab: 'home', t: L('Kira aylık kesiliyor seçili ama tutar girilmemiş.', 'Monthly rent deduction is selected but no amount is entered.') });
+  if (st.insMode === 'self' && !((+st.insMonthly || 0) > 0)) m.push({ tab: 'ded', t: L('Sigortanı kendin ödüyorsun ama aylık sigorta tutarı girilmemiş.', 'You pay insurance yourself but no monthly amount is entered.') });
+  return m;
+}
 function checklistHtml(gapRef){
   var st = state.settings || {}, C = st.chk || {}, now = Date.now();
   if (C.at && now - C.at > 28 * 86400000){ C = {}; }
   if (gapRef && C.ref !== gapRef){ C = { ref: C.ref }; }
-  var items = chkItems(), open = items.filter(function(x){ return !C[x.k]; });
-  if (!open.length) return '';
-  var h = '<div class="callout" style="display:block;margin:0 0 10px"><b>✅ ' + L('Bu ayarlar doğru mu?', 'Are these settings right?') + '</b><div class="sub" style="margin:2px 0 6px">' + (gapRef ? L('Son bordroda tahmin farklı çıktı; lütfen tekrar kontrol et.', 'Your last payslip differed from the estimate; please check again.') : L('Tahminin doğru çıkması için bir kez kontrol et.', 'Check once so your estimate is accurate.')) + '</div>';
+  var items = chkItems(), open = items.filter(function(x){ return !C[x.k]; }), nSl = pdfSlipCount(), h = '';
+  var getBtn = nSl ? '<button type="button" class="btn small" data-act="chkFromSlip">📄 ' + L('Son bordromdan getir', 'Fill from my last payslip') + '</button>' : '';
+  var msg = CHK_MSG ? '<div class="sub" style="margin-top:8px">' + CHK_MSG + '</div>' : '';
+  /* v45: eksik kurulum — bordrodan gelemeyen ve boş bırakılmış zorunlu ayarlar (düzeltilene kadar görünür) */
+  var miss = chkMissing();
+  if (miss.length){
+    h += '<div class="callout" style="display:block;margin:0 0 10px;border-color:var(--bad)"><b>⚠️ ' + L('Eksik ayar: tahmin yanlış çıkabilir', 'Missing setting: your estimate may be wrong') + '</b>';
+    miss.forEach(function(m){ h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)"><span>' + esc(m.t) + '</span><button type="button" class="btn small primary" data-act="chkNo" data-v="" data-tab="' + m.tab + '">' + L('Şimdi düzelt', 'Fix now') + '</button></div>'; });
+    h += '</div>';
+  }
+  if (!open.length){
+    /* Haftalık hatırlatma: liste kapalıyken 7 günde bir kısa soru */
+    var last = C.wk || C.at || 0;
+    if (last && now - last > 7 * 86400000){
+      h += '<div class="callout" style="display:block;margin:0 0 10px">🔁 <b>' + L('Ayarların hâlâ doğru mu?', 'Are your settings still right?') + '</b><div class="sub" style="margin-top:2px">' + esc(items.map(function(x){ return x.t; }).slice(0, 4).join(' · ')) + '</div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn small primary" data-act="chkWeekOk">✓ ' + L('Evet, doğru', 'Yes, correct') + '</button><button type="button" class="btn small" data-act="chkReopen">✕ ' + L('Kontrol et', 'Review') + '</button>' + getBtn + '</div>' + msg + '</div>';
+    } else if (CHK_MSG){ h += '<div class="callout" style="display:block;margin:0 0 10px">' + CHK_MSG + '</div>'; }
+    return h;
+  }
+  h += '<div class="callout" style="display:block;margin:0 0 10px"><b>✅ ' + L('Bu ayarlar doğru mu?', 'Are these settings right?') + '</b><div class="sub" style="margin:2px 0 6px">' + (gapRef ? L('Son bordroda tahmin farklı çıktı; lütfen tekrar kontrol et.', 'Your last payslip differed from the estimate; please check again.') : L('Tahminin doğru çıkması için bir kez kontrol et.', 'Check once so your estimate is accurate.')) + '</div>';
   items.forEach(function(x){
     var ok = !!C[x.k];
-    h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)"><span>' + (ok ? '✓ ' : '• ') + esc(x.t) + '</span>' +
+    var tag = x.manual ? ' <small class="bad">(' + L('bordrodan gelmez, elle kontrol et', 'not on payslip, check manually') + ')</small>' : (nSl ? ' <small class="sub">(' + L('bordrodan', 'from payslip') + ')</small>' : '');
+    h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)"><span>' + (ok ? '✓ ' : '• ') + esc(x.t) + tag + '</span>' +
       (ok ? '<span class="sub ok">' + L('Onaylandı', 'Confirmed') + '</span>' : '<span style="display:flex;gap:6px"><button type="button" class="btn small primary" data-act="chkYes" data-v="' + x.k + '">✓ ' + L('Evet, doğru', 'Yes, correct') + '</button><button type="button" class="btn small" data-act="chkNo" data-v="' + x.k + '" data-tab="' + x.tab + '">✕ ' + L('Hayır, güncelle', 'No, update') + '</button></span>') + '</div>';
   });
-  if (open.length > 1) h += '<div style="margin-top:8px"><button type="button" class="btn small" data-act="chkAll">✓ ' + L('Hepsi doğru', 'All correct') + '</button></div>';
+  h += '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' + (open.length > 1 ? '<button type="button" class="btn small" data-act="chkAll">✓ ' + L('Hepsi doğru', 'All correct') + '</button>' : '') + getBtn + '</div>' + msg;
   return h + '</div>';
 }
 function chkMark(keys, gapRef){
@@ -6189,6 +6214,21 @@ document.addEventListener('click', function(ev){
     $('ovSetConfirm').hidden = true;
   }
   else if (a === 'chkYes'){ chkMark([el.getAttribute('data-v')]); renderHero(); }
+  else if (a === 'chkWeekOk'){ var Cw = state.settings.chk || {}; Cw.wk = Date.now(); state.settings.chk = Cw; CHK_MSG = ''; commit(); renderHero(); }
+  else if (a === 'chkReopen'){ var Cr = state.settings.chk || {}; state.settings.chk = { ref: Cr.ref }; CHK_MSG = ''; commit(); renderHero(); }
+  else if (a === 'chkFromSlip'){
+    var keepL = Object.assign({}, state.settings.lock || {}), hmK = state.settings.housingMode, imK = state.settings.insMode;
+    var chs2 = autoFromSlips(true);
+    if (hmK === 'none' && (+state.settings.homeRent || 0) > 0){ state.settings.housingMode = 'none'; }
+    if (imK === 'self') state.settings.insMode = 'self';
+    state.settings.lock = { housingMode: keepL.housingMode, insMode: keepL.insMode };
+    var manualL = [];
+    if ((state.settings.housingMode || 'company') !== 'company') manualL.push(L('kira tutarı ve kapsamı', 'rent amount and coverage'));
+    if (state.settings.insMode === 'self') manualL.push(L('aylık sigorta tutarı', 'monthly insurance amount'));
+    manualL.push(L('haftalık hedef', 'weekly goal'));
+    CHK_MSG = '📄 ' + (chs2.length ? L('Son bordrodan güncellendi: ', 'Updated from your last payslip: ') + esc(chs2.join(', ')) : L('Ayarların son bordronla zaten aynı.', 'Your settings already match your last payslip.')) + '<br>' + L('Bunlar bordrodan gelmez, şimdi kontrol et: ', 'These are not on the payslip, check them now: ') + '<b>' + esc(manualL.join(', ')) + '</b>';
+    commit(); renderAll();
+  }
   else if (a === 'chkAll'){ chkMark(chkItems().map(function(x){ return x.k; })); renderHero(); }
   else if (a === 'chkNo'){
     chkMark([el.getAttribute('data-v')]);
