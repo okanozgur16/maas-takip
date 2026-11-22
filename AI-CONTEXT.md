@@ -1,90 +1,24 @@
-# ShiftPay — Evrensel Yapay Zeka (Claude / GPT / Gemini / Antigravity) Mimari & Oto-Güncelleme Rehberi
+# ShiftPay · Teknik Mimari & Geliştirici Bağlamı (`AI-CONTEXT.md`)
 
-- **Proje Adı:** ShiftPay (`2026-11-22-shiftpay-v50`)
-- **Canlı Web (Cloudflare Pages):** https://shiftpay-app.pages.dev/
-- **Tek Doğru Kaynak (GitHub Single Source of Truth):** https://github.com/okanozgur16/maas-takip (`main` dalı)
-- **Geri Dönüş (Rollback) Dalı:** `backup-pre-v19`
+- **Aktif Sürüm:** `2026-11-22-shiftpay-v51`
+- **Canlı Uygulama:** `https://shiftpay-app.pages.dev/`
+- **GitHub Kaynak Deposu:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
+- **Cloudflare Worker:** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 
----
+## Kapsam (`v51`+)
+ShiftPay %100 saf **Vardiya, Bordro ve Maaş Takibi** PWA uygulamasıdır. Tüm eski PC Planı, PC kasası (`VAULT`), fiyat/stok takibi (`watch.json`, `watch.enc.json`, `/api/pc-watch`, `/api/pc-notify`, `bildirim.yml`) kodları ve dosyaları tamamen kaldırılmıştır.
 
-## 🚨 YAPAY ZEKA İÇİN ZORUNLU OTO-KODLAMA VE GÜNCELLEME KURALLARI
-*(Kullanıcı sana her seferinde hatırlatmak zorunda kalmamalıdır; bu dosyayı okuyan her yapay zeka aşağıdaki 6 kuralı doğrudan ve eksiksiz uygular)*:
-
-1. **EKSİKSİZ VE OTOMATİK KOD ÜRETİMİ:**
-   - Kullanıcıya yarım kod, `// ...` ile kısaltılmış blok veya teorik açıklama verme.
-   - Yaptığın her değişikliği doğrudan `index.html`, `sw.js`, `version.json` ve `automation/*.py` dosyalarına uygulanabilir **tam, hatasız ve kendi kendini güncelleyen kod blokları** olarak yaz.
-   - GitHub ve Cloudflare Pages erişimin varsa doğrudan `main` dalına commit et ve `ShiftPay-Web.zip` paketini Cloudflare Pages'e deploy et.
-
-2. **SÜRÜM SENKRONİZASYONU (SOURCE OF TRUTH):**
-   - Her kod güncellemesinde `index.html` (`APP_VER`), `version.json` ve `sw.js` (`CACHE`) içindeki sürüm numarasını aynı anda bir üst sürüme (`v24`, `v25`...) yükselt.
-   - Asla eski sürüm veya varsayım üzerinden gitme; her zaman GitHub `main` dalındaki son durumu baz al.
-
-3. **GİZLİLİK VE ŞİFRELEME DOKUNULMAZLIĞI (`isOwner()`):**
-   - Normal maaş kullanıcıları **Gizli PC Planını**, **Otomatik Bordro Çek (`mhAutoPull`)** butonunu ve **Yapay Zeka Köprüsünü (`copyAiCtx`)** ASLA görmemelidir.
-   - `isOwner()` kontrolünü (`çift SHA-256 `OWNER_HASH` (ham Firestore doküman ID'si repoda tutulmaz)`), AES-256-GCM cihazlar arası eşitlemeyi (`sync`) ve PBKDF2-250k PC kasasını (`VAULT`) %100 koru.
-   - `mergeStates()` içinde bordro zaman damgası (`slip.u`) korumasını asla bozma.
-
-4. **ÇİFT ARAYÜZ, ÇİFT TEMA VE ÇİFT DİL UYUMU:**
-   - Uygulama açılışta varsayılan olarak yeni **Kategori Tasarımı (`v2` — 🎯 Haftalık Plan, 🧾 Haftalık Döküm, 📈 Aylık, Yıllık & Birikim)** ile açılır; kullanıcı **Sıralamalı Tasarım (`classic`)** seçerse tercihi `localStorage` (`maas-takip-v1-ui-layout`) ve `state.ui.uiVer` içine kaydedilir.
-   - Eklenen her özellik hem **Kategori Tasarımı** hem **Sıralamalı Tasarım**, hem **Açık (Beyaz)** hem **Koyu (Siyah)** tema, hem de **Türkçe** ve **İngilizce (`I18N_EN` / `L(tr, en)`)** dillerinde sıfır taşma ve sıfır eksik çeviri ile çalışmalıdır.
-   - Kullanıcıya yönelik metinlerde ("Burayı oku" vb.) yapay zeka / AI / Claude gibi kavramlar kullanılmaz.
-
-5. **SIFIR KOTA / SIFIR TOKEN OTOMASYON:**
-   - Uygulama çalışma zamanında hiçbir ücretli AI/LLM API'sine ihtiyaç duymadan %100 saf JS (`selfHeal`) ve arka plan Python botlarıyla (`myholland_bot.py`, `gmail_bot.py`, `planbition_bot.py`, `pc_watch_bot.py`) çalışmalıdır.
-
-6. **SEÇENEK SUNMA:**
-   - Kritik tasarım veya işleyiş kararlarında tek bir dayatma yapmak yerine kullanıcıya A/B alternatifleri sun.
-
----
-
-## 🔄 v34 Değişiklik Notları (2026-11-20)
-- **Planbition çift vardiya düzeltmesi:** Planbition'dan al / otomatik çekim artık o gündeki eski Planbition kaydını (vardiya + izin) yenisiyle DEĞİŞTİRİR; eski id'ler `state.del` içine tombstone olarak yazılır (`pbRetire`), böylece bulut/diğer cihaz birleşiminde eski vardiya geri dirilmez.
-- **Çakışma penceresi:** Planbition'a ait (kullanıcı düzenlemesi olmayan) değişen vardiyalar için artık onay penceresi çıkmaz; sadece kullanıcının kendi girdiği/düzenlediği kayıtlar korunur ve sorulur.
-- **Onarım + bot:** `selfHeal` içinde aynı güne ait çift Planbition vardiyaları (ve vardiya olan günde `off`) kendiliğinden temizlenir; `automation/planbition_bot.py` aynı mantıkla (`merge_shifts`) gün başına tek kayıt tutar ve tombstone yazar.
-
-
-## 🤝 ORTAK YAPAY ZEKA DEVİR PROTOKOLÜ (`AI-HANDOFF.md`)
-- Her oturum başında önce **`AI-HANDOFF.md`** dosyasındaki son 3 kaydı oku (kimin ne yaptığını ve açık notları gör).
-- Yaptığın her sürüm güncellemesinde (`v36`, `v37`...) **`AI-HANDOFF.md`** dosyasının en üstüne kendi adını (`Antigravity` veya `Claude Pro`), sürüm numarasını, değişen dosyaları ve diğer asistan için notları ekle.
-
-## 🔄 v36 Değişiklik Notları (2026-11-20)
-- **Sunucu yetkisi:** `/api/myholland-slips` ve `/api/planbition` yalnızca gizli `env.OWNER_TOKEN` ile açılır; `ownerHash` sadece arayüzde gizleme içindir.
-- **Anahtar saklama:** Yetki anahtarı sahibe özel Ayarlar kutusundan (`🔑`) girilir, yalnızca cihaz `localStorage`'ında durur; repoya/`state`'e yazılmaz.
-- **isOwner önbelleği:** Son başarılı hash sonucu `localStorage`'da tutulur, açılışta titreme olmaz.
-
-## 🔄 v39 Değişiklik Notları (2026-11-20)
-- **Hızlı Hesap:** PC Planı › Sonuç'ta elle yazılan toplam para, PC fiyatı (TL) ve iki haftalık birikim tutarıyla kalan/eksik tutar ve bitiş tarihi hesaplanır.
-- Veri `state.pc.q` altında, şifreli PC kasasıyla eşitlenir; mevcut hesap motoruna dokunulmadı.
-
-## 🔄 v40 Değişiklik Notları (2026-11-20)
-- **Hızlı Hesap:** "Normal paranı katmadan" bloğu: toplam − ayırdığım = normal para; PC önce ayrılandan, kalan normal paradan düşer.
-
-## 🔄 v42 Değişiklik Notları (2026-11-21)
-- **Şifreli saklama:** myHolland şifresi ve yetki anahtarı cihazda şifreli (CryptoKey/IndexedDB); eski düz metin kayıtlar otomatik taşınır.
-- **Worker sertleştirme:** `/api/sync|off|test` Origin zorunlu + dakikada 30 istek sınırı (canlı Worker'a yapıştırılmalı).
-- **Planbition:** boş/hatalı hafta yanıtı mevcut kayıtları silmez; `pbDevKey` yarış durumu giderildi.
-
-## 🔄 v43 Değişiklik Notları (2026-11-21)
-- **İlk kurulum:** Konut + sigorta 2 soruluk kart (`setupOk`), seçim kilitlenir.
-- **2 bordro uyarısı** (`pdfSlipCount` < 2) ve **büyük tahmin farkı uyarısı** (`slipGap`, > max(30 €, %10)).
-
-## 🔄 v44 Değişiklik Notları (2026-11-21)
-- **Ayar kontrol listesi** (`checklistHtml`): ✓ Evet doğru / ✕ Hayır güncelle (ilgili sekme açılır); 28 günde bir veya büyük bordro farkında tekrar.
-- Bordrodaki yol ücreti satırları (`reis/woon-werk/...`) ilk bordroda tekrar eden gelir olarak eklenir.
-
-## 🔄 v45 Değişiklik Notları (2026-11-21)
-- Kontrol listesine **Son bordromdan getir**, bordrodan gelmeyen ayar etiketleri, **eksik ayar uyarısı** (`chkMissing`) ve **haftalık "hâlâ doğru mu?"** hatırlatması eklendi.
-
-## 🔄 v46 Değişiklik Notları (2026-11-21)
-- Konut: bordroda kira/su varsa şirket evi; yoksa otomatik değişmez, ≥16 saatli bordroda kullanıcıya sorulur (`hAsk`).
-- Tatil aralığı (günlük / haftalık toplam / haftayı tamamla) + kalan bakiye önizlemesi (`vacPlan`, `vacBalTxt`).
-- Tatil bitti uyarısı + Worker push (`ve`); canlı Worker'a yapıştırılmalı.
-
-## 🔄 v47 Değişiklik Notları (2026-11-21)
-- Tatil aralığı: modlar kaldırıldı; her hafta için ayrı tatil saati (+ "40’a tamamla"), hafta başına tek kayıt.
-
-## 🔄 v48 Değişiklik Notları (2026-11-21)
-- Tatil haftaları son bordrodaki haftalık saatle otomatik dolar; "40’a tamamla" kaldırıldı.
-
-## 🔄 v50 Değişiklik Notları (2026-11-22)
-- PC fiyat push'ları ve Planbition push'u yalnızca sahibin aboneliğine (`own`, ownerToken ile) gider; `/api/pc-notify` ve `pc:items` yazımı yetkili.
+## Temel Mimari
+1. **Tek Dosya PWA (`index.html` + `sw.js` + `version.json` + `_headers`):**
+   - Hollanda uitzendbureau maaş motoru (`calcPay`, `taxNormal`, `classifyShift`, `weekResult`): %100/%150/%185 saatler, ADV, tatil parası, StiPP, PAWW/AZV/WIA/WHK, ET-regeling konut/sigorta, tatil aralığı (`vacTo`) ve bordro kalibrasyonu (`autoFromSlips`).
+   - İstemci tarafı PDF bordro ayrıştırıcı (`lib/pdf.min.js`) + doğruluk rehberi & ayar kontrol listesi (`accuracyHtml`, `chkItems`).
+   - Planbition canlı vardiya entegrasyonu (`weeksOk` korumalı, `pbRetire` tombstone'lu, AES-256-GCM cihaz anahtarlı şifre saklama).
+   - İsteğe bağlı Firebase Firestore AES-256-GCM uçtan uca şifreli cihazlar arası eşitleme (`sync*`, `mergeStates`).
+   - Kişisel genel birikim hedefi (`💰 Birikimim & Hedefim` — `renderSavGoal`, herkese açık).
+   - Sahibe özel (`isOwner()` çift SHA-256 `OWNER_HASH` + `env.OWNER_TOKEN`): tek tık myHolland/Mail bordro çekici (`mhAutoPull`), AI devam köprüsü (`copyAiCtx`) ve sahip Planbition push bildirimleri.
+2. **Cloudflare Worker (`server/bildirim-worker.js`):**
+   - Web Push VAPID (`/api/sync`, `/api/off`, `/api/test`): `Origin` doğrulaması, IP hız sınırı (`30/dk`), vardiya hatırlatmaları, tatil bitişi bildirimi (`ve`) ve sahibe özel (`u.own === 1`) Planbition değişikliği/onay bildirimi.
+   - `/api/planbition` ve `/api/myholland-slips`: sabit zamanlı `env.OWNER_TOKEN` doğrulaması.
+3. **Otomatik CI/CD (`.github/workflows/deploy-cloudflare.yml`):**
+   - Pre-Deploy: V8 sözdizimi, `calcPay()` regresyon testi, sürüm uyumu, tekrarlı ID, `I18N_EN` JSON + TR sızıntı kontrolü ve gizli anahtar taraması.
+   - Temiz `dist/` → Cloudflare Pages yayını → Post-Deploy canlı `version.json` smoke test.

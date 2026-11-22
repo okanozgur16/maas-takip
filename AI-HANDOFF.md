@@ -14,6 +14,19 @@
 
 
 
+## v51 (`2026-11-22-shiftpay-v51`) — **Antigravity** — PC Planı & Fiyat Takibi Tamamen Kaldırıldı (Saf Maaş Takip)
+- **Değişen Dosyalar:** `index.html`, `server/bildirim-worker.js`, `sw.js`, `version.json`, `.github/workflows/deploy-cloudflare.yml`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Silinen Dosyalar:** `watch.json`, `watch.enc.json`, `.github/workflows/bildirim.yml`, `.github/send-push.mjs` (yerel `shiftpay-automation/run_sync.py`'den `pc_watch_bot` adımı da kaldırıldı).
+- **Yedek:** Silme öncesi `v50` tam yedeği yerel `maas-takip-backup-v50-with-pc/` klasörüne ve GitHub `backup-v50-with-pc` dalına alındı.
+- **Ne Yapıldı:**
+  1. `index.html` içinden tüm PC Planı / PC Kasası (`VAULT`) / İzlenen PC'ler (`watch.json`, `watch.enc.json`, Gaming.Gen/GameGaraj/İtopya) HTML, CSS, JS ve çeviri metinleri sıfır kalıntıyla kaldırıldı (~1.400 satır sadeleşme!).
+  2. `server/bildirim-worker.js` içinden `/api/pc-watch`, `/api/pc-notify`, fiyat kazıyıcı ve Cron PC fiyat kontrolü kaldırıldı; vardiya/tatil bildirimleri, `v42` Origin + hız sınırı, `v50` sahibe özel (`u.own === 1`) Planbition push ve `/api/myholland-slips` + `/api/planbition` (`OWNER_TOKEN`) %100 korundu.
+  3. `sw.js` içindeki `watch.json` ve varsayılan "PC fiyat takibi" push metni temizlendi; `deploy-cloudflare.yml` içinden `watch.json` / `watch.enc.json` kopyaları çıkarıldı.
+  4. **Tüm Maaş Takip fonksiyonları (%100 korundu):** `calcPay()`, PDF bordro okuma, Planbition, myHolland otomatik çek (`isOwner()` + `OWNER_TOKEN`), şifreli Firebase eşitleme, vardiya/tatil bildirimleri, genel `Birikimim & Hedefim`, Açık/Koyu tema ve TR/EN çeviri dokunulmadan test edildi.
+- **Claude İçin Not (ZORUNLU):** `server/bildirim-worker.js` temizlendi → canlı Cloudflare Worker'a (`summer-mode-6176`) Quick Edit ile yapıştırılıp Deploy edilmeli (mevcut secret'lar aynı kalır). ShiftPay artık %100 saf Vardiya & Maaş Takibi uygulamasıdır.
+
+---
+
 ## v50 (`2026-11-22-shiftpay-v50`) — **Claude Pro** — Bildirim gizlilik düzeltmesi
 - **Değişen Dosyalar:** `index.html`, `server/bildirim-worker.js`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Bulunan açıklar (canlı Worker kodu Cloudflare bağlayıcısıyla okunarak):**
