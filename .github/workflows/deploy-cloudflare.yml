@@ -141,12 +141,12 @@ jobs:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           set -e
-          META='{"main_module":"worker.js","compatibility_date":"2024-11-01","keep_bindings":["secret_text","plain_text","kv_namespace"],"bindings":[{"type":"kv_namespace","name":"KV","namespace_id":"9f5663780da9445ebbfc175d3d0fa1dd"}]}'
+          META='{"main_module":"bildirim-worker.js","compatibility_date":"2024-11-01","keep_bindings":["secret_text","plain_text","kv_namespace"],"bindings":[{"type":"kv_namespace","name":"KV","namespace_id":"9f5663780da9445ebbfc175d3d0fa1dd"}]}'
           HTTP_CODE=$(curl -sS -o /tmp/cf_worker_out.json -w "%{http_code}" \
             -X PUT "https://api.cloudflare.com/client/v4/accounts/3bf7fc774af3ec087fc3d01b6856c0bd/workers/scripts/summer-mode-6176" \
             -H "Authorization: Bearer $CF_TOKEN" \
             -F "metadata=$META;type=application/json" \
-            -F "worker.js=@server/bildirim-worker.js;type=application/javascript+module")
+            -F "bildirim-worker.js=@server/bildirim-worker.js;filename=bildirim-worker.js;type=application/javascript+module")
           echo "Cloudflare Worker deploy HTTP status: $HTTP_CODE"
           if [ "$HTTP_CODE" = "200" ]; then
             echo "[OK] Cloudflare Worker summer-mode-6176 updated automatically!"
