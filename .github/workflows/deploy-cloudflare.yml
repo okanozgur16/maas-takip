@@ -119,7 +119,7 @@ jobs:
           set -e
           rm -rf dist && mkdir -p dist
           # Required web assets (fail build if any missing)
-          for f in index.html version.json sw.js manifest.webmanifest watch.json watch.enc.json icon-192.png icon-512.png apple-touch-icon.png; do
+          for f in index.html version.json sw.js manifest.webmanifest icon-192.png icon-512.png apple-touch-icon.png; do
             cp "$f" dist/
           done
           cp -r fonts lib dist/
