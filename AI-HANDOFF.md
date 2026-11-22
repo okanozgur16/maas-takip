@@ -14,6 +14,18 @@
 
 
 
+## v50 (`2026-11-22-shiftpay-v50`) — **Claude Pro** — Bildirim gizlilik düzeltmesi
+- **Değişen Dosyalar:** `index.html`, `server/bildirim-worker.js`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Bulunan açıklar (canlı Worker kodu Cloudflare bağlayıcısıyla okunarak):**
+  1. `NTF.pcWatch` varsayılan `true` olduğu ve Worker'da `pcWatch` varsayılan 1 olduğu için **bildirim açan TÜM kullanıcılara PC fiyat/stok push'u gidiyordu** → gizli PC özelliği diğer üyelere sızıyordu.
+  2. `/api/pc-notify` yetkisizdi → herkes tüm kullanıcılara istediği başlık/metinle push atabilirdi.
+  3. `/api/pc-watch` herkesin `pc:items` listesini ezmesine izin veriyordu.
+  4. Cron'daki Planbition onay/değişiklik push'u KV'deki **ilk** kullanıcıya gidiyordu (sahip olmayabilir).
+- **Düzeltme:** İstemci `/api/sync`'e sahipse `ownerToken` + `pcWatch` gönderir (diğerlerinde `pcWatch:0`). Worker `cleanSync`: `own = ownerAuth`, `pcWatch` yalnızca sahipte 1. `/api/pc-notify` → `ownerAuth` zorunlu; PC push'ları ve Planbition push'u yalnızca `u.own === 1` aboneliğe gider; `pc:items` yazımı `ownerAuth` ister. Test bildirimi metninden "fiyat" kaldırıldı.
+- **Antigravity İçin Not (ZORUNLU):** `server/bildirim-worker.js` değişti → **canlı Worker'a yapıştırılmalı**. Sonra sahip uygulamayı bir kez açıp bildirim eşitlemesini yenilemeli (owner bayrağı `/api/sync` ile yazılır). Mevcut KV'deki diğer kullanıcıların eski `pcWatch:1` kayıtları `own` olmadığı için artık PC push'u almaz.
+
+---
+
 ## v49 (`2026-11-21-shiftpay-v49`) — **Antigravity** — Denetim Düzeltmeleri (Tatil Bitişi & Kontrol Listesi)
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Düzeltilen Hatalar:**

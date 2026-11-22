@@ -64,7 +64,7 @@ function cleanSync(b, env) {
   if (b.sub.keys.p256dh.length > 100 || b.sub.keys.auth.length > 40 || b.sub.endpoint.length > 600 || !okTz(b.tz)) return null;
   const days = Array.isArray(b.days) ? [...new Set(b.days.map(Number).filter(n => n >= 0 && n <= 6))] : [1, 2, 3, 4, 5, 6];
   const plan = (Array.isArray(b.plan) ? b.plan : []).slice(0, 8).filter(p => p && rxD.test(p.d)).map(p => ({ d: p.d, s: p.s ? 1 : 0, e: typeof p.e === 'string' && rxDT.test(p.e) ? p.e : null, b: typeof p.b === 'string' && rxDT.test(p.b) ? p.b : null }));
-  return { ve: (typeof b.ve === 'string' && rxD.test(b.ve)) ? b.ve : '', sub: { endpoint: b.sub.endpoint, keys: { p256dh: b.sub.keys.p256dh, auth: b.sub.keys.auth } }, tz: b.tz, lang: b.lang === 'en' ? 'en' : 'tr', days, at: rxT.test(b.at) ? b.at : '07:00', rel: b.rel ? 1 : 0, plan, pcWatch: (b.pcWatch === 0 || b.pcWatch === false) ? 0 : 1, pcBudget: Number(b.pcBudget) || 0 };
+  return { ve: (typeof b.ve === 'string' && rxD.test(b.ve)) ? b.ve : '', sub: { endpoint: b.sub.endpoint, keys: { p256dh: b.sub.keys.p256dh, auth: b.sub.keys.auth } }, tz: b.tz, lang: b.lang === 'en' ? 'en' : 'tr', days, at: rxT.test(b.at) ? b.at : '07:00', rel: b.rel ? 1 : 0, plan, own: ownerAuth(b, env) ? 1 : 0, pcWatch: (ownerAuth(b, env) && (b.pcWatch === 1 || b.pcWatch === true)) ? 1 : 0, pcBudget: Number(b.pcBudget) || 0 };
 }
 
 /* ---------- Zaman ---------- */
@@ -77,7 +77,7 @@ const addDaysISO = (iso, n) => { const p = iso.split('-').map(Number); const d =
 
 /* ---------- Metinler ---------- */
 const TXT = {
-  tr: { v: () => ['Tatilin bitti', 'Güncel tatil saatlerin ve doğru hesaplamalar için yeni gelecek bordronu ekle.'], a: ['Vardiyanı ayarla', 'Bugün için vardiya girilmemiş. Vardiyanı ayarla ki tahmin doğru çıksın.'], b: t => ['Vardiyan 1 saat sonra başlıyor', 'Planlanan vardiyan ' + t + ' gibi başlıyor. Saat değiştiyse uygulamada güncelle.'], e: t => ['Bu saatte mi çıktın?', 'Vardiyan ' + t + ' gibi bitiyordu. Gerçek çıkış saatini güncelle, tahmin doğru çıksın.'], t: ['Deneme bildirimi', 'ShiftPay vardiya ve fiyat bildirimleri aktif!'] },
+  tr: { v: () => ['Tatilin bitti', 'Güncel tatil saatlerin ve doğru hesaplamalar için yeni gelecek bordronu ekle.'], a: ['Vardiyanı ayarla', 'Bugün için vardiya girilmemiş. Vardiyanı ayarla ki tahmin doğru çıksın.'], b: t => ['Vardiyan 1 saat sonra başlıyor', 'Planlanan vardiyan ' + t + ' gibi başlıyor. Saat değiştiyse uygulamada güncelle.'], e: t => ['Bu saatte mi çıktın?', 'Vardiyan ' + t + ' gibi bitiyordu. Gerçek çıkış saatini güncelle, tahmin doğru çıksın.'], t: ['Deneme bildirimi', 'ShiftPay bildirimleri aktif!'] },
   en: { v: () => ['Your holiday is over', 'Add your next payslip for up-to-date holiday hours and accurate figures.'], a: ['Set your shift', 'No shift is set for today. Set it so your estimate stays accurate.'], b: t => ['Your shift starts in 1 hour', 'Your planned shift starts around ' + t + '. If the time changed, update it in the app.'], e: t => ['Did you leave at this time?', 'Your shift was due to end around ' + t + '. Update the real finishing time so your estimate stays accurate.'], t: ['Test notification', 'ShiftPay notifications are working!'] }
 };
 
@@ -400,7 +400,7 @@ async function handle(req, env) {
     } catch (e) {}
 
     const items = Array.isArray(b && b.items) ? b.items.slice(0, 30) : [];
-    if (items.length && env.KV) {
+    if (items.length && env.KV && ownerAuth(b, env)) {
       try { await env.KV.put('pc:items', JSON.stringify(items.map(x => ({ id: x.id, name: x.name, url: x.url, price: x.price, stock: x.stock })))); } catch (e) {}
     }
 
@@ -430,6 +430,7 @@ async function handle(req, env) {
 
   /* 3. PC Fiyat & Stok Anlık Bildirim Endpoint'i */
   if (url.pathname === '/api/pc-notify') {
+    if (!ownerAuth(b, env)) return json({ ok: false, err: 'Yetkisiz erişim.' }, 403, env, req);
     const title = (b && b.title) || 'ShiftPay · PC Fiyat Güncellemesi 🎯';
     const body = (b && b.body) || 'Takip ettiğin sistemlerde fiyat değişikliği var!';
     const tag = (b && b.tag) || 'pc-watch';
@@ -438,7 +439,7 @@ async function handle(req, env) {
       const list = await env.KV.list({ prefix: 'u:', cursor: cur });
       for (const k of list.keys) {
         const u = await env.KV.get(k.name, 'json');
-        if (!u || !u.sub || u.pcWatch === 0) continue;
+        if (!u || !u.sub || u.own !== 1 || u.pcWatch !== 1) continue;
         try {
           const st = await sendPush(u.sub, { title, body, tag }, env);
           if (st >= 200 && st < 300) count++;
@@ -477,7 +478,7 @@ async function scan(env, nowMs) {
     const l = await env.KV.list({ prefix: 'u:', cursor });
     for (const k of l.keys) {
       const u = await env.KV.get(k.name, 'json'); if (!u || !u.sub) continue;
-      if (!firstSub) firstSub = { key: k.name, u };
+      if (!firstSub && u.own === 1) firstSub = { key: k.name, u };
       if (nowMs - (u.up || 0) > 30 * 86400000) { await env.KV.delete(k.name); continue; }
       const todo = due(u, nowMs); if (!todo.length) continue;
       u.sent = u.sent || {};
@@ -563,7 +564,7 @@ async function scan(env, nowMs) {
             const list = await env.KV.list({ prefix: 'u:', cursor: cur });
             for (const key of list.keys) {
               const u = await env.KV.get(key.name, 'json');
-              if (!u || !u.sub || u.pcWatch === 0) continue;
+              if (!u || !u.sub || u.own !== 1 || u.pcWatch !== 1) continue;
               for (const al of alertsToSend) {
                 try { await sendPush(u.sub, al, env); } catch (e) {}
               }

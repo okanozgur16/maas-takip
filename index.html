@@ -2365,7 +2365,7 @@ function ntfPlan(){
   return out;
 }
 function ntfPost(path, body){ return fetch(NTF_URL + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(function(r){ return r.json().catch(function(){ return { ok: false }; }).then(function(j){ j.http = r.status; return j; }); }); }
-function ntfBody(sub){ return { id: NTF.id, sub: sub, tz: (function(){ try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Amsterdam'; } catch (e) { return 'Europe/Amsterdam'; } })(), lang: LANG, days: NTF.days, at: NTF.at, rel: NTF.rel ? 1 : 0, plan: ntfPlan(), pcWatch: NTF.pcWatch ? 1 : 0, pcBudget: (typeof wBud === 'function' ? wBud() : 0), ve: (typeof vacEndDay === 'function' ? vacEndDay() : '') }; }
+function ntfBody(sub){ return { id: NTF.id, sub: sub, tz: (function(){ try { return Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Amsterdam'; } catch (e) { return 'Europe/Amsterdam'; } })(), lang: LANG, days: NTF.days, at: NTF.at, rel: NTF.rel ? 1 : 0, plan: ntfPlan(), pcWatch: (isOwner() && NTF.pcWatch) ? 1 : 0, ownerToken: (isOwner() && typeof ownerTokGet === 'function') ? ownerTokGet() : '', pcBudget: (isOwner() && typeof wBud === 'function') ? wBud() : 0, ve: (typeof vacEndDay === 'function' ? vacEndDay() : '') }; }
 function ntfSync(force){
   if (!NTF.on || !ntfOk() || Notification.permission !== 'granted') return Promise.resolve();
   var b0 = ntfBody(null), sig = JSON.stringify([b0.plan, b0.days, b0.at, b0.rel, b0.lang, b0.tz, b0.pcWatch, b0.pcBudget, b0.ve]);
@@ -2673,7 +2673,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-21-shiftpay-v49';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-22-shiftpay-v50';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -5324,7 +5324,7 @@ async function applyLiveWatch(wv, force){
     }
     if (window.__pcWatchOff){ W_LIVE_ST = 'cache'; return wv; }
     var res = await ntfPost('/api/pc-watch', {
-      force: !!force,
+      force: !!force, ownerToken: ownerTokGet(),
       items: itemsToSend.map(function(x){ return { id: x.id, name: x.name, site: x.site, tier: x.tier, url: x.url, price: x.price, stock: x.stock }; })
     }).catch(function(){ return null; });
     if (!res || !res.ok){ if (res && (res.http === 400 || res.http === 404)) window.__pcWatchOff = true; W_LIVE_ST = 'cache'; return wv; }
