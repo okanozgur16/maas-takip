@@ -14,6 +14,20 @@
 
 
 
+## v52 (`2026-11-23-shiftpay-v52`) — **Antigravity** — Dinamik Çoklu Birikim, Bitiş Tarihli Gelir/Gider & Haftalık/Aylık Hedef Motoru
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı (`💰 Birikimim & Hedefim` — `userGoalObj`, `ugAvgPayInfo`, `ugSimulate`, `renderSavGoal`):**
+  1. **Toplam Para & Hedefe Ayrılan Para Ayrımı:** `Elimdeki Toplam Param (€)` (`totalCash`) ve `Bu Hedef İçin Ayırdığım (€)` (`saved`) ayrı kutular olarak eklendi; `Normal Paran = Toplam − Ayırdığın` otomatik hesaplanır.
+  2. **Haftalık (`€/hf`) & Aylık (`€/ay`) Periyot Seçimi:** Kullanıcı birikim planını ve özetleri tek tıkla `Haftalık (€/hf)` veya `Aylık (€/ay)` bazda görüntüleyip düzenleyebilir.
+  3. **Çift Senaryo & Tam Gün/Tarih Hesabı:**
+     - **💳 Senaryo 1 (Elindeki Parayı Kullanarak):** Toplam para hedefe yetiyorsa bugün (`23 Kasım 2026 Pazartesi`) gerçekleştirilebileceğini, önce ayrılan birikimin kullanıldığını, normal paradan ne kadar düşeceğini ve **işlem sonrası sana kalan parayı** gösterir; yetmiyorsa kalan açığı ve tüm para + birikimle tamamlanacağı tam tarihi gösterir.
+     - **🎯 Senaryo 2 (Normal Parana Dokunmadan):** Ayırdığın birikim üzerine haftalık/aylık birikim ve gelir/gider akışıyla kaç hafta/ay sonra **tam hangi gün** (örn. `11 hafta sonra · 8 Şubat 2027 Pazartesi`) hedefe ulaşacağını ve o gün normal paranın hiç dokunulmadan cebinde kalacağını gösterir.
+  4. **Bitiş Tarihli (`until`) Gelir Ekle & Gider/Taksit Ekle + Hafta-Hafta Simülasyon:** Her gelir/gider satırına sıklık (`Haftalık`, `Aylık`, `Tek Seferlik`) ve `Bitiş Tarihi` eklendi. Bitiş tarihi gelen gider o haftadan itibaren otomatik devreden çıkar (`0 €` olur) ve dönem kırılım çizelgesinde (`⏱️ Bitiş Tarihlerine Göre Otomatik Değişen Dönem Akışı`) hedef tarihini veya harcamaya kalan bütçeyi (`🚀 Hedef Tarihini Öne Çek` / `👛 Harcama Bütçemi Rahatlat`) anında günceller.
+  5. **Ayarlar & Aylık Özet Tam Uyumu (`ugAvgPayInfo`):** `calcPay()`, `weekResult()`, `renderMonth()` ve `renderYear()` fonksiyonlarına hiç dokunulmadı; `ugAvgPayInfo()` kullanıcının dinamik Ayarlar'ındaki aylık özel kira/ev gideri veya kendi ödediği aylık sigortayı (`homeExpTotal()`) otomatik dikkate alarak `Aylık Özet › Elinde kalan` ile %100 tutarlı net harcanabilir maaş ortalaması üretir.
+- **Claude İçin Not:** Worker değişmedi (ve `v51`'den itibaren GitHub Actions `deploy-cloudflare.yml` hem Cloudflare Pages'i hem de `summer-mode-6176` Worker'ı otomatik deploy ediyor).
+
+---
+
 ## v51 (`2026-11-22-shiftpay-v51`) — **Antigravity** — PC Planı & Fiyat Takibi Tamamen Kaldırıldı (Saf Maaş Takip)
 - **Değişen Dosyalar:** `index.html`, `server/bildirim-worker.js`, `sw.js`, `version.json`, `.github/workflows/deploy-cloudflare.yml`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Silinen Dosyalar:** `watch.json`, `watch.enc.json`, `.github/workflows/bildirim.yml`, `.github/send-push.mjs` (yerel `shiftpay-automation/run_sync.py`'den `pc_watch_bot` adımı da kaldırıldı).

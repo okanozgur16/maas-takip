@@ -823,6 +823,58 @@ html:not(.ui-classic) .grid[data-sub="yr"] [data-card="brk"]{display:none !impor
 :root[data-theme="light"] .app-footer{background:#f8fafc;border-color:#e2e8f0}
 @media (prefers-reduced-motion:reduce){.grid .card{animation:none}.btn:active,.seg button:active{transform:none}}
 
+/* v52: Dinamik Çoklu Birikim, Gelir/Gider (Bitiş Tarihli) ve Haftalık/Aylık Hedef Planlayıcı */
+.savg-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.savg-head h2{margin:0}
+.savg- acts{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.savg-grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:10px}
+.savg-leg{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:6px 0 10px}
+.savg-sl{margin:10px 0 12px;padding:10px 12px;border-radius:12px;background:var(--surface2);border:1px solid var(--line)}
+.savg-sl .t{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:13.5px;margin-bottom:6px}
+.savg-sl input[type=range]{width:100%;accent-color:var(--accent);margin:0;height:6px}
+.savg-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(265px,1fr));gap:10px;margin:12px 0}
+.savg-sc{padding:13px 14px;border-radius:14px;background:var(--surface2);border:1.5px solid var(--line);display:flex;flex-direction:column;gap:8px}
+.savg-sc.ok{border-color:color-mix(in srgb,var(--good) 55%,var(--line));background:color-mix(in srgb,var(--good) 7%,var(--surface2))}
+.savg-sc.warn{border-color:color-mix(in srgb,var(--c150) 55%,var(--line));background:color-mix(in srgb,var(--c150) 7%,var(--surface2))}
+.savg-sc.plan{border-color:color-mix(in srgb,var(--accent) 55%,var(--line));background:color-mix(in srgb,var(--accent) 7%,var(--surface2))}
+.savg-sc-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.savg-sc-eb{font-size:11.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)}
+.savg-sc-bg{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--surface);border:1px solid var(--line);color:var(--ink)}
+.savg-sc.ok .savg-sc-bg{color:var(--good);border-color:color-mix(in srgb,var(--good) 45%,var(--line))}
+.savg-sc.warn .savg-sc-bg{color:var(--c150);border-color:color-mix(in srgb,var(--c150) 45%,var(--line))}
+.savg-sc.plan .savg-sc-bg{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.savg-sc-msg{font-size:14px;line-height:1.45;color:var(--ink)}
+.savg-sc-rows{padding:9px 11px;border-radius:11px;background:var(--surface);border:1px solid var(--line);display:grid;gap:5px;font-size:12.5px}
+.savg-sc-r{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.savg-sc-r span{color:var(--muted)}
+.savg-sc-r.tot{padding-top:6px;margin-top:2px;border-top:1px solid var(--line);font-size:13.5px;font-weight:700}
+.savg-sc-r.tot span{color:var(--ink)}
+.savg-cf{margin:12px 0;padding:13px 14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line);display:grid;gap:10px}
+.savg-cf-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.savg-cf-modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px}
+.savg-mbtn{text-align:left;padding:9px 11px;border-radius:11px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;display:grid;gap:2px}
+.savg-mbtn b{font-size:12.5px}
+.savg-mbtn small{font-size:11.5px;color:var(--muted);line-height:1.35}
+.savg-mbtn.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface))}
+.savg-irow{display:grid;grid-template-columns:auto 1.3fr .8fr .85fr 1fr auto;gap:6px;align-items:center;padding:8px 9px;border-radius:11px;background:var(--surface);border:1px solid var(--line);font-size:12.5px}
+.savg-irow.off{opacity:.55}
+.savg-irow input[type=text],.savg-irow input[type=date],.savg-irow select{padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface2);color:var(--ink);font:inherit;font-size:12.5px;min-width:0;width:100%}
+.savg-ikind{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:11.5px;padding:3px 7px;border-radius:7px;white-space:nowrap}
+.savg-ikind.in{background:var(--good-soft);color:var(--good)}
+.savg-ikind.out{background:var(--bad-soft);color:var(--bad)}
+.savg-tl{padding:9px 11px;border-radius:11px;background:var(--surface);border:1px solid var(--line);font-size:12px;display:grid;gap:4px}
+.savg-tl-r{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;padding-top:4px;border-top:1px dashed var(--line)}
+.savg-tl-r:first-of-type{border-top:0;padding-top:0}
+@media (max-width:640px){
+  .savg-irow{grid-template-columns:1fr 1fr;gap:6px}
+  .savg-irow .c-chk{grid-column:1}
+  .savg-irow .c-del{grid-column:2;justify-self:end}
+  .savg-irow .c-name{grid-column:1/-1}
+  .savg-irow .c-amt{grid-column:1}
+  .savg-irow .c-freq{grid-column:2}
+  .savg-irow .c-until{grid-column:1/-1}
+}
+
 </style>
 </head>
 <body>
@@ -2066,7 +2118,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-22-shiftpay-v51';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v52';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3093,80 +3145,379 @@ function userGoalObj(){
   state.settings = state.settings || {};
   var ug = state.settings.userGoal;
   if (!ug || typeof ug !== 'object'){
-    ug = { saved: 0, title: 'Hedefim (Örn. Araba / Tatil)', targetAmt: 5000, weeklySave: 150 };
+    ug = { totalCash: 0, saved: 0, title: 'Hedefim (Örn. Tatil / Araba)', targetAmt: 2810, weeklySave: 250, period: 'week', calcMode: 'speed', items: [] };
     state.settings.userGoal = ug;
   }
+  var items = Array.isArray(ug.items) ? ug.items.map(function(x){
+    return {
+      id: String((x && x.id) || uid()),
+      kind: (x && x.kind === 'in') ? 'in' : 'out',
+      name: String((x && x.name) !== undefined ? x.name : ''),
+      amt: Math.max(0, +((x && x.amt) || 0)),
+      freq: (x && (x.freq === 'month' || x.freq === 'once')) ? x.freq : 'week',
+      until: (x && typeof x.until === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x.until)) ? x.until : '',
+      active: x ? x.active !== false : true
+    };
+  }) : [];
+  var wkS = Math.max(5, +ug.weeklySave || 150);
   return {
+    totalCash: Math.max(0, +ug.totalCash || 0),
     saved: Math.max(0, +ug.saved || 0),
     title: String(ug.title !== undefined ? ug.title : 'Hedefim'),
     targetAmt: Math.max(0, +ug.targetAmt || 0),
-    weeklySave: Math.max(10, +ug.weeklySave || 150)
+    weeklySave: wkS,
+    period: ug.period === 'month' ? 'month' : 'week',
+    calcMode: ug.calcMode === 'pocket' ? 'pocket' : 'speed',
+    items: items
+  };
+}
+function ugSaveObj(ug){
+  state.settings = state.settings || {};
+  state.settings.userGoal = ug;
+}
+function ugAvgPayInfo(){
+  var S = SET(), list = allWeekList(), slips = list.filter(function(r){ return r.slip; });
+  var normSlips = slips.filter(function(r){ return ((r.t.norm || 0) + (r.t.irr || 0) + (r.t.over || 0)) >= 16; });
+  var pool = normSlips.length ? normSlips.slice(-8) : (slips.length ? slips.slice(-8) : []);
+  var src = 'slips';
+  if (!pool.length){
+    var normWks = list.filter(function(r){ return ((r.t.norm || 0) + (r.t.irr || 0) + (r.t.over || 0)) >= 16; });
+    pool = normWks.length ? normWks.slice(-8) : list.slice(-8);
+    src = pool.length ? 'shifts' : 'settings';
+  }
+  var rawWk = 0;
+  if (pool.length){
+    var sum = 0;
+    pool.forEach(function(r){ sum += (r.p.payable - parkOf(r.p)); });
+    rawWk = r2(sum / pool.length);
+  } else {
+    var curAll = weekResult(view.week, 'all');
+    if (curAll && curAll.p && !curAll.p.empty && curAll.p.payable > 0){
+      rawWk = r2(curAll.p.payable - parkOf(curAll.p));
+      src = 'planned';
+    } else {
+      var stdH = Math.max(1, +S.stdShiftHours || 8) * 5;
+      var estP = calcPay({ norm: stdH, irr: 0, over: 0, vacH: 0, driverDays: S.driverMode !== 'off' ? 5 : 0, count: 5, any: true }, S);
+      rawWk = Math.max(100, r2(estP.payable || 450));
+      src = 'settings';
+    }
+  }
+  /* Ayarlar'da haftalık bordrodan düşülmeyen aylık özel kira/fatura veya kendi ödediği aylık sigorta varsa Aylık Özet ile birebir aynı şekilde düşülür */
+  var hxMo = homeExpTotal(), hxWk = r2(hxMo * 12 / 52);
+  var netWk = r2(rawWk - hxWk);
+  return { rawWk: rawWk, hxMo: hxMo, hxWk: hxWk, hxParts: (homeExpTotal.parts || []).slice(), netWk: netWk, netMo: r2(netWk * 52 / 12), src: src, cnt: pool.length };
+}
+function ugDateFull(iso){
+  var d = parseISO(iso), daysTr = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'], daysEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  var mName = MONTHS_L[d.getMonth()], dName = (typeof LANG !== 'undefined' && LANG === 'en') ? daysEn[d.getDay()] : daysTr[d.getDay()];
+  return d.getDate() + ' ' + mName + ' ' + d.getFullYear() + ' ' + dName;
+}
+function ugItemWeeklyAt(it, wStartIso, wIdx){
+  if (!it || !it.active || !(it.amt > 0)) return 0;
+  var wEndIso = addDays(wStartIso, 6);
+  if (it.freq === 'once'){
+    var targetD = it.until || today;
+    if (wIdx === 0 && targetD <= wEndIso) return it.amt;
+    return (targetD >= wStartIso && targetD <= wEndIso) ? it.amt : 0;
+  }
+  if (it.until && wStartIso > it.until) return 0;
+  return it.freq === 'month' ? r2(it.amt * 12 / 52) : it.amt;
+}
+function ugSimulate(ug, payInfo){
+  var saved = ug.saved, target = ug.targetAmt, baseWk = ug.weeklySave;
+  var effTotal = ug.totalCash > 0 ? ug.totalCash : saved;
+  var regularCash = r2(effTotal - saved);
+  var gapSaved = Math.max(0, r2(target - saved));
+  var avgWk = payInfo.netWk;
+
+  /* Bu haftanın (Hafta 1) aktif ek gelir/gideri */
+  var curIncWk = 0, curExpWk = 0;
+  ug.items.forEach(function(it){
+    var v = ugItemWeeklyAt(it, today, 0);
+    if (v > 0){ if (it.kind === 'in') curIncWk = r2(curIncWk + v); else curExpWk = r2(curExpWk + v); }
+  });
+
+  /* Gelir/gider hariç saf baz süre */
+  var pureWks = gapSaved <= 0 ? 0 : Math.ceil(gapSaved / Math.max(1, baseWk));
+  var pureDateIso = addDays(today, pureWks * 7);
+
+  /* Hafta-hafta dinamik simülasyon (bitiş tarihli gelir/giderleri hesaba katar) */
+  var acc = saved, wkCount = 0, phases = [], curP = null, maxWks = 260;
+  while (acc < target && wkCount < maxWks){
+    var wIso = addDays(today, wkCount * 7), wInc = 0, wExp = 0;
+    ug.items.forEach(function(it){
+      var v = ugItemWeeklyAt(it, wIso, wkCount);
+      if (v > 0){ if (it.kind === 'in') wInc = r2(wInc + v); else wExp = r2(wExp + v); }
+    });
+    var netExtra = r2(wInc - wExp);
+    var effSave = ug.calcMode === 'speed' ? Math.max(0, r2(baseWk + netExtra)) : baseWk;
+    var spendLeft = r2(avgWk + netExtra - effSave);
+    var sig = effSave.toFixed(2) + '|' + spendLeft.toFixed(2) + '|' + wInc.toFixed(2) + '|' + wExp.toFixed(2);
+    if (!curP || curP.sig !== sig){
+      curP = { sig: sig, fromWk: wkCount + 1, toWk: wkCount + 1, fromIso: wIso, effSave: effSave, spendLeft: spendLeft, wInc: wInc, wExp: wExp };
+      phases.push(curP);
+    } else {
+      curP.toWk = wkCount + 1;
+    }
+    acc = r2(acc + effSave);
+    wkCount++;
+    if (effSave <= 0 && wkCount >= 52 && acc < target){ wkCount = 999; break; }
+  }
+  if (!phases.length){
+    var ne0 = r2(curIncWk - curExpWk);
+    var es0 = ug.calcMode === 'speed' ? Math.max(0, r2(baseWk + ne0)) : baseWk;
+    phases.push({ sig: '0', fromWk: 1, toWk: 1, fromIso: today, effSave: es0, spendLeft: r2(avgWk + ne0 - es0), wInc: curIncWk, wExp: curExpWk });
+  }
+
+  /* Senaryo 1 (Elindeki tüm parayı kullanarak) için eksik varsa kaç hafta sürer */
+  var gapAllCash = Math.max(0, r2(target - effTotal));
+  var accAll = effTotal, wksAllCash = 0;
+  while (accAll < target && wksAllCash < maxWks){
+    var wIsoA = addDays(today, wksAllCash * 7), wIncA = 0, wExpA = 0;
+    ug.items.forEach(function(it){
+      var v = ugItemWeeklyAt(it, wIsoA, wksAllCash);
+      if (v > 0){ if (it.kind === 'in') wIncA = r2(wIncA + v); else wExpA = r2(wExpA + v); }
+    });
+    var esA = ug.calcMode === 'speed' ? Math.max(0, r2(baseWk + wIncA - wExpA)) : baseWk;
+    accAll = r2(accAll + esA);
+    wksAllCash++;
+    if (esA <= 0 && wksAllCash >= 52 && accAll < target){ wksAllCash = 999; break; }
+  }
+
+  return {
+    effTotal: effTotal,
+    regularCash: regularCash,
+    gapSaved: gapSaved,
+    gapAllCash: gapAllCash,
+    wksAllCash: wksAllCash,
+    allCashDateIso: addDays(today, wksAllCash * 7),
+    pureWks: pureWks,
+    pureDateIso: pureDateIso,
+    wkCount: wkCount,
+    mosNeed: r2(wkCount * 7 / 30.4375),
+    reachDateIso: addDays(today, wkCount * 7),
+    curIncWk: curIncWk,
+    curExpWk: curExpWk,
+    phases: phases
   };
 }
 function renderSavGoal(force){
   var el = $('savGoal'); if (!el) return;
   var ae = document.activeElement;
-  if (!force && ae && el.contains(ae) && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName) && ae.id !== 'ug_wk') return;
-  var ug = userGoalObj();
-  var list = allWeekList(), bl = list.filter(function(r){ return r.slip; });
-  if (!bl.length) bl = list;
-  var avgWk = 450;
-  if (bl.length){
-    var sumNet = 0;
-    bl.forEach(function(r){ sumNet += (r.p.payable - parkOf(r.p)); });
-    avgWk = Math.max(100, r2(sumNet / bl.length));
+  if (!force && ae && el.contains(ae) && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName) && ae.id !== 'ug_wk'){
+    renderSavGoalLive();
+    return;
   }
-  var rem = Math.max(0, r2(ug.targetAmt - ug.saved));
+  var ug = userGoalObj(), payInfo = ugAvgPayInfo(), isMo = ug.period === 'month';
+  var dispSaveVal = isMo ? r2(ug.weeklySave * 52 / 12) : ug.weeklySave;
   var pctDone = ug.targetAmt > 0 ? Math.min(100, Math.max(0, (ug.saved / ug.targetAmt) * 100)) : 0;
-  var wkSave = ug.weeklySave;
-  var moSave = r2(wkSave * 52 / 12);
-  var wksNeed = rem <= 0 ? 0 : Math.ceil(rem / Math.max(1, wkSave));
-  var mosNeed = r2(wksNeed * 7 / 30.4375);
-  var reachIso = addDays(today, wksNeed * 7), reachD = parseISO(reachIso);
-  var reachLabel = wksNeed === 0 ? L('Hedefe ulaştın! 🎉', 'Goal reached! 🎉') : (MONTHS_L[reachD.getMonth()] + ' ' + reachD.getFullYear());
-  var leftForSpend = r2(avgWk - wkSave);
+  var rem = Math.max(0, r2(ug.targetAmt - ug.saved));
 
+  var h = '<div class="savg-head"><h2>💰 ' + L('Birikimim & Hedefim', 'My Savings & Goal') + '</h2>' +
+    '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">' +
+      '<div class="seg" role="group" aria-label="' + L('Hesaplama periyodu', 'Calculation period') + '">' +
+        '<button type="button" data-act="ugPeriod" data-v="week" aria-pressed="' + (!isMo) + '">' + L('Haftalık (€/hf)', 'Weekly (€/wk)') + '</button>' +
+        '<button type="button" data-act="ugPeriod" data-v="month" aria-pressed="' + isMo + '">' + L('Aylık (€/ay)', 'Monthly (€/mo)') + '</button>' +
+      '</div>' +
+      '<button type="button" class="btn small primary" data-act="ugAdd">+ ' + L('Birikime Ekle', 'Add to Savings') + '</button>' +
+      '<button type="button" class="btn small" data-act="ugReset">' + L('Sıfırla', 'Reset') + '</button>' +
+    '</div></div>';
+  h += '<div class="sub" style="margin-bottom:10px">' + L('Toplam paranı, bu hedef için ayırdığın tutarı ve bitiş tarihli gelir/giderlerini gir; hem elindeki parayla hemen alırsan kalacak tutarı hem de biriktirerek tam hangi gün ulaşacağını dinamik gör.', 'Enter your total money, set-aside savings, and dated income/expenses to see both your instant purchase balance and exact target completion date.') + '</div>';
+
+  h += '<div class="savg-grid3">' +
+    '<div class="field"><label for="ug_total">1. ' + L('Elimdeki Toplam Param (€)', 'My Total Money Now (€)') + '</label><input id="ug_total" type="text" inputmode="decimal" value="' + (ug.totalCash > 0 ? esc(String(ug.totalCash).replace('.', ',')) : '') + '" placeholder="' + L('Örn. 3500 (tüm paran)', 'e.g. 3500 (all money)') + '"><small class="fh num" id="ug_reg_hint"></small></div>' +
+    '<div class="field"><label for="ug_saved">2. ' + L('Bu Hedef İçin Ayırdığım (€)', 'Set Aside for This Goal (€)') + '</label><input id="ug_saved" type="text" inputmode="decimal" value="' + esc(String(ug.saved).replace('.', ',')) + '" placeholder="Örn. 300"><small class="fh">' + L('Toplam paranın içinden bu hedefe ayrılan', 'Portion of total money reserved for this goal') + '</small></div>' +
+    '<div class="field"><label for="ug_title">3. ' + L('Hedefim (Ne için?)', 'My Goal (What for?)') + '</label><input id="ug_title" type="text" maxlength="45" value="' + esc(ug.title) + '" placeholder="' + L('Örn. Tatil ve eğlence, Araba…', 'e.g. Holiday, Car, Emergency…') + '"><small class="fh">' + L('Hedefinin adı', 'Name of your goal') + '</small></div>' +
+    '<div class="field"><label for="ug_target">4. ' + L('Hedef Tutarı (€)', 'Target Amount (€)') + '</label><input id="ug_target" type="text" inputmode="decimal" value="' + esc(String(ug.targetAmt).replace('.', ',')) + '" placeholder="Örn. 2810"><small class="fh num" id="ug_gap_hint"></small></div>' +
+    '<div class="field"><label for="ug_wk_in">5. ' + (isMo ? L('Aylık Kenara Ayıracağım (€/ay)', 'Monthly Saving Amount (€/mo)') : L('Haftalık Kenara Ayıracağım (€/hf)', 'Weekly Saving Amount (€/wk)')) + '</label><input id="ug_wk_in" type="text" inputmode="decimal" value="' + esc(String(dispSaveVal).replace('.', ',')) + '" placeholder="' + (isMo ? 'Örn. 1080' : 'Örn. 250') + '"><small class="fh num" id="ug_per_hint"></small></div>' +
+    '<div class="field"><label>' + L('6. Net Maaş Ortalaman (Otomatik)', '6. Your Avg. Net Pay (Auto)') + '</label><div style="padding:9px 10px;border:1px solid var(--line);border-radius:10px;background:var(--surface2);font-weight:700" class="num" id="ug_pay_box"></div><small class="fh num" id="ug_pay_hint"></small></div>' +
+  '</div>';
+
+  h += '<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pctDone) + '" style="margin:6px 0 4px"><i id="ug_pbar" style="width:' + pctDone + '%"></i></div>';
+  h += '<div class="savg-leg num" id="ug_pleg"></div>';
+
+  var slMin = isMo ? 50 : 15, slMax = isMo ? 2600 : 600, slStep = isMo ? 25 : 5;
+  var slVal = Math.min(slMax, Math.max(slMin, Math.round(dispSaveVal)));
+  h += '<div class="savg-sl"><div class="t"><span id="ug_wklbl"></span><span class="num" id="ug_molbl"></span></div>' +
+    '<input type="range" id="ug_wk" min="' + slMin + '" max="' + slMax + '" step="' + slStep + '" value="' + slVal + '" aria-label="' + L('Birikim tutarı kaydırıcısı', 'Saving amount slider') + '"></div>';
+
+  /* Gelir & Gider (Bitiş Tarihli) Yönetici Kutusu */
+  h += '<div class="savg-cf">' +
+    '<div class="savg-cf-top">' +
+      '<div><b style="font-size:14px">🔄 ' + L('Ek Gelirler & Giderler (Bitiş Tarihli Dinamik Hesaplama)', 'Extra Income & Expenses (Dated Dynamic Calculation)') + '</b>' +
+      '<small class="fh">' + L('Ek gelir veya taksit/gider ekle ve bitiş tarihini seç; gider bittiği tarihten itibaren ücret otomatik düşer ve hedef tarihin güncellenir.', 'Add extra income or bills/installments with an end date; once an expense ends, it automatically drops out and updates your target date.') + '</small></div>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+        '<button type="button" class="btn small" data-act="ugItemAdd" data-k="in">+ ' + L('Gelir Ekle', 'Add Income') + '</button>' +
+        '<button type="button" class="btn small primary" data-act="ugItemAdd" data-k="out">+ ' + L('Gider / Taksit Ekle', 'Add Expense') + '</button>' +
+      '</div>' +
+    '</div>' +
+    '<div class="savg-cf-modes">' +
+      '<button type="button" class="savg-mbtn' + (ug.calcMode === 'speed' ? ' on' : '') + '" data-act="ugMode" data-v="speed"><b>🚀 ' + L('Hedef Tarihini Öne Çek (Birikime Yansıt)', 'Accelerate Target Date (Add to Savings)') + '</b><small>' + L('Ek gelirler ve biten giderlerden boşa çıkan para hedef birikimine eklenir; hedefe ulaşma tarihi değişir.', 'Extra income and ended expenses adjust your saving pace and shift your target completion date.') + '</small></button>' +
+      '<button type="button" class="savg-mbtn' + (ug.calcMode === 'pocket' ? ' on' : '') + '" data-act="ugMode" data-v="pocket"><b>👛 ' + L('Harcama Bütçemi Rahatlat (Birikim Sabit)', 'Boost Spending Budget (Fixed Saving)') + '</b><small>' + L('Kenara ayırdığın birikim sabit kalır; ek gelir ve biten giderler cebinde harcamaya kalan parayı değiştirir.', 'Your saving pace stays fixed; extra income and ended expenses adjust your weekly/monthly spending money.') + '</small></button>' +
+    '</div>' +
+    '<div id="ug_items_list" style="display:grid;gap:6px">' + renderSavGoalItemsHTML(ug) + '</div>' +
+    '<div id="ug_tl_box"></div>' +
+  '</div>';
+
+  h += '<div id="ug_out"></div>';
+  el.innerHTML = h;
+  renderSavGoalLive();
+}
+function renderSavGoalItemsHTML(ug){
+  if (!ug.items.length){
+    return '<div class="sub" style="font-size:12.5px;padding:4px 2px">' + L('Henüz ek gelir veya süreli gider/taksit eklenmedi. Yukarıdaki "+ Gelir Ekle" veya "+ Gider / Taksit Ekle" ile ekleyebilirsin.', 'No extra income or dated expenses added yet. Use "+ Add Income" or "+ Add Expense" above.') + '</div>';
+  }
+  return ug.items.map(function(it, idx){
+    return '<div class="savg-irow' + (it.active ? '' : ' off') + '">' +
+      '<label class="c-chk" style="display:inline-flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" data-ugi="' + idx + '" data-f="active"' + (it.active ? ' checked' : '') + ' style="width:16px;height:16px;accent-color:var(--accent)"><span class="savg-ikind ' + it.kind + '">' + (it.kind === 'in' ? '+ ' + L('Gelir', 'Income') : '− ' + L('Gider', 'Expense')) + '</span></label>' +
+      '<div class="c-name"><input type="text" data-ugi="' + idx + '" data-f="name" maxlength="40" value="' + esc(it.name) + '" placeholder="' + (it.kind === 'in' ? L('Örn. Ek iş, destek…', 'e.g. Side income…') : L('Örn. Taksit, borç, fatura…', 'e.g. Installment, bill…')) + '" aria-label="' + L('Gelir veya gider adı', 'Income or expense name') + '"></div>' +
+      '<div class="c-amt"><input type="text" inputmode="decimal" data-ugi="' + idx + '" data-f="amt" value="' + (it.amt > 0 ? esc(String(it.amt).replace('.', ',')) : '') + '" placeholder="€ ' + L('Tutar', 'Amount') + '" aria-label="Tutar (€)"></div>' +
+      '<div class="c-freq"><select data-ugi="' + idx + '" data-f="freq" aria-label="' + L('Sıklık', 'Frequency') + '">' +
+        '<option value="week"' + (it.freq === 'week' ? ' selected' : '') + '>' + L('Haftalık (€/hf)', 'Weekly (€/wk)') + '</option>' +
+        '<option value="month"' + (it.freq === 'month' ? ' selected' : '') + '>' + L('Aylık (€/ay)', 'Monthly (€/mo)') + '</option>' +
+        '<option value="once"' + (it.freq === 'once' ? ' selected' : '') + '>' + L('Tek Seferlik', 'One-time') + '</option>' +
+      '</select></div>' +
+      '<div class="c-until" style="display:flex;align-items:center;gap:4px"><input type="date" data-ugi="' + idx + '" data-f="until" value="' + esc(it.until) + '" title="' + L('Bitiş tarihi (boş bırakılırsa süresiz devam eder)', 'End date (ongoing if left empty)') + '" aria-label="' + L('Bitiş tarihi', 'End date') + '"></div>' +
+      '<button type="button" class="icon c-del" data-act="ugItemDel" data-i="' + idx + '" title="' + L('Sil', 'Remove') + '" aria-label="' + L('Sil', 'Remove') + '" style="width:30px;height:30px;font-size:14px">✕</button>' +
+    '</div>';
+  }).join('');
+}
+function renderSavGoalLive(){
+  var el = $('savGoal'); if (!el || !$('ug_out')) return;
+  var ug = userGoalObj(), payInfo = ugAvgPayInfo(), sim = ugSimulate(ug, payInfo), isMo = ug.period === 'month';
+  var pctDone = ug.targetAmt > 0 ? Math.min(100, Math.max(0, (ug.saved / ug.targetAmt) * 100)) : 0;
+  var wkSave = ug.weeklySave, moSave = r2(wkSave * 52 / 12);
+
+  if ($('ug_reg_hint')){
+    if (ug.totalCash > 0){
+      $('ug_reg_hint').innerHTML = sim.regularCash >= 0
+        ? (L('Normal paran (toplam − ayırdığın): ', 'Regular money (total − set-aside): ') + '<b style="color:var(--text)">' + eur(sim.regularCash) + '</b>')
+        : ('<span style="color:var(--bad)">⚠️ ' + L('Ayırdığın tutar toplam parandan büyük!', 'Set-aside exceeds total money!') + '</span>');
+    } else {
+      $('ug_reg_hint').textContent = L('Tüm paranı yazarsan işlem sonrası sana kalan net para da hesaplanır', 'Enter total money to see what remains in your pocket after the goal');
+    }
+  }
+  if ($('ug_gap_hint')) $('ug_gap_hint').innerHTML = L('Ayırdığından kalan ihtiyaç: ', 'Remaining needed above set-aside: ') + '<b>' + eur(sim.gapSaved) + '</b>';
+  if ($('ug_per_hint')) $('ug_per_hint').textContent = isMo ? (L('Haftalık karşılığı: ≈ ', 'Weekly equivalent: ≈ ') + eur(wkSave) + ' / ' + L('hafta', 'week')) : (L('Aylık karşılığı: ≈ ', 'Monthly equivalent: ≈ ') + eur(moSave) + ' / ' + L('ay', 'month'));
+  if ($('ug_pay_box')) $('ug_pay_box').textContent = isMo ? (eur(payInfo.netMo) + ' / ' + L('ay', 'mo') + ' (≈ ' + eur(payInfo.netWk) + '/' + L('hf', 'wk') + ')') : (eur(payInfo.netWk) + ' / ' + L('hafta', 'wk') + ' (≈ ' + eur(payInfo.netMo) + '/' + L('ay', 'mo') + ')');
+  if ($('ug_pay_hint')){
+    var srcTxt = payInfo.src === 'slips' ? (payInfo.cnt + ' ' + L('bordro ortalaması', 'payslips avg')) : payInfo.src === 'shifts' ? (payInfo.cnt + ' ' + L('hafta vardiya ortalaması', 'shift weeks avg')) : L('Ayarlar’daki saatlik ücretine göre', 'Based on your hourly rate in Settings');
+    if (payInfo.hxMo > 0) srcTxt += ' · ' + L('Ayarlar aylık gideri (−' + eur(payInfo.hxMo) + '/ay) düşüldü', 'Settings monthly bills (−' + eur(payInfo.hxMo) + '/mo) deducted');
+    $('ug_pay_hint').textContent = srcTxt;
+  }
+  if ($('ug_pbar')) $('ug_pbar').style.width = pctDone + '%';
+  if ($('ug_pleg')){
+    $('ug_pleg').innerHTML = '<span>' + L('Ayırdığın Mevcut:', 'Set Aside:') + ' <b style="color:var(--text)">' + eur(ug.saved) + '</b> (%' + Math.round(pctDone) + ')</span>' +
+      (ug.totalCash > 0 ? '<span>' + L('Toplam Paran:', 'Total Money:') + ' <b style="color:var(--text)">' + eur(ug.totalCash) + '</b> (' + L('Normal:', 'Regular:') + ' <b>' + eur(Math.max(0, sim.regularCash)) + '</b>)</span>' : '') +
+      '<span>' + L('Hedef Kalan:', 'Goal Remaining:') + ' <b style="color:var(--text)">' + eur(sim.gapSaved) + '</b> / ' + eur(ug.targetAmt) + '</span>';
+  }
+  if ($('ug_wklbl')) $('ug_wklbl').innerHTML = (isMo ? L('Aylık Baz Birikim:', 'Monthly Base Saving:') : L('Haftalık Baz Birikim:', 'Weekly Base Saving:')) + ' <b class="num">' + (isMo ? eur(moSave) + ' / ' + L('ay', 'month') : eur(wkSave) + ' / ' + L('hafta', 'week')) + '</b>';
+  if ($('ug_molbl')) $('ug_molbl').textContent = isMo ? ('≈ ' + eur(wkSave) + ' / ' + L('hafta', 'week')) : ('≈ ' + eur(moSave) + ' / ' + L('ay', 'month'));
+
+  /* Dönem Kırılım Zaman Çizelgesi (Bitiş Tarihli Gelir/Gider Etkisi) */
+  if ($('ug_tl_box')){
+    var pList = sim.phases;
+    if (pList.length > 1){
+      var tl = '<div class="savg-tl"><b style="font-size:12px">⏱️ ' + L('Bitiş Tarihlerine Göre Otomatik Değişen Dönem Akışı:', 'Automatic Cashflow Timeline by End Dates:') + '</b>';
+      pList.forEach(function(p){
+        var pSaveTxt = isMo ? (eur(r2(p.effSave * 52 / 12)) + '/' + L('ay', 'mo') + ' (' + eur(p.effSave) + '/' + L('hf', 'wk') + ')') : (eur(p.effSave) + '/' + L('hf', 'wk'));
+        var pSpendTxt = isMo ? (eur(r2(p.spendLeft * 52 / 12)) + '/' + L('ay', 'mo') + ' (' + eur(p.spendLeft) + '/' + L('hf', 'wk') + ')') : (eur(p.spendLeft) + '/' + L('hf', 'wk'));
+        tl += '<div class="savg-tl-r num"><span><b>' + p.fromWk + '.–' + p.toWk + '. ' + L('Hafta', 'Week') + '</b> (' + dlabel(p.fromIso) + ' ' + L('itibarıyla', 'onwards') + ')</span>' +
+          '<span>' + L('Hedefe:', 'To goal:') + ' <b style="color:var(--good)">' + pSaveTxt + '</b> · ' + L('Harcamaya kalan:', 'Left to spend:') + ' <b style="color:' + (p.spendLeft >= 0 ? 'var(--ink)' : 'var(--bad)') + '">' + pSpendTxt + '</b></span></div>';
+      });
+      tl += '</div>';
+      $('ug_tl_box').innerHTML = tl;
+    } else if (ug.items.some(function(x){ return x.active && x.amt > 0; })){
+      var p0 = pList[0];
+      $('ug_tl_box').innerHTML = '<div class="savg-tl num"><span>📊 <b>' + L('Aktif Gelir/Gider Etkisi:', 'Active Income/Expense Impact:') + '</b> ' +
+        L('Ek Gelir', 'Extra Income') + ' <b style="color:var(--good)">+' + eur(p0.wInc) + '/' + L('hf', 'wk') + '</b> · ' +
+        L('Ek Gider', 'Extra Expense') + ' <b style="color:var(--bad)">−' + eur(p0.wExp) + '/' + L('hf', 'wk') + '</b> → ' +
+        L('Net Birikim Hızın:', 'Net Saving Pace:') + ' <b>' + eur(p0.effSave) + '/' + L('hf', 'wk') + '</b> (' + eur(r2(p0.effSave * 52 / 12)) + '/' + L('ay', 'mo') + ')</span></div>';
+    } else {
+      $('ug_tl_box').innerHTML = '';
+    }
+  }
+
+  $('ug_out').innerHTML = renderSavGoalResult(ug, payInfo, sim);
+}
+function renderSavGoalResult(ug, payInfo, sim){
+  var isMo = ug.period === 'month', title = esc(ug.title || L('Hedefim', 'My Goal'));
+  var pFirst = sim.phases[0], pLast = sim.phases[sim.phases.length - 1] || pFirst;
+  var canBuyNow = sim.effTotal >= ug.targetAmt && ug.targetAmt > 0;
+  var leftAfterNow = r2(sim.effTotal - ug.targetAmt);
+  var usedSaved = Math.min(ug.saved, ug.targetAmt);
+  var usedFromRegular = Math.max(0, r2(ug.targetAmt - ug.saved));
+  var h = '';
+
+  /* İKİ ANA SENARYO KARTI: 1) Elindeki Parayı Kullanarak vs. 2) Normal Parana Dokunmadan Biriktirerek */
+  h += '<div class="savg-cards">';
+
+  /* SENARYO 1: Elindeki Parayı Kullanarak */
+  if (canBuyNow){
+    h += '<div class="savg-sc ok">' +
+      '<div class="savg-sc-top"><span class="savg-sc-eb">💳 ' + L('Senaryo 1 · Elindeki Parayı Kullanarak', 'Scenario 1 · Using Your Current Money') + '</span><span class="savg-sc-bg">✓ ' + L('Hemen Gerçekleşir', 'Ready Today') + '</span></div>' +
+      '<div class="savg-sc-msg">✅ ' + L('Elindeki parayı (', 'Using your money on hand (') + '<b class="num">' + eur(sim.effTotal) + '</b>' + L(') kullanarak ', ') you can complete ') + '<b>' + title + '</b> (<b class="num">' + eur(ug.targetAmt) + '</b>) ' + L('işlemini <b>BUGÜN (' + ugDateFull(today) + ')</b> gerçekleştirebiliyorsun ve sana kalan <b class="num" style="color:var(--good)">' + eur(leftAfterNow) + '</b> oluyor!', '<b>TODAY (' + ugDateFull(today) + ')</b> with <b class="num" style="color:var(--good)">' + eur(leftAfterNow) + '</b> left over!') + '</div>' +
+      '<div class="savg-sc-rows num">' +
+        '<div class="savg-sc-r"><span>' + L('Önce ayırdığın birikim karşılar:', 'Covered by set-aside savings first:') + '</span><b>' + eur(usedSaved) + '</b></div>' +
+        '<div class="savg-sc-r"><span>' + L('Normal parandan (' + eur(Math.max(0, sim.regularCash)) + ') kullanılacak:', 'Used from regular money (' + eur(Math.max(0, sim.regularCash)) + '):') + '</span><b>' + eur(usedFromRegular) + '</b></div>' +
+        '<div class="savg-sc-r tot"><span>' + L('İşlem Sonrası Sana Kalan Para:', 'Money Left to You After Goal:') + '</span><b style="color:var(--good)">' + eur(leftAfterNow) + '</b></div>' +
+      '</div></div>';
+  } else {
+    var allDateTxt = sim.wksAllCash >= 260 ? L('Mevcut hızla ulaşılamıyor', 'Not reachable at current pace') : (sim.wksAllCash + ' ' + L('hafta sonra', 'weeks') + ' · ' + ugDateFull(sim.allCashDateIso));
+    h += '<div class="savg-sc warn">' +
+      '<div class="savg-sc-top"><span class="savg-sc-eb">💳 ' + L('Senaryo 1 · Elindeki Tüm Parayı Kullanarak', 'Scenario 1 · Using All Your Current Money') + '</span><span class="savg-sc-bg num">' + eur(sim.gapAllCash) + ' ' + L('Eksik', 'Short') + '</span></div>' +
+      '<div class="savg-sc-msg">⏳ ' + L('Elindeki toplam parayı (', 'Even using all your current money (') + '<b class="num">' + eur(sim.effTotal) + '</b>' + L(') kullansan bile bugün için ', '), you still need ') + '<b class="num" style="color:var(--c150)">' + eur(sim.gapAllCash) + '</b> ' + L('daha lazım.', 'more today.') + '</div>' +
+      '<div class="savg-sc-rows num">' +
+        '<div class="savg-sc-r"><span>' + L('Tüm paranı katarsan kalan açık:', 'Remaining gap if using all money:') + '</span><b>' + eur(sim.gapAllCash) + '</b></div>' +
+        '<div class="savg-sc-r"><span>' + L('İşlem sonrası kalan para:', 'Money left after purchase:') + '</span><b>€0,00</b></div>' +
+        '<div class="savg-sc-r tot"><span>' + L('Tüm paran + birikimle tamamlanma:', 'Completion with all money + savings:') + '</span><b style="color:var(--c150)">' + allDateTxt + '</b></div>' +
+      '</div></div>';
+  }
+
+  /* SENARYO 2: Normal Parana Dokunmadan (Sadece Ayırdığın Birikim + Haftalık/Aylık Birikim + Gelir/Gider ile) */
+  var wkDiff = sim.pureWks - sim.wkCount;
+  var diffBadge = sim.gapSaved <= 0 ? ('🎉 ' + L('Tamamlandı', 'Completed')) : (sim.wkCount >= 260 ? ('⚠️ ' + L('Kontrol Et', 'Check Pace')) : (wkDiff > 0 ? ('🚀 ' + wkDiff + ' ' + L('hafta erken', 'wks earlier')) : wkDiff < 0 ? (Math.abs(wkDiff) + ' ' + L('hafta geç', 'wks later')) : (sim.wkCount + ' ' + L('hafta', 'weeks'))));
+  h += '<div class="savg-sc plan">' +
+    '<div class="savg-sc-top"><span class="savg-sc-eb">🎯 ' + (ug.totalCash > 0 ? L('Senaryo 2 · Normal Parana (' + eur(Math.max(0, sim.regularCash)) + ') Dokunmadan', 'Scenario 2 · Without Touching Regular Money (' + eur(Math.max(0, sim.regularCash)) + ')') : L('Senaryo 2 · Ayırdığın Birikim + Düzenli Birikimle', 'Scenario 2 · With Set-Aside + Regular Savings')) + '</span><span class="savg-sc-bg num">' + diffBadge + '</span></div>' +
+    '<div class="savg-sc-msg">' +
+      (sim.gapSaved <= 0
+        ? ('🎉 ' + L('Bu hedef için ayırdığın birikim (', 'Your set-aside savings (') + '<b class="num">' + eur(ug.saved) + '</b>' + L(') tek başına hedefe yetiyor! <b>BUGÜN (' + ugDateFull(today) + ')</b> hazır, üstelik <b class="num" style="color:var(--good)">+' + eur(r2(ug.saved - ug.targetAmt)) + '</b> fazlan kalıyor.', ') already covers the goal today!'))
+        : (sim.wkCount >= 260
+            ? ('⚠️ ' + L('Mevcut giderlerle haftalık net birikim sıfırın altına düşüyor; giderleri veya birikim tutarını kontrol et.', 'Current expenses reduce weekly net saving to zero; check expenses or saving amount.'))
+            : ('📅 ' + L('Ayırdığın <b class="num">' + eur(ug.saved) + '</b> birikim üzerine devam ederek <b>' + sim.wkCount + ' hafta sonra</b> (≈ <b class="num">' + String(sim.mosNeed).replace('.', ',') + ' ay</b>) → <b style="color:var(--accent);text-decoration:underline">' + ugDateFull(sim.reachDateIso) + '</b> günü hedefe ulaşıyorsun!', 'Building on your <b class="num">' + eur(ug.saved) + '</b> set-aside, you reach your goal in <b>' + sim.wkCount + ' weeks</b> (≈ <b class="num">' + sim.mosNeed + ' mo</b>) on <b style="color:var(--accent);text-decoration:underline">' + ugDateFull(sim.reachDateIso) + '</b>!')))) +
+    '</div>' +
+    '<div class="savg-sc-rows num">' +
+      '<div class="savg-sc-r"><span>' + L('Hedef için biriktirilecek kalan tutar:', 'Remaining amount to save for goal:') + '</span><b>' + eur(sim.gapSaved) + '</b></div>' +
+      '<div class="savg-sc-r"><span>' + L('Gelir/gider hariç baz tarih (' + (isMo ? eur(r2(ug.weeklySave * 52 / 12)) + '/ay' : eur(ug.weeklySave) + '/hf') + '):', 'Base date without extra items:') + '</span><span>' + (sim.gapSaved <= 0 ? L('Bugün', 'Today') : (sim.pureWks + ' ' + L('hafta', 'wks') + ' · ' + ugDateFull(sim.pureDateIso))) + '</span></div>' +
+      '<div class="savg-sc-r tot"><span>' + (ug.totalCash > 0 ? L('O Gün Cebinde Kalacak Normal Paran:', 'Regular Money Left Untouched:') : L('Hedef Tamamlandığında Toplam Birikim:', 'Total Goal Reached:')) + '</span><b style="color:var(--good)">' + (ug.totalCash > 0 ? eur(Math.max(0, sim.regularCash)) + ' (' + L('Hiç dokunulmaz', 'Untouched') + ')' : eur(ug.targetAmt)) + '</b></div>' +
+    '</div></div>';
+
+  h += '</div>';
+
+  /* 3'LÜ ÖZET KUTULARI (Haftalık / Aylık Seçimine Göre) */
+  var effWkNow = pFirst.effSave, effMoNow = r2(effWkNow * 52 / 12);
+  var spendWkNow = pFirst.spendLeft, spendMoNow = r2(spendWkNow * 52 / 12);
+  var spendWkEnd = pLast.spendLeft, spendMoEnd = r2(spendWkEnd * 52 / 12);
+
+  h += '<div class="savg-grid">' +
+    '<div class="savg-box hi"><small style="color:var(--muted);display:block">' + title + ' (' + eur(ug.targetAmt) + ')</small><b class="num" style="font-size:16.5px;display:block;margin-top:2px">' + (sim.gapSaved <= 0 ? '🎉 ' + L('Tamamlandı!', 'Completed!') : (sim.wkCount >= 260 ? '—' : sim.wkCount + ' ' + L('hafta', 'weeks') + ' (≈ ' + String(sim.mosNeed).replace('.', ',') + ' ' + L('ay', 'mo') + ')')) + '</b><small class="num" style="color:var(--muted)">' + L('Tam tarih:', 'Exact date:') + ' <b>' + (sim.gapSaved <= 0 ? ugDateFull(today) : (sim.wkCount >= 260 ? '—' : ugDateFull(sim.reachDateIso))) + '</b></small></div>' +
+    '<div class="savg-box"><small style="color:var(--muted);display:block">' + (isMo ? L('Aylık Net Birikim Hızın', 'Your Monthly Net Saving Pace') : L('Haftalık Net Birikim Hızın', 'Your Weekly Net Saving Pace')) + '</small><b class="num" style="font-size:16.5px;display:block;margin-top:2px">' + (isMo ? eur(effMoNow) + ' / ' + L('ay', 'mo') : eur(effWkNow) + ' / ' + L('hafta', 'wk')) + '</b><small class="num" style="color:var(--muted)">' + (isMo ? (L('Haftada ≈ ', 'Weekly ≈ ') + eur(effWkNow)) : (L('Ayda ≈ ', 'Monthly ≈ ') + eur(effMoNow))) + (sim.phases.length > 1 ? ' · ' + L('Gider bitince: ', 'After bills end: ') + (isMo ? eur(r2(pLast.effSave * 52 / 12)) + '/ay' : eur(pLast.effSave) + '/hf') : '') + '</small></div>' +
+    '<div class="savg-box"><small style="color:var(--muted);display:block">' + (isMo ? L('Maaştan Harcamaya Kalan (Aylık)', 'Left from Pay to Spend (Monthly)') : L('Maaştan Harcamaya Kalan (Haftalık)', 'Left from Pay to Spend (Weekly)')) + '</small><b class="num" style="font-size:16.5px;display:block;margin-top:2px;color:' + (spendWkNow >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + (spendWkNow >= 0 ? (isMo ? eur(spendMoNow) + ' / ' + L('ay', 'mo') : eur(spendWkNow) + ' / ' + L('hafta', 'wk')) : '−' + eur(Math.abs(isMo ? spendMoNow : spendWkNow)) + ' ' + L('aşım', 'over')) + '</b><small class="num" style="color:var(--muted)">' + (isMo ? (L('Haftalık: ', 'Weekly: ') + eur(spendWkNow) + '/hf') : (L('Aylık: ≈ ', 'Monthly: ≈ ') + eur(spendMoNow) + '/ay')) + (sim.phases.length > 1 && Math.abs(spendWkEnd - spendWkNow) > 0.5 ? ' · ' + L('Gider bitince: ', 'After bills end: ') + (isMo ? eur(spendMoEnd) + '/ay' : eur(spendWkEnd) + '/hf') : '') + '</small></div>' +
+  '</div>';
+
+  /* Hızlı Tempo Seçiciler (%20 / %35 / %50) */
+  var avgWk = Math.max(100, payInfo.netWk);
   var tSlow = Math.max(25, Math.round(avgWk * 0.20 / 5) * 5);
   var tMed  = Math.max(50, Math.round(avgWk * 0.35 / 5) * 5);
   var tFast = Math.max(75, Math.round(avgWk * 0.50 / 5) * 5);
-
-  var h = '<div class="hero-top" style="margin-bottom:8px;flex-wrap:wrap;gap:6px"><h2 style="margin:0">💰 ' + L('Birikimim & Hedefim', 'My Savings & Goal') + '</h2><div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn small" data-act="ugEdit">✏️ ' + L('Birikimi Düzenle', 'Edit Savings') + '</button><button type="button" class="btn small primary" data-act="ugAdd">+ ' + L('Birikime Ekle', 'Add to Savings') + '</button><button type="button" class="btn small" data-act="ugReset">' + L('Sıfırla', 'Reset') + '</button></div></div>';
-  h += '<div class="sub" style="margin-bottom:10px">' + L('Kenardaki mevcut paranı ve ulaşmak istediğin hedefi yaz; maaş ortalamana göre haftalık veya aylık ne kadar biriktirerek ne zaman ulaşacağını anında gör.', 'Enter your current savings and target goal to see how fast you can reach it based on your weekly/monthly pay.') + '</div>';
-
-  h += '<div class="two" style="margin-bottom:10px">' +
-    '<div class="field"><label for="ug_saved">' + L('Elimdeki Toplam Birikim (€)', 'Current Total Savings (€)') + '</label><input id="ug_saved" type="text" inputmode="decimal" value="' + esc(String(ug.saved).replace('.', ',')) + '" placeholder="Örn. 1500"></div>' +
-    '<div class="field"><label for="ug_title">' + L('Hedefim (Ne için?)', 'My Goal (What for?)') + '</label><input id="ug_title" type="text" maxlength="45" value="' + esc(ug.title) + '" placeholder="Örn. Araba, Tatil, Telefon, Ev…"></div>' +
-  '</div>';
-
-  h += '<div class="two" style="margin-bottom:10px">' +
-    '<div class="field"><label for="ug_target">' + L('Hedef Tutarı (€)', 'Target Amount (€)') + '</label><input id="ug_target" type="text" inputmode="decimal" value="' + esc(String(ug.targetAmt).replace('.', ',')) + '" placeholder="Örn. 5000"></div>' +
-    '<div class="field"><label for="ug_wk_in">' + L('Haftalık Kenara Ayıracağım (€)', 'Weekly Saving Amount (€)') + '</label><input id="ug_wk_in" type="text" inputmode="decimal" value="' + esc(String(wkSave).replace('.', ',')) + '" placeholder="Örn. 150"></div>' +
-  '</div>';
-
-  h += '<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pctDone) + '" style="margin:8px 0 6px"><i style="width:' + pctDone + '%"></i></div>';
-  h += '<div class="pcleg num" style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--muted);margin-bottom:10px"><span>' + L('Mevcut:', 'Saved:') + ' <b style="color:var(--text)">' + eur(ug.saved) + '</b> (%' + Math.round(pctDone) + ')</span><span>' + L('Kalan:', 'Remaining:') + ' <b style="color:var(--text)">' + eur(rem) + '</b> / ' + eur(ug.targetAmt) + '</span></div>';
-
-  h += '<div class="pcsl" style="margin:8px 0"><div class="t"><span>' + L('Haftalık Birikim:', 'Weekly Saving:') + ' <b class="num" id="ug_wklbl">' + eur(wkSave) + ' / hafta</b></span><span class="num" id="ug_molbl">≈ ' + eur(moSave) + ' / ay</span></div>' +
-    '<input type="range" id="ug_wk" min="25" max="600" step="5" value="' + Math.min(600, Math.max(25, wkSave)) + '" aria-label="Haftalık birikim tutarı"></div>';
-
-  h += '<div id="ug_out">' + renderSavGoalResult(ug, avgWk, rem, wkSave, moSave, wksNeed, mosNeed, reachLabel, leftForSpend, tSlow, tMed, tFast) + '</div>';
-  el.innerHTML = h;
-}
-function renderSavGoalResult(ug, avgWk, rem, wkSave, moSave, wksNeed, mosNeed, reachLabel, leftForSpend, tSlow, tMed, tFast){
-  var h = '<div class="savg-grid">' +
-    '<div class="savg-box hi"><small style="color:var(--muted);display:block">' + esc(ug.title || 'Hedef') + ' (' + eur(ug.targetAmt) + ')</small><b class="num" style="font-size:17px;display:block;margin-top:2px">' + (rem <= 0 ? '🎉 Tamamlandı!' : wksNeed + ' hafta (≈ ' + String(mosNeed).replace('.', ',') + ' ay)') + '</b><small class="num" style="color:var(--muted)">Tahmini tarih: <b>' + reachLabel + '</b></small></div>' +
-    '<div class="savg-box"><small style="color:var(--muted);display:block">Aylık Birikim Hızın</small><b class="num" style="font-size:17px;display:block;margin-top:2px">' + eur(moSave) + ' / ay</b><small class="num" style="color:var(--muted)">Haftada ' + eur(wkSave) + ' kenara ayrılır</small></div>' +
-    '<div class="savg-box"><small style="color:var(--muted);display:block">Maaştan Harcamaya Kalan</small><b class="num" style="font-size:17px;display:block;margin-top:2px;color:' + (leftForSpend >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + (leftForSpend >= 0 ? eur(leftForSpend) + ' / hafta' : '−' + eur(Math.abs(leftForSpend)) + ' aşım') + '</b><small class="num" style="color:var(--muted)">Haftalık ort. net maaşın: ' + eur(avgWk) + '</small></div>' +
-  '</div>';
-
-  var wSlow = rem <= 0 ? 0 : Math.ceil(rem / tSlow), mSlow = (wSlow * 7 / 30.4375).toFixed(1).replace('.', ',');
-  var wMed  = rem <= 0 ? 0 : Math.ceil(rem / tMed),  mMed  = (wMed * 7 / 30.4375).toFixed(1).replace('.', ',');
-  var wFast = rem <= 0 ? 0 : Math.ceil(rem / tFast), mFast = (wFast * 7 / 30.4375).toFixed(1).replace('.', ',');
+  var wSlow = sim.gapSaved <= 0 ? 0 : Math.ceil(sim.gapSaved / tSlow), dSlow = ugDateFull(addDays(today, wSlow * 7));
+  var wMed  = sim.gapSaved <= 0 ? 0 : Math.ceil(sim.gapSaved / tMed),  dMed  = ugDateFull(addDays(today, wMed * 7));
+  var wFast = sim.gapSaved <= 0 ? 0 : Math.ceil(sim.gapSaved / tFast), dFast = ugDateFull(addDays(today, wFast * 7));
 
   h += '<div class="savg-tempos">' +
-    '<button type="button" class="savg-tbtn' + (Math.abs(wkSave - tSlow) < 3 ? ' on' : '') + '" data-act="ugTempo" data-v="' + tSlow + '"><b>🐢 Rahat (%20)</b><span>Haftada ' + eur(tSlow) + ' · Ayda ' + eur(Math.round(tSlow * 52 / 12)) + '</span><br><small style="color:var(--muted)">' + (rem <= 0 ? 'Hazır' : wSlow + ' hafta (' + mSlow + ' ay)') + '</small></button>' +
-    '<button type="button" class="savg-tbtn' + (Math.abs(wkSave - tMed) < 3 ? ' on' : '') + '" data-act="ugTempo" data-v="' + tMed + '"><b>⚖️ Dengeli (%35)</b><span>Haftada ' + eur(tMed) + ' · Ayda ' + eur(Math.round(tMed * 52 / 12)) + '</span><br><small style="color:var(--muted)">' + (rem <= 0 ? 'Hazır' : wMed + ' hafta (' + mMed + ' ay)') + '</small></button>' +
-    '<button type="button" class="savg-tbtn' + (Math.abs(wkSave - tFast) < 3 ? ' on' : '') + '" data-act="ugTempo" data-v="' + tFast + '"><b>🚀 Hızlı (%50)</b><span>Haftada ' + eur(tFast) + ' · Ayda ' + eur(Math.round(tFast * 52 / 12)) + '</span><br><small style="color:var(--muted)">' + (rem <= 0 ? 'Hazır' : wFast + ' hafta (' + mFast + ' ay)') + '</small></button>' +
+    '<button type="button" class="savg-tbtn' + (Math.abs(ug.weeklySave - tSlow) < 3 ? ' on' : '') + '" data-act="ugTempo" data-v="' + tSlow + '"><b>🐢 ' + L('Rahat (%20)', 'Easy (20%)') + '</b><span>' + L('Haftada', 'Weekly') + ' ' + eur(tSlow) + ' · ' + L('Ayda', 'Monthly') + ' ' + eur(Math.round(tSlow * 52 / 12)) + '</span><br><small style="color:var(--muted)">' + (sim.gapSaved <= 0 ? L('Hazır', 'Ready') : wSlow + ' ' + L('hafta', 'wks') + ' · ' + dSlow) + '</small></button>' +
+    '<button type="button" class="savg-tbtn' + (Math.abs(ug.weeklySave - tMed) < 3 ? ' on' : '') + '" data-act="ugTempo" data-v="' + tMed + '"><b>⚖️ ' + L('Dengeli (%35)', 'Balanced (35%)') + '</b><span>' + L('Haftada', 'Weekly') + ' ' + eur(tMed) + ' · ' + L('Ayda', 'Monthly') + ' ' + eur(Math.round(tMed * 52 / 12)) + '</span><br><small style="color:var(--muted)">' + (sim.gapSaved <= 0 ? L('Hazır', 'Ready') : wMed + ' ' + L('hafta', 'wks') + ' · ' + dMed) + '</small></button>' +
+    '<button type="button" class="savg-tbtn' + (Math.abs(ug.weeklySave - tFast) < 3 ? ' on' : '') + '" data-act="ugTempo" data-v="' + tFast + '"><b>🚀 ' + L('Hızlı (%50)', 'Fast (50%)') + '</b><span>' + L('Haftada', 'Weekly') + ' ' + eur(tFast) + ' · ' + L('Ayda', 'Monthly') + ' ' + eur(Math.round(tFast * 52 / 12)) + '</span><br><small style="color:var(--muted)">' + (sim.gapSaved <= 0 ? L('Hazır', 'Ready') : wFast + ' ' + L('hafta', 'wks') + ' · ' + dFast) + '</small></button>' +
   '</div>';
   return h;
 }
@@ -4364,21 +4715,55 @@ document.addEventListener('click', function(ev){
     }
   }
   else if (a === 'ugReset'){
-    if (window.confirm('Mevcut birikim tutarın €0 olarak sıfırlansın mı?')){
+    if (window.confirm(L('Ayırdığın birikim tutarın €0 olarak sıfırlansın mı?', 'Reset your set-aside savings amount to €0?'))){
       var ug1 = userGoalObj();
-      state.settings = state.settings || {};
-      state.settings.userGoal = Object.assign({}, ug1, { saved: 0 });
+      ug1.saved = 0;
+      ugSaveObj(ug1);
       commit();
       renderSavGoal(true);
     }
   }
   else if (a === 'ugTempo'){
-    var tv = Math.max(10, +el.getAttribute('data-v') || 150);
+    var tv = Math.max(5, +el.getAttribute('data-v') || 150);
     var ug2 = userGoalObj();
-    state.settings = state.settings || {};
-    state.settings.userGoal = Object.assign({}, ug2, { weeklySave: tv });
+    ug2.weeklySave = tv;
+    ugSaveObj(ug2);
     commit();
     renderSavGoal(true);
+  }
+  else if (a === 'ugPeriod'){
+    var pv = el.getAttribute('data-v') === 'month' ? 'month' : 'week';
+    var ugP = userGoalObj();
+    ugP.period = pv;
+    ugSaveObj(ugP);
+    commit();
+    renderSavGoal(true);
+  }
+  else if (a === 'ugMode'){
+    var mv = el.getAttribute('data-v') === 'pocket' ? 'pocket' : 'speed';
+    var ugM = userGoalObj();
+    ugM.calcMode = mv;
+    ugSaveObj(ugM);
+    commit();
+    renderSavGoal(true);
+  }
+  else if (a === 'ugItemAdd'){
+    var ik = el.getAttribute('data-k') === 'in' ? 'in' : 'out';
+    var ugA = userGoalObj();
+    ugA.items.push({ id: uid(), kind: ik, name: ik === 'in' ? L('Ek Gelir', 'Extra Income') : L('Gider / Taksit', 'Expense / Installment'), amt: 0, freq: ugA.period === 'month' ? 'month' : 'week', until: '', active: true });
+    ugSaveObj(ugA);
+    commit();
+    renderSavGoal(true);
+  }
+  else if (a === 'ugItemDel'){
+    var di = +el.getAttribute('data-i');
+    var ugD = userGoalObj();
+    if (di >= 0 && di < ugD.items.length){
+      ugD.items.splice(di, 1);
+      ugSaveObj(ugD);
+      commit();
+      renderSavGoal(true);
+    }
   }
   else if (a === 'pwaInstall'){
     if (PWA_PROMPT){
@@ -4611,19 +4996,40 @@ document.addEventListener('input', function(ev){
   var t = ev.target;
   if (t.id === 'ntfAt'){ if (/^\d\d:\d\d$/.test(t.value)){ NTF.at = t.value; ntfSave(); ntfSoon(); } return; }
   if (t.id === 'ug_wk'){
-    var ugW = userGoalObj(); ugW.weeklySave = Math.max(10, +t.value || 150);
-    state.settings.userGoal = ugW;
-    if ($('ug_wk_in')) $('ug_wk_in').value = String(ugW.weeklySave);
-    renderSavGoal(false);
+    var ugW = userGoalObj(), rawSlider = Math.max(5, +t.value || 50);
+    ugW.weeklySave = ugW.period === 'month' ? Math.max(5, r2(rawSlider * 12 / 52)) : rawSlider;
+    ugSaveObj(ugW);
+    if ($('ug_wk_in')) $('ug_wk_in').value = String(rawSlider).replace('.', ',');
+    renderSavGoalLive();
     return;
   }
-  if (t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk_in'){
+  if (t.id === 'ug_total' || t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk_in'){
     var ugI = userGoalObj();
-    if (t.id === 'ug_saved') ugI.saved = Math.max(0, num(t.value));
+    if (t.id === 'ug_total') ugI.totalCash = Math.max(0, num(t.value));
+    else if (t.id === 'ug_saved') ugI.saved = Math.max(0, num(t.value));
     else if (t.id === 'ug_title') ugI.title = t.value.slice(0, 45);
     else if (t.id === 'ug_target') ugI.targetAmt = Math.max(0, num(t.value));
-    else if (t.id === 'ug_wk_in') ugI.weeklySave = Math.max(10, num(t.value) || 10);
-    state.settings.userGoal = ugI;
+    else if (t.id === 'ug_wk_in'){
+      var vIn = Math.max(5, num(t.value) || 5);
+      ugI.weeklySave = ugI.period === 'month' ? Math.max(5, r2(vIn * 12 / 52)) : vIn;
+      if ($('ug_wk')) $('ug_wk').value = String(Math.round(vIn));
+    }
+    ugSaveObj(ugI);
+    renderSavGoalLive();
+    return;
+  }
+  if (t.getAttribute && t.getAttribute('data-ugi') !== null){
+    var ugi = +t.getAttribute('data-ugi'), ugF = t.getAttribute('data-f'), ugL = userGoalObj();
+    var itU = ugL.items[ugi];
+    if (itU){
+      if (ugF === 'active') itU.active = !!t.checked;
+      else if (ugF === 'name') itU.name = t.value.slice(0, 40);
+      else if (ugF === 'amt') itU.amt = Math.max(0, num(t.value));
+      else if (ugF === 'freq') itU.freq = (t.value === 'month' || t.value === 'once') ? t.value : 'week';
+      else if (ugF === 'until') itU.until = t.value || '';
+      ugSaveObj(ugL);
+      renderSavGoalLive();
+    }
     return;
   }
 
@@ -4637,7 +5043,21 @@ document.addEventListener('change', function(ev){
   else if (t.id === 'pdfIn' || t.id === 'pdfIn2'){ var fl = Array.prototype.slice.call(t.files || []); t.value = ''; if (fl.length) importFiles(fl); }
   else if (t.id === 'sDate'){ fillSlipForm(); }
   else if (t.id === 'wpDate'){ if (t.value){ view.week = weekStart(t.value); $('ov4').hidden = true; renderAll(); window.scrollTo({ top: 0 }); } }
-  else if (t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk' || t.id === 'ug_wk_in'){ commit(); renderSavGoal(true); }
+  else if (t.id === 'ug_total' || t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk' || t.id === 'ug_wk_in'){ commit(); renderSavGoalLive(); }
+  else if (t.getAttribute && t.getAttribute('data-ugi') !== null){
+    var ugiC = +t.getAttribute('data-ugi'), ugFC = t.getAttribute('data-f'), ugLC = userGoalObj(), itUC = ugLC.items[ugiC];
+    if (itUC){
+      if (ugFC === 'active') itUC.active = !!t.checked;
+      else if (ugFC === 'name') itUC.name = t.value.slice(0, 40);
+      else if (ugFC === 'amt') itUC.amt = Math.max(0, num(t.value));
+      else if (ugFC === 'freq') itUC.freq = (t.value === 'month' || t.value === 'once') ? t.value : 'week';
+      else if (ugFC === 'until') itUC.until = t.value || '';
+      ugSaveObj(ugLC);
+    }
+    commit();
+    if (ugFC === 'active' || ugFC === 'freq' || ugFC === 'until') renderSavGoal(true);
+    else renderSavGoalLive();
+  }
 
   else if (t.id === 'goalIn'){ var g = num(t.value); if (g > 0){ state.settings.goalNet = g; commit(); } }
   else if (t.closest && t.closest('#ov')) updatePreview();
