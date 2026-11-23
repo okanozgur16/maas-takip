@@ -947,6 +947,11 @@ body,input,select,button,textarea{letter-spacing:-.006em;-webkit-font-smoothing:
 .savg-ring-lrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 9px;border-radius:9px;background:var(--surface);border:1px solid var(--line)}
 .savg-ring-lrow .k{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-weight:600}
 .savg-ring-lrow .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.savg-viz-bg.pend{background:var(--accent-soft);color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--line))}
+.savg-ring-lbox{padding:7px 9px;border-radius:10px;background:var(--surface);border:1px solid var(--line);display:grid;gap:3px}
+.savg-ring-lbox .savg-ring-lrow{padding:0;border:0;background:transparent;border-radius:0}
+.savg-ring-lsub{display:block;font-size:11px;line-height:1.35;color:var(--muted);padding-left:14px}
+.savg-ring-lsub b{color:var(--ink);font-weight:700}
 
 /* 2. Birikim Ayarları & Gelir/Gider Açılır Çekmecesi (Göz yoran 6 kutuyu ve gelir/gider satırlarını tek tıkla gizler/açar) */
 details.savg-drawer{margin:10px 0;border-radius:15px;background:var(--surface2);border:1.5px solid var(--line);overflow:hidden;transition:border-color .16s ease}
@@ -2343,7 +2348,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v61';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v62';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3854,14 +3859,38 @@ function renderSavGoalRingHTML(ug, sim){
   var cOut = r2(2 * Math.PI * rOut), cIn = r2(2 * Math.PI * rIn);
   var offOut = r2(cOut * (1 - pctTotal / 100));
   var offIn  = r2(cIn  * (1 - pctSaved / 100));
-  var centerVal = ug.totalCash > 0 ? eur(effTotal) : eur(saved);
-  var centerPct = ug.totalCash > 0 ? Math.round(pctTotal) : Math.round(pctSaved);
-  var remVal    = ug.totalCash > 0 ? sim.gapAllCash : sim.gapSaved;
+
+  /* Halkanın merkezi ve üst rozeti doğrudan BU HEDEF İÇİN AYRILAN BİRİKİMİ (saved) esas alır; böylece 0 ayrıldığında yanıltıcı şekilde %100 Tamamlandı demez! */
+  var isGoalSavedDone = ug.targetAmt > 0 && sim.gapSaved <= 0;
+  var pctSavedRound = Math.round(pctSaved);
+  var pctTotalRound = Math.round(pctTotal);
+  var topBadgeHtml = isGoalSavedDone
+    ? ('<span class="savg-viz-bg num">✓ %100 ' + L('Hazır', 'Ready') + '</span>')
+    : ('<span class="savg-viz-bg pend num">%' + pctSavedRound + ' ' + L('Ayrıldı', 'Set Aside') + '</span>');
+
+  var centerSubHtml = '';
+  if (isGoalSavedDone){
+    centerSubHtml = '<span style="color:var(--good)">✓ ' + L('Tamamlandı', 'Completed') + '</span>';
+  } else if (saved <= 0){
+    centerSubHtml = '<span style="color:var(--c150)">' + L('Ayrı Birikim Yok', 'No Separate Savings') + '</span>';
+  } else {
+    centerSubHtml = '<span style="color:var(--accent)">' + L('Kalan:', 'Left:') + ' ' + eur(sim.gapSaved) + '</span>';
+  }
+
+  var legSavedNote = isGoalSavedDone
+    ? L('Ana birikime dokunmadan hedef birikimin tamamlandı ✓', 'Goal savings complete without touching main savings ✓')
+    : (saved <= 0
+        ? (L('Şu an bu hedef için ayrı birikimin €0,00 · Kalan: ', 'Currently €0.00 saved separately · Left: ') + '<b>' + eur(sim.gapSaved) + '</b>')
+        : (L('Ana birikime dokunmadan kalan: ', 'Left without touching main savings: ') + '<b>' + eur(sim.gapSaved) + '</b>'));
+
+  var legTotalNote = (ug.targetAmt > 0 && effTotal >= ug.targetAmt)
+    ? L('Ana birikimini kullanırsan bugün hazır', 'Ready today if you use main savings')
+    : (L('Tüm paranla kalan açık: ', 'Remaining gap with all cash: ') + '<b>' + eur(sim.gapAllCash) + '</b>');
 
   return '<div class="savg-ring-card">' +
     '<div class="savg-viz-top">' +
       '<span class="savg-viz-eb">🎯 ' + L('Hedef Halkası', 'Goal Gauge') + '</span>' +
-      '<span class="savg-viz-bg num">%' + centerPct + ' ' + L('Hazır', 'Ready') + '</span>' +
+      topBadgeHtml +
     '</div>' +
     '<div class="savg-ring-wrap">' +
       '<svg viewBox="0 0 176 176" aria-label="' + L('Birikim hedef halkası', 'Savings goal ring') + '">' +
@@ -3872,13 +3901,19 @@ function renderSavGoalRingHTML(ug, sim){
       '</svg>' +
       '<div class="savg-ring-center num">' +
         '<small>' + L('Hedef', 'Goal') + ' ' + eur(ug.targetAmt) + '</small>' +
-        '<b>' + centerVal + '</b>' +
-        '<span>' + (remVal <= 0 ? ('✓ ' + L('Tamamlandı', 'Completed')) : (L('Kalan:', 'Left:') + ' ' + eur(remVal))) + '</span>' +
+        '<b>' + eur(saved) + '</b>' +
+        centerSubHtml +
       '</div>' +
     '</div>' +
     '<div class="savg-ring-leg num">' +
-      '<div class="savg-ring-lrow"><span class="k"><i class="dot" style="background:var(--accent)"></i>' + L('Ayırdığın', 'Set-Aside') + ' (%' + Math.round(pctSaved) + ')</span><b>' + eur(saved) + '</b></div>' +
-      '<div class="savg-ring-lrow"><span class="k"><i class="dot" style="background:var(--good)"></i>' + L('Toplam Paran', 'Total Cash') + ' (%' + Math.round(pctTotal) + ')</span><b style="color:var(--good)">' + eur(effTotal) + '</b></div>' +
+      '<div class="savg-ring-lbox">' +
+        '<div class="savg-ring-lrow"><span class="k"><i class="dot" style="background:var(--accent)"></i>' + L('Hedef İçin Ayırdığın', 'Set Aside for Goal') + ' (%' + pctSavedRound + ')</span><b>' + eur(saved) + '</b></div>' +
+        '<small class="savg-ring-lsub">' + legSavedNote + '</small>' +
+      '</div>' +
+      '<div class="savg-ring-lbox">' +
+        '<div class="savg-ring-lrow"><span class="k"><i class="dot" style="background:var(--good)"></i>' + L('Kenardaki Toplam Paran', 'Total Cash on Hand') + ' (%' + pctTotalRound + ')</span><b style="color:var(--good)">' + eur(effTotal) + '</b></div>' +
+        '<small class="savg-ring-lsub">' + legTotalNote + '</small>' +
+      '</div>' +
     '</div>' +
   '</div>';
 }
