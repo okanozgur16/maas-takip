@@ -893,6 +893,39 @@ html:not(.ui-classic) .grid[data-sub="yr"] [data-card="brk"]{display:none !impor
   .savg-irow .c-freq{grid-column:2}
   .savg-irow .c-until{grid-column:1/-1}
 }
+
+/* v56: Aylık Özet Tıklanabilir Kira & Ek Giderler (details.mexp) + Genel Web Sitesi Modern UI/UX */
+.mrow{margin:8px 0;padding:12px 14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line);transition:border-color .16s ease,box-shadow .16s ease}
+.mrow:hover{border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.mrow .mh{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.mrow .mh b{font-size:15.5px;font-weight:800;color:var(--ink)}
+.mrow .mh .mv{font-family:var(--display);font-weight:800;font-size:18.5px;color:var(--good);text-align:right;line-height:1.15}
+.mrow .mh .mv.neg{color:var(--bad)}
+.mrow .mh .mv small{display:block;font-family:var(--body);font-size:11px;font-weight:600;color:var(--muted);margin-top:2px}
+.mrow .ms-ded{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-top:6px;flex-wrap:wrap;font-size:12.5px}
+.mrow .tx-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:8px;background:color-mix(in srgb,var(--bad) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--bad) 30%,var(--line));color:var(--bad);font-weight:700}
+details.mexp{margin-left:auto}
+details.mexp>summary{list-style:none;display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:8px;background:color-mix(in srgb,var(--c150) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--c150) 35%,var(--line));color:var(--c150);font-weight:700;cursor:pointer;user-select:none;transition:all .15s ease}
+details.mexp>summary::-webkit-details-marker{display:none}
+details.mexp>summary:hover{background:color-mix(in srgb,var(--c150) 20%,var(--surface));border-color:var(--c150)}
+details.mexp>summary .mchv{font-size:11px;opacity:.85;transition:transform .16s ease}
+details.mexp[open]>summary .mchv{transform:rotate(180deg)}
+details.mexp .mexp-in{margin-top:6px;padding:8px 11px;border-radius:10px;background:var(--surface);border:1px solid var(--line);display:grid;gap:4px;font-size:12.5px;min-width:210px}
+details.mexp .mexp-r{display:flex;justify-content:space-between;align-items:baseline;gap:14px;color:var(--muted)}
+details.mexp .mexp-r b{color:var(--ink);font-weight:700}
+details.mexp .mexp-r.tot{padding-top:4px;margin-top:2px;border-top:1px dashed var(--line);color:var(--ink);font-weight:700}
+details.mexp .mexp-r.tot b{color:var(--c150)}
+
+/* Genel Site UI/UX İyileştirmeleri (Kartlar, Üst Bar, Sekmeler, İstatistik Kutuları, Günler) */
+.top{padding:10px 14px;border-radius:16px;background:color-mix(in srgb,var(--surface) 92%,transparent);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.card{border-radius:18px;box-shadow:var(--shadow);border:1px solid var(--line)}
+.card:hover{border-color:color-mix(in srgb,var(--accent) 24%,var(--line))}
+.maassubtabs{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:4px;box-shadow:var(--shadow)}
+.maassubtabs button{border-radius:10px;font-weight:700;padding:9px 8px}
+.stat{border-radius:14px;padding:12px 13px;background:var(--surface2);border:1px solid var(--line);transition:transform .14s ease,border-color .16s ease}
+.stat:hover{border-color:color-mix(in srgb,var(--accent) 32%,var(--line))}
+.day{border-radius:15px;transition:border-color .16s ease,box-shadow .16s ease}
+.facts{padding:9px 12px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);gap:8px 16px}
 </style>
 </head>
 <body>
@@ -2136,7 +2169,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v55';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v56';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3762,14 +3795,17 @@ function renderMonth(){
       badge = '<span class="mbadge est">📊 ' + m.n + '/' + totPd + ' ' + L('tahmin', 'est.') + '</span>';
     }
 
-    /* Kira ve ek giderlerin detaylı etiketi */
-    var expDetails = [];
-    if (m.rentTot > 0) expDetails.push(L('kira', 'rent') + ' ' + eur(m.rentTot));
-    if (m.utilTot > 0) expDetails.push(L('su/elk', 'utilities') + ' ' + eur(m.utilTot));
-    if (m.insTot > 0)  expDetails.push(L('sigorta', 'insurance') + ' ' + eur(m.insTot));
-    if (m.wkHomeTot > 0) expDetails.push(L('ev gideri', 'home bills') + ' ' + eur(m.wkHomeTot));
-    if (hxTot > 0) expDetails.push((hxParts.length ? hxParts.join('+') : L('aylık gider', 'monthly bills')) + ' ' + eur(hxTot));
-    var expLabel = L('Kira & Ek Giderler', 'Rent & Extra Expenses') + (expDetails.length ? ' (' + expDetails.join(' · ') + ')' : '') + ' −' + eur(m.totalRentAndExp);
+    /* Kira ve ek giderlerin tıklanabilir açılır özeti (Haftalık Döküm gibi, tıklayınca kalemleri açılır) */
+    var expRows = '';
+    if (m.rentTot > 0) expRows += '<div class="mexp-r"><span>' + L('Kira', 'Rent') + '</span><b>−' + eur(m.rentTot) + '</b></div>';
+    if (m.utilTot > 0) expRows += '<div class="mexp-r"><span>' + L('Su ve elektrik', 'Utilities') + '</span><b>−' + eur(m.utilTot) + '</b></div>';
+    if (m.insTot > 0)  expRows += '<div class="mexp-r"><span>' + L('Sağlık sigortası', 'Health insurance') + '</span><b>−' + eur(m.insTot) + '</b></div>';
+    if (m.wkHomeTot > 0) expRows += '<div class="mexp-r"><span>' + L('Özel kira & ev gideri payı', 'Weekly home bills share') + '</span><b>−' + eur(m.wkHomeTot) + '</b></div>';
+    if (hxTot > 0) expRows += '<div class="mexp-r"><span>' + L('Aylık ev giderleri', 'Monthly home bills') + (hxParts.length ? ' (' + esc(hxParts.join(', ')) + ')' : '') + '</span><b>−' + eur(hxTot) + '</b></div>';
+    if (!expRows) expRows = '<div class="mexp-r"><span>' + L('Kesinti yok', 'No deductions') + '</span><b>€0,00</b></div>';
+    else expRows += '<div class="mexp-r tot"><span>' + L('Toplam Gider', 'Total Expenses') + '</span><b>−' + eur(m.totalRentAndExp) + '</b></div>';
+
+    var expWidget = '<details class="mexp"><summary title="' + L('Detayları görmek için tıkla', 'Click to see details') + '"><span>' + L('Kira & Giderler', 'Rent & Expenses') + ' −' + eur(m.totalRentAndExp) + '</span><span class="mchv" aria-hidden="true">▾</span></summary><div class="mexp-in">' + expRows + '</div></details>';
 
     var parkNote = m.park > 0 ? (' · <span class="pkc">+' + eur(m.park) + ' ' + L('park hariç', 'excl. parking') + '</span>') : '';
 
@@ -3777,7 +3813,7 @@ function renderMonth(){
       '<div class="mh"><div><b>' + MONTHS_L[m.m] + ' ' + m.y + '</b>' + badge + '</div>' +
       '<span class="mv num' + (m.finalNet < 0 ? ' neg' : '') + '">' + eur(m.finalNet) + '<small>' + L('Net sana kalan', 'Net left to you') + '</small></span></div>' +
       '<div class="ms num"><span>' + m.n + ' ' + L('hafta', 'wks') + ' · <span class="mavg">' + L('Net Ort.', 'Net Avg.') + ' ' + eur(avgW) + '/' + L('hf', 'wk') + '</span> · ' + hm(m.hrs) + ' ' + L('saat', 'hrs') + ' · ' + L('Brüt', 'Gross') + ' ' + eur(m.gross) + parkNote + '</span></div>' +
-      '<div class="ms num"><span class="tx">' + L('Vergi', 'Tax') + ' −' + eur(m.tax) + '</span><span class="exp-sep">' + expLabel + '</span></div>' +
+      '<div class="ms-ded num"><span class="tx-pill">' + L('Vergi', 'Tax') + ' −' + eur(m.tax) + '</span>' + expWidget + '</div>' +
       '<div class="mbar"><i style="width:' + Math.max(2, Math.min(100, Math.max(0, m.finalNet) / mx * 100)) + '%"></i></div></div>';
   });
   var rec = list.slice(-16), wmx = Math.max(1, Math.max.apply(null, rec.map(function(r){ return r.p.payable; })));
