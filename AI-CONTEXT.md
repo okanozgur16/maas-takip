@@ -1,6 +1,6 @@
 # ShiftPay · Teknik Mimari & Geliştirici Bağlamı (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-23-shiftpay-v57`
+- **Aktif Sürüm:** `2026-11-23-shiftpay-v58`
 - **Canlı Uygulama:** `https://shiftpay-app.pages.dev/`
 - **GitHub Kaynak Deposu:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 - **Cloudflare Worker:** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)

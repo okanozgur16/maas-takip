@@ -927,33 +927,50 @@ details.mexp .mexp-r.tot b{color:var(--c150)}
 .day{border-radius:15px;transition:border-color .16s ease,box-shadow .16s ease}
 .facts{padding:9px 12px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);gap:8px 16px}
 
-/* v57: Birikim Çift Katmanlı Hedef Halkası (Radial Gauge) & Hafta Hafta Büyüme Eğrisi (SVG Area Chart) */
-.savg-viz{display:grid;grid-template-columns:280px minmax(0,1fr);gap:12px;margin:12px 0}
-.savg-ring-card,.savg-curve-card{padding:14px 15px;border-radius:16px;background:var(--surface2);border:1px solid var(--line);display:flex;flex-direction:column;justify-content:space-between;gap:10px}
+/* v58: Sadeleştirilmiş Birikim Hedef Halkası + 2 Senaryo (3'lü Tek Satır) & Haftalık Döküm Maaş Halkası (Donut) */
+.savg-main3{display:grid;grid-template-columns:255px minmax(0,1fr) minmax(0,1fr);gap:12px;margin:12px 0;align-items:stretch}
+.savg-ring-card{padding:14px 15px;border-radius:16px;background:var(--surface2);border:1.5px solid var(--line);display:flex;flex-direction:column;justify-content:space-between;gap:10px}
 .savg-viz-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
 .savg-viz-eb{font-size:11.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)}
 .savg-viz-bg{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--good-soft);color:var(--good);border:1px solid color-mix(in srgb,var(--good) 40%,var(--line))}
-.savg-ring-wrap{position:relative;width:154px;height:154px;margin:2px auto;display:grid;place-items:center}
-.savg-ring-wrap svg{width:154px;height:154px;transform:rotate(-90deg);overflow:visible}
-.savg-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px;pointer-events:none}
+.savg-ring-wrap{position:relative;width:148px;height:148px;margin:2px auto;display:grid;place-items:center}
+.savg-ring-wrap svg{width:148px;height:148px;transform:rotate(-90deg);overflow:visible}
+.savg-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:12px;pointer-events:none}
 .savg-ring-center small{font-size:11px;color:var(--muted);line-height:1.2}
-.savg-ring-center b{font-family:var(--display);font-size:20px;font-weight:800;color:var(--ink);line-height:1.15;margin:2px 0}
+.savg-ring-center b{font-family:var(--display);font-size:19px;font-weight:800;color:var(--ink);line-height:1.15;margin:2px 0}
 .savg-ring-center span{font-size:11.5px;font-weight:700;color:var(--good)}
 .savg-ring-leg{display:grid;gap:5px;font-size:12px}
 .savg-ring-lrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 9px;border-radius:9px;background:var(--surface);border:1px solid var(--line)}
 .savg-ring-lrow .k{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-weight:600}
-.savg-ring-lrow .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
-.savg-curve-svg{width:100%;height:178px;display:block;overflow:visible}
-.savg-curve-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:7px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-size:12px}
-.savg-flowbar{padding:11px 14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line);margin:10px 0;display:grid;gap:7px}
-.savg-flowbar-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
-.savg-flowbar-track{display:flex;height:13px;border-radius:99px;overflow:hidden;background:var(--surface);border:1px solid var(--line);gap:2px;padding:1px}
-.savg-flowbar-track i{display:block;height:100%;border-radius:99px;transition:width .25s ease}
-.savg-flowbar-leg{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}
-.savg-flowbar-leg span{display:inline-flex;align-items:center;gap:5px}
-.savg-flowbar-leg i{width:8px;height:8px;border-radius:50%;display:inline-block}
-@media (max-width:760px){
-  .savg-viz{grid-template-columns:1fr}
+.savg-ring-lrow .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Haftalık Döküm Maaş Dağılım Halkası (Donut Chart) */
+.brk-donut-card{margin:8px 0 16px;padding:15px 16px;border-radius:16px;background:var(--surface2);border:1px solid var(--line);display:grid;grid-template-columns:156px minmax(0,1fr);gap:18px;align-items:center}
+.brk-donut-wrap{position:relative;width:152px;height:152px;margin:0 auto;display:grid;place-items:center}
+.brk-donut-wrap svg{width:152px;height:152px;transform:rotate(-90deg);overflow:visible}
+.brk-donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px;pointer-events:none}
+.brk-donut-center small{font-size:11px;color:var(--muted);line-height:1.2}
+.brk-donut-center b{font-family:var(--display);font-size:19px;font-weight:800;color:var(--good);line-height:1.15;margin:2px 0}
+.brk-donut-center span{font-size:11px;font-weight:700;color:var(--ink)}
+.brk-donut-right{display:flex;flex-direction:column;gap:8px;min-width:0}
+.brk-donut-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.brk-donut-title{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.brk-donut-rows{display:grid;gap:6px}
+.brk-drow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 11px;border-radius:11px;background:var(--surface);border:1px solid var(--line);font-size:13.5px}
+.brk-drow .k{display:inline-flex;align-items:center;gap:8px;font-weight:600;color:var(--ink)}
+.brk-drow .dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.brk-drow .pct{font-size:11.5px;font-weight:700;padding:1px 7px;border-radius:99px;background:var(--surface2);color:var(--muted)}
+.brk-drow.good{border-color:color-mix(in srgb,var(--good) 40%,var(--line));background:color-mix(in srgb,var(--good) 7%,var(--surface))}
+.brk-drow.good b{color:var(--good)}
+.brk-drow.warn{border-color:color-mix(in srgb,var(--c150) 35%,var(--line))}
+.brk-drow.warn b{color:var(--c150)}
+.brk-drow.bad{border-color:color-mix(in srgb,var(--bad) 35%,var(--line))}
+.brk-drow.bad b{color:var(--bad)}
+@media (max-width:840px){
+  .savg-main3{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .brk-donut-card{grid-template-columns:1fr;text-align:center}
 }
 </style>
 </head>
@@ -2198,7 +2215,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v57';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v58';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3158,12 +3175,38 @@ function renderBreak(){
   if (p.driver > 0) add += row('Araç ek ödemesi', '+' + eur(p.driver), 'plus', (+S.driverDay || 0) > 0 ? Math.round(p.driver / S.driverDay) + ' gün × ' + eur(S.driverDay) : 'bordroya göre');
   if (p.extraTravel > 0) add += row('Park ödeneği (geçici ek yol masrafı)', '+' + eur(p.extraTravel), 'plus park', 'Bordroda ayrı satır');
   if (resid) add += row('Düzeltme ve mahsup', (resid > 0 ? '+' : '−') + eur(Math.abs(resid)), resid > 0 ? 'plus' : 'minus', 'Önceki haftalardan ya da borçtan');
-  var kes = r2(p.gross - p.netLoon), pay = Math.max(0, p.payable), tot = pay + kes + outT;
-  var seg = function(c, v){ return v > 0.004 && tot > 0 ? '<i style="width:' + (v / tot * 100) + '%;background:var(' + c + ')"></i>' : ''; };
-  var lgd = function(c, n, v){ return '<div><span class="k"><i style="background:var(' + c + ')"></i>' + n + '</span><b class="num">' + eur(v) + '</b></div>'; };
-  h += '<div class="pflow"><div class="pt">Paranın nereye gittiği</div><div class="pbar" role="img" aria-label="Paranın dağılımı">' + seg('--good', pay) + seg('--bad', kes) + seg('--c150', outT) + '</div>' +
-    '<div class="plg">' + lgd('--good', 'Sana kalan', p.payable) + lgd('--bad', 'Vergi ve sigorta', kes) + lgd('--c150', 'Kira ve giderler', outT) + '</div>' +
-    '<div class="pn num">Brüt maaş ' + eur(p.gross) + (addT ? (addT >= 0 ? ' + ek ödemeler ' : ' − düzeltme ') + eur(Math.abs(addT)) : '') + '</div></div>';
+  var kes = Math.max(0, r2(p.gross - p.netLoon)), pay = Math.max(0, p.payable), tot = Math.max(1, pay + kes + outT);
+  var pctPay = Math.round((pay / tot) * 100);
+  var pctOut = Math.round((outT / tot) * 100);
+  var pctKes = Math.max(0, 100 - pctPay - pctOut);
+  var rD = 56, cD = r2(2 * Math.PI * rD);
+  var lenPay = r2((pay / tot) * cD), lenOut = r2((outT / tot) * cD), lenKes = Math.max(0, r2(cD - lenPay - lenOut));
+  var pkVal = parkOf(p), netNoPk = r2(p.payable - pkVal);
+  h += '<div class="brk-donut-card">' +
+    '<div class="brk-donut-wrap">' +
+      '<svg viewBox="0 0 152 152" role="img" aria-label="' + L('Paranın dağılımı halkası', 'Pay distribution ring') + '">' +
+        '<circle cx="76" cy="76" r="' + rD + '" fill="none" stroke="var(--line)" stroke-width="16"/>' +
+        (lenPay > 0 ? '<circle cx="76" cy="76" r="' + rD + '" fill="none" stroke="var(--good)" stroke-width="16" stroke-dasharray="' + lenPay + ' ' + cD + '" stroke-dashoffset="0"/>' : '') +
+        (lenOut > 0 ? '<circle cx="76" cy="76" r="' + rD + '" fill="none" stroke="var(--c150)" stroke-width="16" stroke-dasharray="' + lenOut + ' ' + cD + '" stroke-dashoffset="-' + lenPay + '"/>' : '') +
+        (lenKes > 0 ? '<circle cx="76" cy="76" r="' + rD + '" fill="none" stroke="var(--bad)" stroke-width="16" stroke-dasharray="' + lenKes + ' ' + cD + '" stroke-dashoffset="-' + r2(lenPay + lenOut) + '"/>' : '') +
+      '</svg>' +
+      '<div class="brk-donut-center num">' +
+        '<small>' + L('Brüt', 'Gross') + ' ' + eur(p.gross) + '</small>' +
+        '<b>' + eur(p.payable) + '</b>' +
+        '<span>' + L('Sana Kalan', 'Left to You') + ' (%' + pctPay + ')</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="brk-donut-right num">' +
+      '<div class="brk-donut-head"><span class="brk-donut-title">🍩 ' + L('Paranın Nereye Gittiği', 'Where Your Money Goes') + '</span>' +
+      '<small style="color:var(--muted);font-size:12px">' + L('Brüt maaş', 'Gross pay') + ' ' + eur(p.gross) + (addT ? (addT >= 0 ? ' + ' + L('ek ödemeler', 'extras') + ' ' : ' − ' + L('düzeltme', 'adj.') + ' ') + eur(Math.abs(addT)) : '') + '</small></div>' +
+      '<div class="brk-donut-rows">' +
+        '<div class="brk-drow good"><span class="k"><i class="dot" style="background:var(--good)"></i>' + L('Sana kalan (Hesaba yatan)', 'Left to you (Paid)') + ' <span class="pct">%' + pctPay + '</span></span><b>' + eur(p.payable) + '</b></div>' +
+        '<div class="brk-drow warn"><span class="k"><i class="dot" style="background:var(--c150)"></i>' + L('Kira ve giderler', 'Rent and expenses') + ' <span class="pct">%' + pctOut + '</span></span><b>−' + eur(outT) + '</b></div>' +
+        '<div class="brk-drow bad"><span class="k"><i class="dot" style="background:var(--bad)"></i>' + L('Vergi ve emeklilik', 'Tax and pension') + ' <span class="pct">%' + pctKes + '</span></span><b>−' + eur(kes) + '</b></div>' +
+      '</div>' +
+      (pkVal > 0 ? '<div style="font-size:12px;color:var(--muted)">💡 ' + L('Park ödeneği hariç net maaş:', 'Net pay excl. parking:') + ' <b style="color:var(--ink)">' + eur(netNoPk) + '</b> + <span class="pkc">' + eur(pkVal) + ' ' + L('park ödeneği', 'parking') + '</span></div>' : '') +
+    '</div>' +
+  '</div>';
   var bd = function(title, sum, cls, body){ return '<details class="bd"><summary><span class="l">' + title + '</span><span class="v num ' + cls + '">' + sum + '</span><span class="chev" aria-hidden="true">›</span></summary><div class="rows">' + body + '</div></details>'; };
   h += '<div class="bflow">';
   h += bd('Kazanç (brüt maaş)', eur(p.gross), 'inc', earn);
@@ -3519,8 +3562,7 @@ function renderSavGoal(force){
     '<div class="field"><label>' + L('Net Maaş Ortalaman', 'Your Avg. Net Pay') + '</label><div style="padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-weight:700;font-size:15px" class="num" id="ug_pay_box"></div><small class="fh num" id="ug_pay_hint"></small></div>' +
   '</div>';
 
-  h += '<div class="prog" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + Math.round(pctDone) + '" style="margin:4px 0"><i id="ug_pbar" style="width:' + pctDone + '%"></i></div>';
-  h += '<div class="savg-leg num" id="ug_pleg"></div>';
+
 
   var slMin = isMo ? 50 : 15, slMax = isMo ? 2600 : 600, slStep = isMo ? 25 : 5;
   var slVal = Math.min(slMax, Math.max(slMin, Math.round(dispSaveVal)));
@@ -3656,15 +3698,14 @@ function renderSavGoalLive(){
   fxUpdateDom();
   $('ug_out').innerHTML = renderSavGoalResult(ug, payInfo, sim);
 }
-function renderSavGoalVizHTML(ug, payInfo, sim){
+function renderSavGoalRingHTML(ug, sim){
   var target = Math.max(1, ug.targetAmt || 1);
   var saved = Math.max(0, ug.saved || 0);
   var effTotal = Math.max(saved, sim.effTotal || 0);
   var pctSaved = ug.targetAmt > 0 ? Math.min(100, Math.max(0, (saved / target) * 100)) : 0;
   var pctTotal = ug.targetAmt > 0 ? Math.min(100, Math.max(0, (effTotal / target) * 100)) : 0;
 
-  /* 1. SOL PANEL: ÇİFT KATMANLI HEDEF HALKASI (RADIAL GAUGE) */
-  var rOut = 60, rIn = 44;
+  var rOut = 58, rIn = 43;
   var cOut = r2(2 * Math.PI * rOut), cIn = r2(2 * Math.PI * rIn);
   var offOut = r2(cOut * (1 - pctTotal / 100));
   var offIn  = r2(cIn  * (1 - pctSaved / 100));
@@ -3672,17 +3713,17 @@ function renderSavGoalVizHTML(ug, payInfo, sim){
   var centerPct = ug.totalCash > 0 ? Math.round(pctTotal) : Math.round(pctSaved);
   var remVal    = ug.totalCash > 0 ? sim.gapAllCash : sim.gapSaved;
 
-  var ringHtml = '<div class="savg-ring-card">' +
+  return '<div class="savg-ring-card">' +
     '<div class="savg-viz-top">' +
       '<span class="savg-viz-eb">🎯 ' + L('Hedef Halkası', 'Goal Gauge') + '</span>' +
       '<span class="savg-viz-bg num">%' + centerPct + ' ' + L('Hazır', 'Ready') + '</span>' +
     '</div>' +
     '<div class="savg-ring-wrap">' +
-      '<svg viewBox="0 0 154 154" aria-label="' + L('Birikim hedef halkası', 'Savings goal ring') + '">' +
-        '<circle cx="77" cy="77" r="' + rOut + '" fill="none" stroke="var(--line)" stroke-width="12" />' +
-        '<circle cx="77" cy="77" r="' + rIn + '" fill="none" stroke="var(--line)" stroke-width="10" opacity="0.65" />' +
-        '<circle cx="77" cy="77" r="' + rOut + '" fill="none" stroke="var(--good)" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + cOut + '" stroke-dashoffset="' + offOut + '" />' +
-        '<circle cx="77" cy="77" r="' + rIn + '" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="' + cIn + '" stroke-dashoffset="' + offIn + '" />' +
+      '<svg viewBox="0 0 148 148" aria-label="' + L('Birikim hedef halkası', 'Savings goal ring') + '">' +
+        '<circle cx="74" cy="74" r="' + rOut + '" fill="none" stroke="var(--line)" stroke-width="12" />' +
+        '<circle cx="74" cy="74" r="' + rIn + '" fill="none" stroke="var(--line)" stroke-width="10" opacity="0.65" />' +
+        '<circle cx="74" cy="74" r="' + rOut + '" fill="none" stroke="var(--good)" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + cOut + '" stroke-dashoffset="' + offOut + '" />' +
+        '<circle cx="74" cy="74" r="' + rIn + '" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="' + cIn + '" stroke-dashoffset="' + offIn + '" />' +
       '</svg>' +
       '<div class="savg-ring-center num">' +
         '<small>' + L('Hedef:', 'Target:') + ' ' + eur(ug.targetAmt) + '</small>' +
@@ -3691,140 +3732,10 @@ function renderSavGoalVizHTML(ug, payInfo, sim){
       '</div>' +
     '</div>' +
     '<div class="savg-ring-leg num">' +
-      '<div class="savg-ring-lrow"><span class="k"><i class="dot" style="background:var(--accent)"></i>' + L('Ayırdığın Bütçe', 'Set-Aside') + ' (%' + Math.round(pctSaved) + ')</span><b>' + eur(saved) + '</b></div>' +
-      '<div class="savg-ring-lrow"><span class="k"><i class="dot" style="background:var(--good)"></i>' + L('Toplam Paranla', 'With Total Cash') + ' (%' + Math.round(pctTotal) + ')</span><b style="color:var(--good)">' + eur(effTotal) + '</b></div>' +
+      '<div class="savg-ring-lrow"><span class="k"><i class="dot" style="background:var(--accent)"></i>' + L('Ayırdığın', 'Set-Aside') + ' (%' + Math.round(pctSaved) + ')</span><b>' + eur(saved) + '</b></div>' +
+      '<div class="savg-ring-lrow"><span class="k"><i class="dot" style="background:var(--good)"></i>' + L('Toplam Paran', 'Total Cash') + ' (%' + Math.round(pctTotal) + ')</span><b style="color:var(--good)">' + eur(effTotal) + '</b></div>' +
     '</div>' +
   '</div>';
-
-  /* 2. SAĞ PANEL: HAFTA HAFTA BİRİKİM BÜYÜME EĞRİSİ (SVG AREA CHART + GİDER BİTİŞ KIRILIMI) */
-  var pf = sim.planFixed;
-  var totalWks = pf.unreachable ? 12 : Math.max(4, Math.min(52, Math.ceil(pf.days / 7)));
-  if (sim.gapSaved <= 0) totalWks = 8;
-
-  /* Haftalık noktaları ve gider bitiş kırılım haftasını hesapla */
-  var pts = [], acc = saved, breakWk = -1, breakIso = '', prevExp = -1;
-  for (var w = 0; w <= totalWks; w++){
-    var wIso = addDays(today, w * 7), wInc = 0, wExp = 0;
-    ug.items.forEach(function(it){
-      var v = ugItemWeeklyAt(it, wIso, w);
-      if (v > 0){ if (it.kind === 'in') wInc = r2(wInc + v); else wExp = r2(wExp + v); }
-    });
-    if (w > 0 && prevExp > 0 && wExp < prevExp - 0.5 && breakWk < 0){
-      breakWk = w;
-      breakIso = wIso;
-    }
-    prevExp = wExp;
-    pts.push({ w: w, val: r2(acc), iso: wIso, wExp: wExp, wInc: wInc });
-    var totIn = r2(payInfo.netWk + wInc - wExp);
-    /* Grafikte gider bittiğinde boşa çıkan paranın birikim potansiyelini nasıl hızlandırdığını da göster */
-    var stepSave = ug.weeklySave;
-    if (totIn < stepSave) stepSave = Math.max(0, totIn);
-    acc = r2(acc + stepSave);
-  }
-
-  var maxY = Math.max(ug.targetAmt * 1.08, pts[pts.length - 1].val * 1.05, saved + 100, 100);
-  var W = 520, H = 172, padL = 48, padR = 18, padT = 22, padB = 26;
-  var plotW = W - padL - padR, plotH = H - padT - padB;
-  var xOf = function(w){ return r2(padL + (w / Math.max(1, totalWks)) * plotW); };
-  var yOf = function(v){ return r2(padT + plotH - (Math.min(maxY, Math.max(0, v)) / maxY) * plotH); };
-
-  var dPath = pts.map(function(p, i){ return (i === 0 ? 'M' : 'L') + xOf(p.w) + ',' + yOf(p.val); }).join(' ');
-  var areaPath = dPath + ' L' + xOf(totalWks) + ',' + (padT + plotH) + ' L' + xOf(0) + ',' + (padT + plotH) + ' Z';
-  var yTarget = yOf(ug.targetAmt);
-
-  var svgInner = '<defs>' +
-    '<linearGradient id="ugAreaGrad" x1="0" y1="0" x2="0" y2="1">' +
-      '<stop offset="0%" stop-color="var(--accent)" stop-opacity="0.38"/>' +
-      '<stop offset="100%" stop-color="var(--good)" stop-opacity="0.03"/>' +
-    '</linearGradient>' +
-  '</defs>';
-
-  /* Yatay kılavuz çizgileri */
-  var midVal = Math.round((ug.targetAmt / 2) / 50) * 50;
-  if (midVal > 0 && midVal < ug.targetAmt){
-    var yMid = yOf(midVal);
-    svgInner += '<line x1="' + padL + '" y1="' + yMid + '" x2="' + (W - padR) + '" y2="' + yMid + '" stroke="var(--line)" stroke-dasharray="3 3" stroke-width="1"/>' +
-      '<text x="2" y="' + (yMid + 4) + '" font-size="10" fill="var(--muted)">€' + Math.round(midVal) + '</text>';
-  }
-  svgInner += '<line x1="' + padL + '" y1="' + (padT + plotH) + '" x2="' + (W - padR) + '" y2="' + (padT + plotH) + '" stroke="var(--line)" stroke-width="1"/>' +
-    '<text x="2" y="' + (padT + plotH + 3) + '" font-size="10" fill="var(--muted)">€0</text>';
-
-  /* Hedef Çizgisi */
-  if (ug.targetAmt > 0){
-    svgInner += '<line x1="' + padL + '" y1="' + yTarget + '" x2="' + (W - padR) + '" y2="' + yTarget + '" stroke="var(--good)" stroke-width="1.6" stroke-dasharray="5 4"/>' +
-      '<text x="' + (padL + 4) + '" y="' + Math.max(12, yTarget - 5) + '" font-size="10.5" font-weight="700" fill="var(--good)">🎯 ' + L('Hedef', 'Goal') + ' ' + eur(ug.targetAmt) + '</text>';
-  }
-
-  /* Gider Bitiş Kırılım Çizgisi (varsa) */
-  if (breakWk > 0 && breakWk <= totalWks){
-    var xBrk = xOf(breakWk);
-    svgInner += '<line x1="' + xBrk + '" y1="' + padT + '" x2="' + xBrk + '" y2="' + (padT + plotH) + '" stroke="var(--c150)" stroke-width="1.6" stroke-dasharray="3 3"/>' +
-      '<text x="' + Math.min(W - 95, Math.max(padL + 10, xBrk - 45)) + '" y="' + (padT + 10) + '" font-size="10" font-weight="700" fill="var(--c150)">⚡ ' + dlabel(breakIso) + ' ' + L('Gider Biter', 'Expense Ends') + '</text>';
-  }
-
-  /* Alan ve Ana Eğri */
-  svgInner += '<path d="' + areaPath + '" fill="url(#ugAreaGrad)"/>' +
-    '<path d="' + dPath + '" fill="none" stroke="var(--accent)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>';
-
-  /* Noktalar ve Hafta Etiketleri */
-  var stepW = totalWks <= 8 ? 1 : (totalWks <= 16 ? 2 : Math.ceil(totalWks / 6));
-  pts.forEach(function(p, idx){
-    var isKey = (idx === 0 || idx === totalWks || idx === breakWk || idx % stepW === 0);
-    if (!isKey) return;
-    var cx = xOf(p.w), cy = yOf(p.val);
-    var dotCol = p.val >= ug.targetAmt && ug.targetAmt > 0 ? 'var(--good)' : (idx === breakWk ? 'var(--c150)' : 'var(--accent)');
-    svgInner += '<circle cx="' + cx + '" cy="' + cy + '" r="4" fill="' + dotCol + '" stroke="var(--surface)" stroke-width="1.6"/>';
-    svgInner += '<text x="' + cx + '" y="' + (padT + plotH + 16) + '" text-anchor="middle" font-size="10" fill="var(--muted)">' + p.w + '.' + L('hf', 'w') + '</text>';
-    if (idx === 0 || idx === totalWks || idx === breakWk){
-      var lblY = Math.max(12, cy - 8);
-      var anchor = idx === 0 ? 'start' : (idx === totalWks ? 'end' : 'middle');
-      svgInner += '<text x="' + cx + '" y="' + lblY + '" text-anchor="' + anchor + '" font-size="10.5" font-weight="700" fill="' + dotCol + '">€' + Math.round(p.val) + '</text>';
-    }
-  });
-
-  var pFirst = sim.phases[0], pLast = sim.phases[sim.phases.length - 1] || pFirst;
-  var curveFoot = '<div class="savg-curve-foot num">' +
-    '<span>🟣 <b>' + L('Başlangıç:', 'Start:') + '</b> ' + eur(saved) + ' → <b>' + L('Haftalık:', 'Weekly:') + '</b> +' + eur(pFirst.effSave) + '/' + L('hf', 'wk') + '</span>' +
-    (sim.phases.length > 1
-      ? ('<span style="color:var(--good)">🟢 <b>' + L('Gider bitince cebinde kalan:', 'Left after bill ends:') + '</b> ' + eur(pFirst.spendLeft) + '/hf → <b>' + eur(pLast.spendLeft) + '/hf</b></span>')
-      : ('<span style="color:var(--good)">🟢 <b>' + L('Hedef Tarihi:', 'Goal Date:') + '</b> ' + (sim.gapSaved <= 0 ? L('Bugün Hazır ✓', 'Ready Today ✓') : (pf.unreachable ? '—' : ugDateFull(pf.dateIso))) + '</span>')) +
-  '</div>';
-
-  var curveHtml = '<div class="savg-curve-card">' +
-    '<div class="savg-viz-top">' +
-      '<div><span class="savg-viz-eb">📈 ' + L('Birikim Büyüme Eğrisi', 'Savings Growth Curve') + '</span>' +
-      '<small class="fh" style="margin-top:1px">' + L('Ayırdığın birikimin haftalar içinde hedefe yükselişi', 'Week-by-week trajectory of your savings toward the goal') + '</small></div>' +
-      '<span class="savg-viz-bg num">' + (sim.gapSaved <= 0 ? ('🎉 ' + L('Hedefe Ulaşıldı', 'Goal Reached')) : (pf.unreachable ? L('Bütçe Yetersiz', 'Low Budget') : ugDurTxt(pf.days))) + '</span>' +
-    '</div>' +
-    '<svg class="savg-curve-svg num" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + L('Birikim büyüme eğrisi grafiği', 'Savings growth curve chart') + '">' + svgInner + '</svg>' +
-    curveFoot +
-  '</div>';
-
-  /* 3. HAFTALIK MAAŞ & BÜTÇE DAĞILIM ÇUBUĞU */
-  var totInNow = Math.max(1, r2(payInfo.netWk + sim.curIncWk));
-  var saveNow = Math.max(0, pFirst.effSave);
-  var expNow  = Math.max(0, sim.curExpWk);
-  var pktNow  = Math.max(0, pFirst.spendLeft);
-  var sumBar  = Math.max(1, saveNow + expNow + pktNow);
-  var wSavePct = Math.round((saveNow / sumBar) * 100);
-  var wExpPct  = Math.round((expNow  / sumBar) * 100);
-  var wPktPct  = Math.max(0, 100 - wSavePct - wExpPct);
-
-  var flowHtml = '<div class="savg-flowbar num">' +
-    '<div class="savg-flowbar-top"><b>📊 ' + L('Haftalık Maaş & Bütçe Dağılımı', 'Weekly Pay & Budget Split') + '</b><span>' + L('Net Maaş:', 'Net Pay:') + ' <b>' + eur(payInfo.netWk) + '/hf</b>' + (sim.curIncWk > 0 ? ' + ' + L('Ek Gelir:', 'Extra Inc:') + ' <b>' + eur(sim.curIncWk) + '/hf</b>' : '') + '</span></div>' +
-    '<div class="savg-flowbar-track">' +
-      (wSavePct > 0 ? '<i style="width:' + wSavePct + '%;background:var(--accent)"></i>' : '') +
-      (wExpPct > 0 ? '<i style="width:' + wExpPct + '%;background:var(--c150)"></i>' : '') +
-      (wPktPct > 0 ? '<i style="width:' + wPktPct + '%;background:var(--good)"></i>' : '') +
-    '</div>' +
-    '<div class="savg-flowbar-leg">' +
-      '<span><i style="background:var(--accent)"></i>' + L('Birikime Ayrılan:', 'To Savings:') + ' <b>' + eur(saveNow) + '/hf</b> (%' + wSavePct + ')</span>' +
-      (expNow > 0 ? '<span><i style="background:var(--c150)"></i>' + L('Ek Giderler:', 'Extra Bills:') + ' <b>' + eur(expNow) + '/hf</b> (%' + wExpPct + ')</span>' : '') +
-      '<span><i style="background:var(--good)"></i>' + L('Cebinde Harcamaya Kalan:', 'Left in Pocket:') + ' <b style="color:var(--good)">' + eur(pFirst.spendLeft) + '/hf</b> (%' + wPktPct + ')</span>' +
-    '</div>' +
-  '</div>';
-
-  return '<div class="savg-viz">' + ringHtml + curveHtml + '</div>' + flowHtml;
 }
 function renderSavGoalResult(ug, payInfo, sim){
   var isMo = ug.period === 'month', title = esc(ug.title || L('Hedefim', 'My Goal'));
@@ -3835,100 +3746,81 @@ function renderSavGoalResult(ug, payInfo, sim){
   var usedFromRegular = Math.max(0, r2(ug.targetAmt - ug.saved));
   var dailyPace = Math.max(1, ug.weeklySave / 7);
   var isTinyGap = !canBuyNow && ug.targetAmt > 0 && (sim.gapAllCash <= Math.max(25, dailyPace * 1.5));
-  var h = renderSavGoalVizHTML(ug, payInfo, sim);
 
-  h += '<div class="savg-cards">';
+  var spendWkNow = pFirst.spendLeft, spendMoNow = r2(spendWkNow * 52 / 12);
+  var spendWkEnd = pLast.spendLeft, spendMoEnd = r2(spendWkEnd * 52 / 12);
+  var spendNowTxt = isMo ? (eur(spendMoNow) + '/' + L('ay', 'mo')) : (eur(spendWkNow) + '/' + L('hf', 'wk'));
+  var spendEndTxt = (sim.phases.length > 1 && Math.abs(spendWkEnd - spendWkNow) > 0.5)
+    ? (' → ' + L('Gider bitince:', 'After bill ends:') + ' ' + (isMo ? eur(spendMoEnd) + '/ay' : eur(spendWkEnd) + '/hf'))
+    : '';
+
+  /* Tek Satırda 3 Ana Kutu: [🎯 Hedef Halkası] + [💳 1. Elindeki Parayı Kullanırsan] + [🎯 2. Diğer Parana Dokunmadan] */
+  var h = '<div class="savg-main3">';
+  h += renderSavGoalRingHTML(ug, sim);
 
   /* KART 1: Elindeki Parayı Kullanırsan */
   if (canBuyNow){
     h += '<div class="savg-sc ok">' +
       '<div class="savg-sc-top"><span class="savg-sc-eb">💳 ' + L('1. Elindeki Parayı Kullanırsan', '1. Using Your Money on Hand') + '</span><span class="savg-sc-bg">✓ ' + L('Bugün Hazır', 'Ready Today') + '</span></div>' +
-      '<div class="savg-sc-big">✅ ' + L('Bugün Hemen Gerçekleştirebilirsin!', 'You Can Complete It Today!') + '</div>' +
-      '<div class="savg-sc-sub">' + L('Elindeki <b class="num">' + eur(sim.effTotal) + '</b> ile <b>' + title + '</b> (<b class="num">' + eur(ug.targetAmt) + '</b>) işlemini <b>' + ugDateFull(today) + '</b> itibarıyla hemen yapabiliyorsun.', 'Your <b class="num">' + eur(sim.effTotal) + '</b> covers <b>' + title + '</b> (<b class="num">' + eur(ug.targetAmt) + '</b>) today.') + '</div>' +
+      '<div class="savg-sc-big">✅ ' + L('Hemen Gerçekleştirebilirsin!', 'You Can Complete It Today!') + '</div>' +
+      '<div class="savg-sc-sub">' + L('<b>' + title + '</b> (<b class="num">' + eur(ug.targetAmt) + '</b>) işlemini <b>' + ugDateFull(today) + '</b> itibarıyla yapabilirsin.', 'Your money covers <b>' + title + '</b> (<b class="num">' + eur(ug.targetAmt) + '</b>) today.') + '</div>' +
       '<div class="savg-sc-rows num">' +
-        '<div class="savg-sc-r"><span>' + L('Ayırdığın bütçeden kullanılan:', 'Used from set-aside budget:') + '</span><b>' + eur(usedSaved) + '</b></div>' +
-        '<div class="savg-sc-r"><span>' + L('Diğer parandan tamamlanan:', 'Covered from your other money:') + '</span><b>' + eur(usedFromRegular) + '</b></div>' +
-        '<div class="savg-sc-r tot"><span>' + L('İşlem Sonrası Sana Kalan:', 'Money Left After Transaction:') + '</span><b style="color:var(--good)">' + eur(leftAfterNow) + '</b></div>' +
+        '<div class="savg-sc-r"><span>' + L('Ayırdığın bütçeden:', 'From set-aside:') + '</span><b>' + eur(usedSaved) + '</b></div>' +
+        '<div class="savg-sc-r"><span>' + L('Diğer parandan:', 'From other money:') + '</span><b>' + eur(usedFromRegular) + '</b></div>' +
+        '<div class="savg-sc-r tot"><span>' + L('Sana Kalan Para:', 'Money Left to You:') + '</span><b style="color:var(--good)">' + eur(leftAfterNow) + '</b></div>' +
       '</div></div>';
   } else if (isTinyGap){
     h += '<div class="savg-sc near">' +
       '<div class="savg-sc-top"><span class="savg-sc-eb">💳 ' + L('1. Elindeki Parayı Kullanırsan', '1. Using Your Money on Hand') + '</span><span class="savg-sc-bg num">' + L('Sadece ', 'Only ') + eur(sim.gapAllCash) + ' ' + L('Fark', 'Diff') + '</span></div>' +
-      '<div class="savg-sc-big">👌 ' + L('Neredeyse Hazır! (Hafta Beklemene Gerek Yok)', 'Almost Ready! (No Need to Wait a Week)') + '</div>' +
-      '<div class="savg-sc-sub">' + L('Elinde <b class="num">' + eur(sim.effTotal) + '</b> var; <b class="num">' + eur(ug.targetAmt) + '</b> hedefin için sadece <b class="num">' + eur(sim.gapAllCash) + '</b> fark kalmış. Bugün/yarın hemen tamamlayabilirsin.', 'You have <b class="num">' + eur(sim.effTotal) + '</b>; only <b class="num">' + eur(sim.gapAllCash) + '</b> short of <b class="num">' + eur(ug.targetAmt) + '</b>.') + '</div>' +
+      '<div class="savg-sc-big">👌 ' + L('Neredeyse Hazır!', 'Almost Ready!') + '</div>' +
+      '<div class="savg-sc-sub">' + L('Hafta beklemene gerek yok; sadece <b class="num">' + eur(sim.gapAllCash) + '</b> fark kalmış, bugün/yarın tamamlanır.', 'No need to wait a week; only <b class="num">' + eur(sim.gapAllCash) + '</b> short.') + '</div>' +
       '<div class="savg-sc-rows num">' +
         '<div class="savg-sc-r"><span>' + L('Mevcut toplam paran:', 'Your total money:') + '</span><b>' + eur(sim.effTotal) + '</b></div>' +
-        '<div class="savg-sc-r"><span>' + L('Kalan ufak fark:', 'Tiny remaining difference:') + '</span><b style="color:var(--good)">' + eur(sim.gapAllCash) + '</b></div>' +
+        '<div class="savg-sc-r"><span>' + L('Kalan ufak fark:', 'Tiny difference:') + '</span><b style="color:var(--good)">' + eur(sim.gapAllCash) + '</b></div>' +
         '<div class="savg-sc-r tot"><span>' + L('Durum:', 'Status:') + '</span><b style="color:var(--good)">' + L('Bugün / Yarın Hazır ✓', 'Ready Today / Tomorrow ✓') + '</b></div>' +
       '</div></div>';
   } else {
     var ac = sim.allCashTrack;
-    var allDateTxt = ac.unreachable ? L('Mevcut hızla ulaşılamıyor', 'Not reachable at current pace') : (ugDurTxt(ac.days) + ' · ' + ugDateFull(ac.dateIso));
+    var allDateTxt = ac.unreachable ? L('Mevcut hızla ulaşılamıyor', 'Not reachable at current pace') : ugDateFull(ac.dateIso);
     h += '<div class="savg-sc warn">' +
       '<div class="savg-sc-top"><span class="savg-sc-eb">💳 ' + L('1. Elindeki Parayı Kullanırsan', '1. Using Your Current Money') + '</span><span class="savg-sc-bg num">' + eur(sim.gapAllCash) + ' ' + L('Eksik', 'Short') + '</span></div>' +
-      '<div class="savg-sc-big num">⏳ ' + (ac.unreachable ? (eur(sim.gapAllCash) + ' ' + L('Daha Lazım', 'More Needed')) : (ugDurTxt(ac.days) + ' · ' + ugDateFull(ac.dateIso))) + '</div>' +
-      '<div class="savg-sc-sub">' + L('Elindeki <b class="num">' + eur(sim.effTotal) + '</b> üzerine <b class="num">' + eur(sim.gapAllCash) + '</b> daha biriktirdiğinde yukarıdaki tarihte tamamlanır.', 'Saving <b class="num">' + eur(sim.gapAllCash) + '</b> more on top of your <b class="num">' + eur(sim.effTotal) + '</b> completes it on the date above.') + '</div>' +
+      '<div class="savg-sc-big num">⏳ ' + (ac.unreachable ? (eur(sim.gapAllCash) + ' ' + L('Daha Lazım', 'More Needed')) : ugDurTxt(ac.days)) + '</div>' +
+      '<div class="savg-sc-sub">' + L('Elindeki <b class="num">' + eur(sim.effTotal) + '</b> üzerine <b class="num">' + eur(sim.gapAllCash) + '</b> daha biriktirince tamamlanır.', 'Saving <b class="num">' + eur(sim.gapAllCash) + '</b> more on top of <b class="num">' + eur(sim.effTotal) + '</b> completes it.') + '</div>' +
       '<div class="savg-sc-rows num">' +
-        '<div class="savg-sc-r"><span>' + L('Hedef için kalan açık:', 'Remaining gap for goal:') + '</span><b>' + eur(sim.gapAllCash) + '</b></div>' +
-        '<div class="savg-sc-r tot"><span>' + L('Tamamlanacağı Tarih:', 'Completion Date:') + '</span><b style="color:var(--c150)">' + allDateTxt + '</b></div>' +
+        '<div class="savg-sc-r"><span>' + L('Kalan açık:', 'Remaining gap:') + '</span><b>' + eur(sim.gapAllCash) + '</b></div>' +
+        '<div class="savg-sc-r tot"><span>' + L('Tamamlanma Tarihi:', 'Completion Date:') + '</span><b style="color:var(--c150)">' + allDateTxt + '</b></div>' +
       '</div></div>';
   }
 
   /* KART 2: Diğer Parana Dokunmadan (Sadece Ayırdığın Bütçe Üzerine Biriktirerek) */
-  var pf = sim.planFixed, pb = sim.planBoost;
+  var pf = sim.planFixed;
   var savedTiny = sim.gapSaved > 0 && sim.gapSaved <= Math.max(25, dailyPace * 1.5);
-  var badge2 = sim.gapSaved <= 0 ? ('🎉 ' + L('Hazır', 'Ready')) : savedTiny ? ('👌 ' + eur(sim.gapSaved) + ' ' + L('fark', 'diff')) : pf.unreachable ? ('⚠️ ' + L('Bütçe Yetersiz', 'Low Budget')) : ugDurTxt(pf.days);
+  var badge2 = sim.gapSaved <= 0 ? ('🎉 ' + L('Hazır', 'Ready')) : savedTiny ? ('👌 ' + eur(sim.gapSaved) + ' ' + L('fark', 'diff')) : pf.unreachable ? ('⚠️ ' + L('Yetersiz', 'Low')) : ugDurTxt(pf.days);
   var big2 = sim.gapSaved <= 0
-    ? ('🎉 ' + L('Ayırdığın Bütçe Tek Başına Yetiyor!', 'Your Allocated Budget Covers It!'))
+    ? ('🎉 ' + L('Ayırdığın Bütçe Yetiyor!', 'Allocated Budget Covers It!'))
     : savedTiny
-      ? ('👌 ' + L('Sadece ', 'Only ') + eur(sim.gapSaved) + L(' Kaldı (Bugün / Yarın Hazır)', ' Left (Ready Today / Tomorrow)'))
+      ? ('👌 ' + L('Sadece ', 'Only ') + eur(sim.gapSaved) + L(' Kaldı', ' Left'))
       : pf.unreachable
-        ? ('⚠️ ' + L('Giderler Birikim Hızını Aşıyor', 'Expenses Exceed Saving Capacity'))
+        ? ('⚠️ ' + L('Giderler Birikimi Aşıyor', 'Expenses Exceed Savings'))
         : ('📅 ' + ugDateFull(pf.dateIso));
   var sub2 = sim.gapSaved <= 0
-    ? L('Ayırdığın <b class="num">' + eur(ug.saved) + '</b> bütçe hedefini bugün karşılıyor.', 'Your <b class="num">' + eur(ug.saved) + '</b> allocated budget covers the goal today.')
+    ? L('Ayırdığın <b class="num">' + eur(ug.saved) + '</b> bütçe hedefini bugün karşılıyor.', 'Your <b class="num">' + eur(ug.saved) + '</b> budget covers the goal today.')
     : savedTiny
-      ? L('Ayırdığın <b class="num">' + eur(ug.saved) + '</b> neredeyse tam hedef tutarında; hafta beklemene gerek yok.', 'Your set-aside is almost at the full target; no need to wait.')
+      ? L('Ayırdığın <b class="num">' + eur(ug.saved) + '</b> neredeyse tam hedef tutarında.', 'Your set-aside is almost at the full target.')
       : pf.unreachable
-        ? L('Eklediğin giderler maaşından fazla olduğu için kenara para ayrılamıyor.', 'Added expenses exceed your pay.')
-        : L('Diğer parana dokunmadan, ayırdığın <b class="num">' + eur(ug.saved) + '</b> üzerine biriktirerek <b>' + ugDurTxt(pf.days) + '</b> hedefe ulaşırsın.', 'Without touching your other money, building on your <b class="num">' + eur(ug.saved) + '</b> reaches the goal in <b>' + ugDurTxt(pf.days) + '</b>.');
+        ? L('Eklediğin giderler maaşından fazla olduğu için para ayrılamıyor.', 'Added expenses exceed your pay.')
+        : L('Diğer parana dokunmadan, ayırdığın <b class="num">' + eur(ug.saved) + '</b> üzerine biriktirerek <b>' + ugDurTxt(pf.days) + '</b> sonra ulaşırsın.', 'Without touching other money, building on <b class="num">' + eur(ug.saved) + '</b> reaches the goal in <b>' + ugDurTxt(pf.days) + '</b>.');
 
   h += '<div class="savg-sc plan">' +
-    '<div class="savg-sc-top"><span class="savg-sc-eb">🎯 ' + (ug.totalCash > 0 ? L('2. Diğer Parana (' + eur(Math.max(0, sim.regularCash)) + ') Dokunmadan', '2. Keeping Your Other Money (' + eur(Math.max(0, sim.regularCash)) + ')') : L('2. Sadece Biriktirerek Alırsan', '2. By Saving Up')) + '</span><span class="savg-sc-bg num">' + badge2 + '</span></div>' +
+    '<div class="savg-sc-top"><span class="savg-sc-eb">🎯 ' + (ug.totalCash > 0 ? L('2. Diğer Parana (' + eur(Math.max(0, sim.regularCash)) + ') Dokunmadan', '2. Keeping Other Money (' + eur(Math.max(0, sim.regularCash)) + ')') : L('2. Sadece Biriktirerek', '2. By Saving Up')) + '</span><span class="savg-sc-bg num">' + badge2 + '</span></div>' +
     '<div class="savg-sc-big num">' + big2 + '</div>' +
     '<div class="savg-sc-sub">' + sub2 + '</div>' +
     '<div class="savg-sc-rows num">' +
-      '<div class="savg-sc-r"><span>' + L('Biriktirilecek kalan tutar:', 'Remaining to save:') + '</span><b>' + eur(sim.gapSaved) + '</b></div>' +
-      (!pb.unreachable && !pf.unreachable && pb.days < pf.days ? '<div class="savg-sc-r"><span>💡 ' + L('Ek gelir / biten gideri de birikime katarsan:', 'If extra income / ended bills added:') + '</span><b style="color:var(--good)">' + ugDurTxt(pb.days) + ' · ' + ugDateFull(pb.dateIso) + '</b></div>' : '') +
-      '<div class="savg-sc-r tot"><span>' + (ug.totalCash > 0 ? L('Cebinde Kalacak Diğer Paran:', 'Other Money Left Untouched:') : L('Hedef Tamamlandığında:', 'When Goal Reached:')) + '</span><b style="color:var(--good)">' + (ug.totalCash > 0 ? eur(Math.max(0, sim.regularCash)) + ' (' + L('Dokunulmaz', 'Untouched') + ')' : eur(ug.targetAmt)) + '</b></div>' +
+      '<div class="savg-sc-r"><span>' + L('Birikim sonrası harcamaya kalan:', 'Left to spend after saving:') + '</span><b style="color:' + (spendWkNow >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + spendNowTxt + spendEndTxt + '</b></div>' +
+      '<div class="savg-sc-r tot"><span>' + (ug.totalCash > 0 ? L('Cebinde Kalacak Diğer Paran:', 'Other Money Untouched:') : L('Biriktirilecek Kalan:', 'Remaining to Save:')) + '</span><b style="color:var(--good)">' + (ug.totalCash > 0 ? eur(Math.max(0, sim.regularCash)) + ' (' + L('Dokunulmaz', 'Untouched') + ')' : eur(sim.gapSaved)) + '</b></div>' +
     '</div></div>';
 
   h += '</div>';
-
-  /* 3'LÜ ÖZET KUTULARI */
-  var effWkNow = pFirst.effSave, effMoNow = r2(effWkNow * 52 / 12);
-  var spendWkNow = pFirst.spendLeft, spendMoNow = r2(spendWkNow * 52 / 12);
-  var spendWkEnd = pLast.spendLeft, spendMoEnd = r2(spendWkEnd * 52 / 12);
-
-  h += '<div class="savg-grid">' +
-    '<div class="savg-box hi"><small style="color:var(--muted);display:block">' + title + ' (' + eur(ug.targetAmt) + ')</small><b class="num" style="font-size:16.5px;display:block;margin-top:2px">' + (sim.gapSaved <= 0 ? '🎉 ' + L('Hazır!', 'Ready!') : (pf.unreachable ? '—' : ugDurTxt(pf.days))) + '</b><small class="num" style="color:var(--muted)">' + L('Tarih:', 'Date:') + ' <b>' + (sim.gapSaved <= 0 ? ugDateFull(today) : (pf.unreachable ? '—' : ugDateFull(pf.dateIso))) + '</b></small></div>' +
-    '<div class="savg-box"><small style="color:var(--muted);display:block">' + (isMo ? L('Aylık Kenara Ayrılan', 'Monthly Saved') : L('Haftalık Kenara Ayrılan', 'Weekly Saved')) + '</small><b class="num" style="font-size:16.5px;display:block;margin-top:2px">' + (isMo ? eur(effMoNow) + ' / ' + L('ay', 'mo') : eur(effWkNow) + ' / ' + L('hafta', 'wk')) + '</b><small class="num" style="color:var(--muted)">' + (isMo ? (L('Haftalık: ≈ ', 'Weekly: ≈ ') + eur(effWkNow)) : (L('Aylık: ≈ ', 'Monthly: ≈ ') + eur(effMoNow))) + '</small></div>' +
-    '<div class="savg-box"><small style="color:var(--muted);display:block">' + (isMo ? L('Cebinde Harcamaya Kalan (Aylık)', 'Left to Spend (Monthly)') : L('Cebinde Harcamaya Kalan (Haftalık)', 'Left to Spend (Weekly)')) + '</small><b class="num" style="font-size:16.5px;display:block;margin-top:2px;color:' + (spendWkNow >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + (spendWkNow >= 0 ? (isMo ? eur(spendMoNow) + ' / ' + L('ay', 'mo') : eur(spendWkNow) + ' / ' + L('hafta', 'wk')) : '−' + eur(Math.abs(isMo ? spendMoNow : spendWkNow)) + ' ' + L('aşım', 'over')) + '</b><small class="num" style="color:var(--muted)">' + (isMo ? (L('Haftalık: ', 'Weekly: ') + eur(spendWkNow) + '/hf') : (L('Aylık: ≈ ', 'Monthly: ≈ ') + eur(spendMoNow) + '/ay')) + (sim.phases.length > 1 && Math.abs(spendWkEnd - spendWkNow) > 0.5 ? ' · ' + L('Gider bitince: ', 'After bills end: ') + (isMo ? eur(spendMoEnd) + '/ay' : eur(spendWkEnd) + '/hf') : '') + '</small></div>' +
-  '</div>';
-
-  /* Hızlı Tempo Seçiciler (%20 / %35 / %50) */
-  var avgWk = Math.max(100, payInfo.netWk);
-  var tSlow = Math.max(25, Math.round(avgWk * 0.20 / 5) * 5);
-  var tMed  = Math.max(50, Math.round(avgWk * 0.35 / 5) * 5);
-  var tFast = Math.max(75, Math.round(avgWk * 0.50 / 5) * 5);
-  var trSlow = ugRunTrack(ug.saved, ug.targetAmt, tSlow, avgWk, ug.items, false);
-  var trMed  = ugRunTrack(ug.saved, ug.targetAmt, tMed,  avgWk, ug.items, false);
-  var trFast = ugRunTrack(ug.saved, ug.targetAmt, tFast, avgWk, ug.items, false);
-
-  h += '<div class="savg-tempos">' +
-    '<button type="button" class="savg-tbtn' + (Math.abs(ug.weeklySave - tSlow) < 3 ? ' on' : '') + '" data-act="ugTempo" data-v="' + tSlow + '"><b>🐢 ' + L('Rahat (%20)', 'Easy (20%)') + '</b><span>' + L('Haftada', 'Weekly') + ' ' + eur(tSlow) + ' · ' + L('Ayda', 'Monthly') + ' ' + eur(Math.round(tSlow * 52 / 12)) + '</span><br><small style="color:var(--muted)">' + (sim.gapSaved <= 0 ? L('Hazır', 'Ready') : ugDurTxt(trSlow.days) + ' · ' + ugDateFull(trSlow.dateIso)) + '</small></button>' +
-    '<button type="button" class="savg-tbtn' + (Math.abs(ug.weeklySave - tMed) < 3 ? ' on' : '') + '" data-act="ugTempo" data-v="' + tMed + '"><b>⚖️ ' + L('Dengeli (%35)', 'Balanced (35%)') + '</b><span>' + L('Haftada', 'Weekly') + ' ' + eur(tMed) + ' · ' + L('Ayda', 'Monthly') + ' ' + eur(Math.round(tMed * 52 / 12)) + '</span><br><small style="color:var(--muted)">' + (sim.gapSaved <= 0 ? L('Hazır', 'Ready') : ugDurTxt(trMed.days) + ' · ' + ugDateFull(trMed.dateIso)) + '</small></button>' +
-    '<button type="button" class="savg-tbtn' + (Math.abs(ug.weeklySave - tFast) < 3 ? ' on' : '') + '" data-act="ugTempo" data-v="' + tFast + '"><b>🚀 ' + L('Hızlı (%50)', 'Fast (50%)') + '</b><span>' + L('Haftada', 'Weekly') + ' ' + eur(tFast) + ' · ' + L('Ayda', 'Monthly') + ' ' + eur(Math.round(tFast * 52 / 12)) + '</span><br><small style="color:var(--muted)">' + (sim.gapSaved <= 0 ? L('Hazır', 'Ready') : ugDurTxt(trFast.days) + ' · ' + ugDateFull(trFast.dateIso)) + '</small></button>' +
-  '</div>';
   return h;
 }
 function renderMonth(){
