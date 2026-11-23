@@ -14,6 +14,15 @@
 
 
 
+## v53 (`2026-11-23-shiftpay-v53`) — **Antigravity** — Birikim & Hedef Planlayıcı Sadeleştirme, Tarih Girişi Bug Düzeltmesi ve Gün Hassasiyetli Hesap
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Düzeltilenler:**
+  1. **Tarih (`gg.aa.yyyy`) Manuel Yıl (`0000`) Bug'ı Giderildi:** `<input type="date">` alanında yıl elle yazılırken (`0002` -> `0020` -> `2027`) `change` olayının `renderSavGoal(true)` çağırıp DOM'u yeniden oluşturması kaldırıldı ve yalnızca tam `2024+` yılı girildiğinde simülasyona işlenmesi sağlandı; ayrıca tek tıkla `Süresiz`, `+1 Ay`, `+2 Ay`, `+3 Ay`, `+6 Ay` hızlı bitiş çipleri eklendi.
+  2. **Küçük Fark (€10) İçin 1 Hafta Bekletme Saçmalığı Giderildi (`ugRunTrack`):** `Math.ceil` ile her farkı tam haftaya yuvarlamak yerine **gün hassasiyetli** hesaplamaya geçildi; ayrıca kalan fark `<= €25` (veya ~1 günlük birikimden az) olduğunda *"1 hafta bekle"* demek yerine **`👌 Neredeyse Hazır! (Sadece €10,00 Fark — Hafta Beklemene Gerek Yok, Bugün/Yarın Hazır)`** gösteriliyor.
+  3. **Kafa Karıştıran Mod Butonları & Metin Kalabalığı Temizlendi:** Kafa karıştıran 2 mod butonu (`Hedef Tarihini Öne Çek` / `Harcama Bütçemi Rahatlat`) kaldırıldı; tüm kartlar ve metinler tek bakışta anlaşılır, sade ve modern hale getirildi.
+
+---
+
 ## v52 (`2026-11-23-shiftpay-v52`) — **Antigravity** — Dinamik Çoklu Birikim, Bitiş Tarihli Gelir/Gider & Haftalık/Aylık Hedef Motoru
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı (`💰 Birikimim & Hedefim` — `userGoalObj`, `ugAvgPayInfo`, `ugSimulate`, `renderSavGoal`):**
