@@ -1010,7 +1010,8 @@ details.chk-drawer .chk-body{padding:10px 13px 12px;border-top:1px solid var(--l
   }
   html:not(.ui-classic) .maassubbar{
     grid-column:1;
-    grid-row:5 / span 4;
+    grid-row:span 2;
+    align-self:start;
     position:sticky;
     top:18px;
     margin:0;
@@ -2327,7 +2328,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v59';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v60';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
