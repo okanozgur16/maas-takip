@@ -1,6 +1,6 @@
 /* ShiftPay: çevrimdışı açılış için uygulama dosyalarını önbelleğe alır.
    Kullanıcı verilerine dokunmaz (veriler tarayıcının localStorage'ında durur). */
-const CACHE = 'maas-takip-v1-2026-11-23-shiftpay-v56';
+const CACHE = 'maas-takip-v1-2026-11-23-shiftpay-v57';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './lib/pdf.min.js', './lib/pdf.worker.min.js', './fonts/bricolage-grotesque-latin-standard-normal.woff2', './fonts/bricolage-grotesque-latin-ext-standard-normal.woff2', './fonts/hanken-grotesk-latin-wght-normal.woff2', './fonts/hanken-grotesk-latin-ext-wght-normal.woff2'];
 
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES.map(u => new Request(u, { cache: 'reload' })))).then(() => self.skipWaiting())); });

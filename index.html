@@ -926,6 +926,35 @@ details.mexp .mexp-r.tot b{color:var(--c150)}
 .stat:hover{border-color:color-mix(in srgb,var(--accent) 32%,var(--line))}
 .day{border-radius:15px;transition:border-color .16s ease,box-shadow .16s ease}
 .facts{padding:9px 12px;border-radius:12px;background:var(--surface2);border:1px solid var(--line);gap:8px 16px}
+
+/* v57: Birikim Çift Katmanlı Hedef Halkası (Radial Gauge) & Hafta Hafta Büyüme Eğrisi (SVG Area Chart) */
+.savg-viz{display:grid;grid-template-columns:280px minmax(0,1fr);gap:12px;margin:12px 0}
+.savg-ring-card,.savg-curve-card{padding:14px 15px;border-radius:16px;background:var(--surface2);border:1px solid var(--line);display:flex;flex-direction:column;justify-content:space-between;gap:10px}
+.savg-viz-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.savg-viz-eb{font-size:11.5px;font-weight:800;letter-spacing:.03em;text-transform:uppercase;color:var(--muted)}
+.savg-viz-bg{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;background:var(--good-soft);color:var(--good);border:1px solid color-mix(in srgb,var(--good) 40%,var(--line))}
+.savg-ring-wrap{position:relative;width:154px;height:154px;margin:2px auto;display:grid;place-items:center}
+.savg-ring-wrap svg{width:154px;height:154px;transform:rotate(-90deg);overflow:visible}
+.savg-ring-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:14px;pointer-events:none}
+.savg-ring-center small{font-size:11px;color:var(--muted);line-height:1.2}
+.savg-ring-center b{font-family:var(--display);font-size:20px;font-weight:800;color:var(--ink);line-height:1.15;margin:2px 0}
+.savg-ring-center span{font-size:11.5px;font-weight:700;color:var(--good)}
+.savg-ring-leg{display:grid;gap:5px;font-size:12px}
+.savg-ring-lrow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:6px 9px;border-radius:9px;background:var(--surface);border:1px solid var(--line)}
+.savg-ring-lrow .k{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-weight:600}
+.savg-ring-lrow .dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.savg-curve-svg{width:100%;height:178px;display:block;overflow:visible}
+.savg-curve-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:7px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line);font-size:12px}
+.savg-flowbar{padding:11px 14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line);margin:10px 0;display:grid;gap:7px}
+.savg-flowbar-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.savg-flowbar-track{display:flex;height:13px;border-radius:99px;overflow:hidden;background:var(--surface);border:1px solid var(--line);gap:2px;padding:1px}
+.savg-flowbar-track i{display:block;height:100%;border-radius:99px;transition:width .25s ease}
+.savg-flowbar-leg{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;font-size:12px}
+.savg-flowbar-leg span{display:inline-flex;align-items:center;gap:5px}
+.savg-flowbar-leg i{width:8px;height:8px;border-radius:50%;display:inline-block}
+@media (max-width:760px){
+  .savg-viz{grid-template-columns:1fr}
+}
 </style>
 </head>
 <body>
@@ -2169,7 +2198,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v56';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v57';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3627,6 +3656,176 @@ function renderSavGoalLive(){
   fxUpdateDom();
   $('ug_out').innerHTML = renderSavGoalResult(ug, payInfo, sim);
 }
+function renderSavGoalVizHTML(ug, payInfo, sim){
+  var target = Math.max(1, ug.targetAmt || 1);
+  var saved = Math.max(0, ug.saved || 0);
+  var effTotal = Math.max(saved, sim.effTotal || 0);
+  var pctSaved = ug.targetAmt > 0 ? Math.min(100, Math.max(0, (saved / target) * 100)) : 0;
+  var pctTotal = ug.targetAmt > 0 ? Math.min(100, Math.max(0, (effTotal / target) * 100)) : 0;
+
+  /* 1. SOL PANEL: ÇİFT KATMANLI HEDEF HALKASI (RADIAL GAUGE) */
+  var rOut = 60, rIn = 44;
+  var cOut = r2(2 * Math.PI * rOut), cIn = r2(2 * Math.PI * rIn);
+  var offOut = r2(cOut * (1 - pctTotal / 100));
+  var offIn  = r2(cIn  * (1 - pctSaved / 100));
+  var centerVal = ug.totalCash > 0 ? eur(effTotal) : eur(saved);
+  var centerPct = ug.totalCash > 0 ? Math.round(pctTotal) : Math.round(pctSaved);
+  var remVal    = ug.totalCash > 0 ? sim.gapAllCash : sim.gapSaved;
+
+  var ringHtml = '<div class="savg-ring-card">' +
+    '<div class="savg-viz-top">' +
+      '<span class="savg-viz-eb">🎯 ' + L('Hedef Halkası', 'Goal Gauge') + '</span>' +
+      '<span class="savg-viz-bg num">%' + centerPct + ' ' + L('Hazır', 'Ready') + '</span>' +
+    '</div>' +
+    '<div class="savg-ring-wrap">' +
+      '<svg viewBox="0 0 154 154" aria-label="' + L('Birikim hedef halkası', 'Savings goal ring') + '">' +
+        '<circle cx="77" cy="77" r="' + rOut + '" fill="none" stroke="var(--line)" stroke-width="12" />' +
+        '<circle cx="77" cy="77" r="' + rIn + '" fill="none" stroke="var(--line)" stroke-width="10" opacity="0.65" />' +
+        '<circle cx="77" cy="77" r="' + rOut + '" fill="none" stroke="var(--good)" stroke-width="12" stroke-linecap="round" stroke-dasharray="' + cOut + '" stroke-dashoffset="' + offOut + '" />' +
+        '<circle cx="77" cy="77" r="' + rIn + '" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="' + cIn + '" stroke-dashoffset="' + offIn + '" />' +
+      '</svg>' +
+      '<div class="savg-ring-center num">' +
+        '<small>' + L('Hedef:', 'Target:') + ' ' + eur(ug.targetAmt) + '</small>' +
+        '<b>' + centerVal + '</b>' +
+        '<span>' + (remVal <= 0 ? ('✓ ' + L('Tamamlandı', 'Completed')) : (L('Kalan:', 'Left:') + ' ' + eur(remVal))) + '</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="savg-ring-leg num">' +
+      '<div class="savg-ring-lrow"><span class="k"><i class="dot" style="background:var(--accent)"></i>' + L('Ayırdığın Bütçe', 'Set-Aside') + ' (%' + Math.round(pctSaved) + ')</span><b>' + eur(saved) + '</b></div>' +
+      '<div class="savg-ring-lrow"><span class="k"><i class="dot" style="background:var(--good)"></i>' + L('Toplam Paranla', 'With Total Cash') + ' (%' + Math.round(pctTotal) + ')</span><b style="color:var(--good)">' + eur(effTotal) + '</b></div>' +
+    '</div>' +
+  '</div>';
+
+  /* 2. SAĞ PANEL: HAFTA HAFTA BİRİKİM BÜYÜME EĞRİSİ (SVG AREA CHART + GİDER BİTİŞ KIRILIMI) */
+  var pf = sim.planFixed;
+  var totalWks = pf.unreachable ? 12 : Math.max(4, Math.min(52, Math.ceil(pf.days / 7)));
+  if (sim.gapSaved <= 0) totalWks = 8;
+
+  /* Haftalık noktaları ve gider bitiş kırılım haftasını hesapla */
+  var pts = [], acc = saved, breakWk = -1, breakIso = '', prevExp = -1;
+  for (var w = 0; w <= totalWks; w++){
+    var wIso = addDays(today, w * 7), wInc = 0, wExp = 0;
+    ug.items.forEach(function(it){
+      var v = ugItemWeeklyAt(it, wIso, w);
+      if (v > 0){ if (it.kind === 'in') wInc = r2(wInc + v); else wExp = r2(wExp + v); }
+    });
+    if (w > 0 && prevExp > 0 && wExp < prevExp - 0.5 && breakWk < 0){
+      breakWk = w;
+      breakIso = wIso;
+    }
+    prevExp = wExp;
+    pts.push({ w: w, val: r2(acc), iso: wIso, wExp: wExp, wInc: wInc });
+    var totIn = r2(payInfo.netWk + wInc - wExp);
+    /* Grafikte gider bittiğinde boşa çıkan paranın birikim potansiyelini nasıl hızlandırdığını da göster */
+    var stepSave = ug.weeklySave;
+    if (totIn < stepSave) stepSave = Math.max(0, totIn);
+    acc = r2(acc + stepSave);
+  }
+
+  var maxY = Math.max(ug.targetAmt * 1.08, pts[pts.length - 1].val * 1.05, saved + 100, 100);
+  var W = 520, H = 172, padL = 48, padR = 18, padT = 22, padB = 26;
+  var plotW = W - padL - padR, plotH = H - padT - padB;
+  var xOf = function(w){ return r2(padL + (w / Math.max(1, totalWks)) * plotW); };
+  var yOf = function(v){ return r2(padT + plotH - (Math.min(maxY, Math.max(0, v)) / maxY) * plotH); };
+
+  var dPath = pts.map(function(p, i){ return (i === 0 ? 'M' : 'L') + xOf(p.w) + ',' + yOf(p.val); }).join(' ');
+  var areaPath = dPath + ' L' + xOf(totalWks) + ',' + (padT + plotH) + ' L' + xOf(0) + ',' + (padT + plotH) + ' Z';
+  var yTarget = yOf(ug.targetAmt);
+
+  var svgInner = '<defs>' +
+    '<linearGradient id="ugAreaGrad" x1="0" y1="0" x2="0" y2="1">' +
+      '<stop offset="0%" stop-color="var(--accent)" stop-opacity="0.38"/>' +
+      '<stop offset="100%" stop-color="var(--good)" stop-opacity="0.03"/>' +
+    '</linearGradient>' +
+  '</defs>';
+
+  /* Yatay kılavuz çizgileri */
+  var midVal = Math.round((ug.targetAmt / 2) / 50) * 50;
+  if (midVal > 0 && midVal < ug.targetAmt){
+    var yMid = yOf(midVal);
+    svgInner += '<line x1="' + padL + '" y1="' + yMid + '" x2="' + (W - padR) + '" y2="' + yMid + '" stroke="var(--line)" stroke-dasharray="3 3" stroke-width="1"/>' +
+      '<text x="2" y="' + (yMid + 4) + '" font-size="10" fill="var(--muted)">€' + Math.round(midVal) + '</text>';
+  }
+  svgInner += '<line x1="' + padL + '" y1="' + (padT + plotH) + '" x2="' + (W - padR) + '" y2="' + (padT + plotH) + '" stroke="var(--line)" stroke-width="1"/>' +
+    '<text x="2" y="' + (padT + plotH + 3) + '" font-size="10" fill="var(--muted)">€0</text>';
+
+  /* Hedef Çizgisi */
+  if (ug.targetAmt > 0){
+    svgInner += '<line x1="' + padL + '" y1="' + yTarget + '" x2="' + (W - padR) + '" y2="' + yTarget + '" stroke="var(--good)" stroke-width="1.6" stroke-dasharray="5 4"/>' +
+      '<text x="' + (padL + 4) + '" y="' + Math.max(12, yTarget - 5) + '" font-size="10.5" font-weight="700" fill="var(--good)">🎯 ' + L('Hedef', 'Goal') + ' ' + eur(ug.targetAmt) + '</text>';
+  }
+
+  /* Gider Bitiş Kırılım Çizgisi (varsa) */
+  if (breakWk > 0 && breakWk <= totalWks){
+    var xBrk = xOf(breakWk);
+    svgInner += '<line x1="' + xBrk + '" y1="' + padT + '" x2="' + xBrk + '" y2="' + (padT + plotH) + '" stroke="var(--c150)" stroke-width="1.6" stroke-dasharray="3 3"/>' +
+      '<text x="' + Math.min(W - 95, Math.max(padL + 10, xBrk - 45)) + '" y="' + (padT + 10) + '" font-size="10" font-weight="700" fill="var(--c150)">⚡ ' + dlabel(breakIso) + ' ' + L('Gider Biter', 'Expense Ends') + '</text>';
+  }
+
+  /* Alan ve Ana Eğri */
+  svgInner += '<path d="' + areaPath + '" fill="url(#ugAreaGrad)"/>' +
+    '<path d="' + dPath + '" fill="none" stroke="var(--accent)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>';
+
+  /* Noktalar ve Hafta Etiketleri */
+  var stepW = totalWks <= 8 ? 1 : (totalWks <= 16 ? 2 : Math.ceil(totalWks / 6));
+  pts.forEach(function(p, idx){
+    var isKey = (idx === 0 || idx === totalWks || idx === breakWk || idx % stepW === 0);
+    if (!isKey) return;
+    var cx = xOf(p.w), cy = yOf(p.val);
+    var dotCol = p.val >= ug.targetAmt && ug.targetAmt > 0 ? 'var(--good)' : (idx === breakWk ? 'var(--c150)' : 'var(--accent)');
+    svgInner += '<circle cx="' + cx + '" cy="' + cy + '" r="4" fill="' + dotCol + '" stroke="var(--surface)" stroke-width="1.6"/>';
+    svgInner += '<text x="' + cx + '" y="' + (padT + plotH + 16) + '" text-anchor="middle" font-size="10" fill="var(--muted)">' + p.w + '.' + L('hf', 'w') + '</text>';
+    if (idx === 0 || idx === totalWks || idx === breakWk){
+      var lblY = Math.max(12, cy - 8);
+      var anchor = idx === 0 ? 'start' : (idx === totalWks ? 'end' : 'middle');
+      svgInner += '<text x="' + cx + '" y="' + lblY + '" text-anchor="' + anchor + '" font-size="10.5" font-weight="700" fill="' + dotCol + '">€' + Math.round(p.val) + '</text>';
+    }
+  });
+
+  var pFirst = sim.phases[0], pLast = sim.phases[sim.phases.length - 1] || pFirst;
+  var curveFoot = '<div class="savg-curve-foot num">' +
+    '<span>🟣 <b>' + L('Başlangıç:', 'Start:') + '</b> ' + eur(saved) + ' → <b>' + L('Haftalık:', 'Weekly:') + '</b> +' + eur(pFirst.effSave) + '/' + L('hf', 'wk') + '</span>' +
+    (sim.phases.length > 1
+      ? ('<span style="color:var(--good)">🟢 <b>' + L('Gider bitince cebinde kalan:', 'Left after bill ends:') + '</b> ' + eur(pFirst.spendLeft) + '/hf → <b>' + eur(pLast.spendLeft) + '/hf</b></span>')
+      : ('<span style="color:var(--good)">🟢 <b>' + L('Hedef Tarihi:', 'Goal Date:') + '</b> ' + (sim.gapSaved <= 0 ? L('Bugün Hazır ✓', 'Ready Today ✓') : (pf.unreachable ? '—' : ugDateFull(pf.dateIso))) + '</span>')) +
+  '</div>';
+
+  var curveHtml = '<div class="savg-curve-card">' +
+    '<div class="savg-viz-top">' +
+      '<div><span class="savg-viz-eb">📈 ' + L('Birikim Büyüme Eğrisi', 'Savings Growth Curve') + '</span>' +
+      '<small class="fh" style="margin-top:1px">' + L('Ayırdığın birikimin haftalar içinde hedefe yükselişi', 'Week-by-week trajectory of your savings toward the goal') + '</small></div>' +
+      '<span class="savg-viz-bg num">' + (sim.gapSaved <= 0 ? ('🎉 ' + L('Hedefe Ulaşıldı', 'Goal Reached')) : (pf.unreachable ? L('Bütçe Yetersiz', 'Low Budget') : ugDurTxt(pf.days))) + '</span>' +
+    '</div>' +
+    '<svg class="savg-curve-svg num" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="' + L('Birikim büyüme eğrisi grafiği', 'Savings growth curve chart') + '">' + svgInner + '</svg>' +
+    curveFoot +
+  '</div>';
+
+  /* 3. HAFTALIK MAAŞ & BÜTÇE DAĞILIM ÇUBUĞU */
+  var totInNow = Math.max(1, r2(payInfo.netWk + sim.curIncWk));
+  var saveNow = Math.max(0, pFirst.effSave);
+  var expNow  = Math.max(0, sim.curExpWk);
+  var pktNow  = Math.max(0, pFirst.spendLeft);
+  var sumBar  = Math.max(1, saveNow + expNow + pktNow);
+  var wSavePct = Math.round((saveNow / sumBar) * 100);
+  var wExpPct  = Math.round((expNow  / sumBar) * 100);
+  var wPktPct  = Math.max(0, 100 - wSavePct - wExpPct);
+
+  var flowHtml = '<div class="savg-flowbar num">' +
+    '<div class="savg-flowbar-top"><b>📊 ' + L('Haftalık Maaş & Bütçe Dağılımı', 'Weekly Pay & Budget Split') + '</b><span>' + L('Net Maaş:', 'Net Pay:') + ' <b>' + eur(payInfo.netWk) + '/hf</b>' + (sim.curIncWk > 0 ? ' + ' + L('Ek Gelir:', 'Extra Inc:') + ' <b>' + eur(sim.curIncWk) + '/hf</b>' : '') + '</span></div>' +
+    '<div class="savg-flowbar-track">' +
+      (wSavePct > 0 ? '<i style="width:' + wSavePct + '%;background:var(--accent)"></i>' : '') +
+      (wExpPct > 0 ? '<i style="width:' + wExpPct + '%;background:var(--c150)"></i>' : '') +
+      (wPktPct > 0 ? '<i style="width:' + wPktPct + '%;background:var(--good)"></i>' : '') +
+    '</div>' +
+    '<div class="savg-flowbar-leg">' +
+      '<span><i style="background:var(--accent)"></i>' + L('Birikime Ayrılan:', 'To Savings:') + ' <b>' + eur(saveNow) + '/hf</b> (%' + wSavePct + ')</span>' +
+      (expNow > 0 ? '<span><i style="background:var(--c150)"></i>' + L('Ek Giderler:', 'Extra Bills:') + ' <b>' + eur(expNow) + '/hf</b> (%' + wExpPct + ')</span>' : '') +
+      '<span><i style="background:var(--good)"></i>' + L('Cebinde Harcamaya Kalan:', 'Left in Pocket:') + ' <b style="color:var(--good)">' + eur(pFirst.spendLeft) + '/hf</b> (%' + wPktPct + ')</span>' +
+    '</div>' +
+  '</div>';
+
+  return '<div class="savg-viz">' + ringHtml + curveHtml + '</div>' + flowHtml;
+}
 function renderSavGoalResult(ug, payInfo, sim){
   var isMo = ug.period === 'month', title = esc(ug.title || L('Hedefim', 'My Goal'));
   var pFirst = sim.phases[0], pLast = sim.phases[sim.phases.length - 1] || pFirst;
@@ -3636,7 +3835,7 @@ function renderSavGoalResult(ug, payInfo, sim){
   var usedFromRegular = Math.max(0, r2(ug.targetAmt - ug.saved));
   var dailyPace = Math.max(1, ug.weeklySave / 7);
   var isTinyGap = !canBuyNow && ug.targetAmt > 0 && (sim.gapAllCash <= Math.max(25, dailyPace * 1.5));
-  var h = '';
+  var h = renderSavGoalVizHTML(ug, payInfo, sim);
 
   h += '<div class="savg-cards">';
 
