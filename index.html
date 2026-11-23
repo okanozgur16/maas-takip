@@ -1079,11 +1079,26 @@ details.chk-drawer .chk-body{padding:10px 13px 12px;border-top:1px solid var(--l
   }
 }
 
+.savg-sc-r-col{display:flex;flex-direction:column;gap:3px;padding:4px 0}
+.savg-sc-r-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.savg-sc-r-top span{color:var(--ink);font-weight:600}
+.savg-sc-r-sub{font-size:11.5px;line-height:1.35;color:var(--muted)}
+
+@media (max-width:959px){
+  .maassubbar{margin:0 0 12px}
+  .maassubtabs{display:grid !important;grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:5px !important;padding:5px !important;border-radius:14px !important;width:100% !important;align-items:stretch !important}
+  .maassubtabs button{display:flex !important;align-items:center !important;justify-content:center !important;text-align:center !important;gap:5px !important;min-height:42px !important;padding:7px 6px !important;font-size:12.5px !important;font-weight:700 !important;line-height:1.2 !important;border-radius:10px !important;white-space:normal !important;word-break:keep-all !important}
+}
 @media (max-width:840px){
   .savg-main3{grid-template-columns:1fr}
 }
 @media (max-width:560px){
-  .brk-donut-card{grid-template-columns:1fr;text-align:center}
+  .maassubtabs button{font-size:11.8px !important;padding:6px 4px !important;min-height:40px !important}
+  .brk-donut-card{grid-template-columns:1fr;gap:12px;padding:14px}
+  .brk-donut-head{justify-content:center;text-align:center}
+  .brk-drow{text-align:left;font-size:13px;padding:8px 10px}
+  details.bd>summary{font-size:14.5px;padding:11px 0}
+  .row{font-size:14px}
 }
 </style>
 </head>
@@ -2328,7 +2343,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v60';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v61';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3778,10 +3793,10 @@ function renderSavGoalLive(){
   if ($('ug_reg_hint')){
     if (ug.totalCash > 0){
       $('ug_reg_hint').innerHTML = sim.regularCash >= 0
-        ? (L('Geriye kalan paran: ', 'Remaining money: ') + '<b style="color:var(--text)">' + eur(sim.regularCash) + '</b>')
+        ? (L('Korunan ana birikimin: ', 'Protected main savings: ') + '<b style="color:var(--text)">' + eur(sim.regularCash) + '</b>')
         : ('<span style="color:var(--bad)">⚠️ ' + L('Ayırdığın bütçe toplam parandan fazla!', 'Allocated budget exceeds total money!') + '</span>');
     } else {
-      $('ug_reg_hint').textContent = L('Mevcut toplam nakit/banka birikimin', 'Your total cash/bank balance');
+      $('ug_reg_hint').textContent = L('Banka ve nakit toplam birikimin', 'Your total bank and cash savings');
     }
   }
   if ($('ug_gap_hint')){
@@ -3879,34 +3894,48 @@ function renderSavGoalResult(ug, payInfo, sim){
 
   var spendWkNow = pFirst.spendLeft, spendMoNow = r2(spendWkNow * 52 / 12);
   var spendWkEnd = pLast.spendLeft, spendMoEnd = r2(spendWkEnd * 52 / 12);
-  var spendNowTxt = isMo ? (eur(spendMoNow) + '/' + L('ay', 'mo')) : (eur(spendWkNow) + '/' + L('hf', 'wk'));
-  var spendEndTxt = (sim.phases.length > 1 && Math.abs(spendWkEnd - spendWkNow) > 0.5)
-    ? (' → ' + L('Gider bitince:', 'After bill ends:') + ' ' + (isMo ? eur(spendMoEnd) + '/ay' : eur(spendWkEnd) + '/hf'))
-    : '';
+  var spendNowTxt = isMo ? (eur(spendMoNow) + ' / ' + L('ay', 'mo')) : (eur(spendWkNow) + ' / ' + L('hafta', 'wk'));
 
-  /* Tek Satırda 3 Ana Kutu: [🎯 Hedef Halkası] + [💳 1. Elindeki Parayı Kullanırsan] + [🎯 2. Diğer Parana Dokunmadan] */
+  /* Maaştan Harcamaya Kalan Harçlığın Açık Matematik Dökümü */
+  var payBaseVal = isMo ? payInfo.netMo : payInfo.netWk;
+  var saveCutVal = isMo ? r2(pFirst.effSave * 52 / 12) : pFirst.effSave;
+  var incCutVal  = isMo ? r2(pFirst.wInc * 52 / 12) : pFirst.wInc;
+  var expCutVal  = isMo ? r2(pFirst.wExp * 52 / 12) : pFirst.wExp;
+  var perShort   = isMo ? L('aylık', 'monthly') : L('haftalık', 'weekly');
+
+  var formulaParts = [L('Net maaşın', 'Net pay') + ' ' + eur(payBaseVal)];
+  if (incCutVal > 0) formulaParts.push('+ ' + L('ek gelir', 'extra income') + ' ' + eur(incCutVal));
+  if (expCutVal > 0) formulaParts.push('− ' + L('ek gider', 'extra bills') + ' ' + eur(expCutVal));
+  formulaParts.push('− ' + L('hedef birikimi', 'goal saving') + ' ' + eur(saveCutVal));
+  var allowanceDesc = formulaParts.join(' ') + ' = ' + L('cebinde serbest harcamaya (market, yakıt, kişisel gider) kalan ' + perShort + ' tutar.', 'free ' + perShort + ' allowance left in your pocket for groceries & daily life.');
+  if (sim.phases.length > 1 && Math.abs(spendWkEnd - spendWkNow) > 0.5){
+    var afterVal = isMo ? (eur(spendMoEnd) + '/' + L('ay', 'mo')) : (eur(spendWkEnd) + '/' + L('hf', 'wk'));
+    allowanceDesc += ' <b style="color:var(--good)">(' + L('Taksit/gider bitince:', 'After bill ends:') + ' ' + afterVal + ')</b>';
+  }
+
+  /* Tek Satırda 3 Ana Kutu: [🎯 Hedef Halkası] + [💳 1. Elindeki Parayı Kullanırsan] + [🎯 2. Ana Birikimine Dokunmadan] */
   var h = '<div class="savg-main3">';
   h += renderSavGoalRingHTML(ug, sim);
 
-  /* KART 1: Elindeki Parayı Kullanırsan */
+  /* KART 1: Elindeki Tüm Parayı Kullanırsan */
   if (canBuyNow){
     h += '<div class="savg-sc ok">' +
-      '<div class="savg-sc-top"><span class="savg-sc-eb">💳 ' + L('1. Elindeki Parayı Kullanırsan', '1. Using Your Money on Hand') + '</span><span class="savg-sc-bg">✓ ' + L('Bugün Hazır', 'Ready Today') + '</span></div>' +
+      '<div class="savg-sc-top"><span class="savg-sc-eb">💳 ' + L('1. Elindeki Parayı Kullanırsan', '1. Using Your Current Money') + '</span><span class="savg-sc-bg">✓ ' + L('Bugün Hazır', 'Ready Today') + '</span></div>' +
       '<div class="savg-sc-big">✅ ' + L('Hemen Gerçekleştirebilirsin!', 'You Can Complete It Today!') + '</div>' +
-      '<div class="savg-sc-sub">' + L('<b>' + title + '</b> (<b class="num">' + eur(ug.targetAmt) + '</b>) işlemini <b>' + ugDateFull(today) + '</b> itibarıyla yapabilirsin.', 'Your money covers <b>' + title + '</b> (<b class="num">' + eur(ug.targetAmt) + '</b>) today.') + '</div>' +
+      '<div class="savg-sc-sub">' + L('Elindeki <b class="num">' + eur(sim.effTotal) + '</b> ile <b>' + title + '</b> (<b class="num">' + eur(ug.targetAmt) + '</b>) hedefini <b>' + ugDateFull(today) + '</b> itibarıyla hemen karşılayabiliyorsun.', 'Your <b class="num">' + eur(sim.effTotal) + '</b> covers <b>' + title + '</b> (<b class="num">' + eur(ug.targetAmt) + '</b>) today.') + '</div>' +
       '<div class="savg-sc-rows num">' +
-        '<div class="savg-sc-r"><span>' + L('Ayırdığın bütçeden:', 'From set-aside:') + '</span><b>' + eur(usedSaved) + '</b></div>' +
-        '<div class="savg-sc-r"><span>' + L('Diğer parandan:', 'From other money:') + '</span><b>' + eur(usedFromRegular) + '</b></div>' +
-        '<div class="savg-sc-r tot"><span>' + L('Sana Kalan Para:', 'Money Left to You:') + '</span><b style="color:var(--good)">' + eur(leftAfterNow) + '</b></div>' +
+        '<div class="savg-sc-r"><span>' + L('Hedef için ayırdığından:', 'From goal set-aside:') + '</span><b>' + eur(usedSaved) + '</b></div>' +
+        '<div class="savg-sc-r"><span>' + L('Ana birikiminden kullanılan:', 'Used from main savings:') + '</span><b>' + eur(usedFromRegular) + '</b></div>' +
+        '<div class="savg-sc-r tot"><span>' + L('İşlem Sonrası Kalan Birikimin:', 'Remaining Savings After Goal:') + '</span><b style="color:var(--good)">' + eur(leftAfterNow) + '</b></div>' +
       '</div></div>';
   } else if (isTinyGap){
     h += '<div class="savg-sc near">' +
-      '<div class="savg-sc-top"><span class="savg-sc-eb">💳 ' + L('1. Elindeki Parayı Kullanırsan', '1. Using Your Money on Hand') + '</span><span class="savg-sc-bg num">' + L('Sadece ', 'Only ') + eur(sim.gapAllCash) + ' ' + L('Fark', 'Diff') + '</span></div>' +
+      '<div class="savg-sc-top"><span class="savg-sc-eb">💳 ' + L('1. Elindeki Parayı Kullanırsan', '1. Using Your Current Money') + '</span><span class="savg-sc-bg num">' + L('Sadece ', 'Only ') + eur(sim.gapAllCash) + ' ' + L('Fark', 'Short') + '</span></div>' +
       '<div class="savg-sc-big">👌 ' + L('Neredeyse Hazır!', 'Almost Ready!') + '</div>' +
-      '<div class="savg-sc-sub">' + L('Hafta beklemene gerek yok; sadece <b class="num">' + eur(sim.gapAllCash) + '</b> fark kalmış, bugün/yarın tamamlanır.', 'No need to wait a week; only <b class="num">' + eur(sim.gapAllCash) + '</b> short.') + '</div>' +
+      '<div class="savg-sc-sub">' + L('Hafta beklemene gerek yok; hedefin için sadece <b class="num">' + eur(sim.gapAllCash) + '</b> ufak fark kalmış, bugün/yarın tamamlanır.', 'No need to wait a week; only <b class="num">' + eur(sim.gapAllCash) + '</b> short, ready today or tomorrow.') + '</div>' +
       '<div class="savg-sc-rows num">' +
-        '<div class="savg-sc-r"><span>' + L('Mevcut toplam paran:', 'Your total money:') + '</span><b>' + eur(sim.effTotal) + '</b></div>' +
-        '<div class="savg-sc-r"><span>' + L('Kalan ufak fark:', 'Tiny difference:') + '</span><b style="color:var(--good)">' + eur(sim.gapAllCash) + '</b></div>' +
+        '<div class="savg-sc-r"><span>' + L('Mevcut toplam birikimin:', 'Your total savings:') + '</span><b>' + eur(sim.effTotal) + '</b></div>' +
+        '<div class="savg-sc-r"><span>' + L('Tamamlamak için ufak fark:', 'Tiny remaining difference:') + '</span><b style="color:var(--good)">' + eur(sim.gapAllCash) + '</b></div>' +
         '<div class="savg-sc-r tot"><span>' + L('Durum:', 'Status:') + '</span><b style="color:var(--good)">' + L('Bugün / Yarın Hazır ✓', 'Ready Today / Tomorrow ✓') + '</b></div>' +
       '</div></div>';
   } else {
@@ -3915,39 +3944,42 @@ function renderSavGoalResult(ug, payInfo, sim){
     h += '<div class="savg-sc warn">' +
       '<div class="savg-sc-top"><span class="savg-sc-eb">💳 ' + L('1. Elindeki Parayı Kullanırsan', '1. Using Your Current Money') + '</span><span class="savg-sc-bg num">' + eur(sim.gapAllCash) + ' ' + L('Eksik', 'Short') + '</span></div>' +
       '<div class="savg-sc-big num">⏳ ' + (ac.unreachable ? (eur(sim.gapAllCash) + ' ' + L('Daha Lazım', 'More Needed')) : ugDurTxt(ac.days)) + '</div>' +
-      '<div class="savg-sc-sub">' + L('Elindeki <b class="num">' + eur(sim.effTotal) + '</b> üzerine <b class="num">' + eur(sim.gapAllCash) + '</b> daha biriktirince tamamlanır.', 'Saving <b class="num">' + eur(sim.gapAllCash) + '</b> more on top of <b class="num">' + eur(sim.effTotal) + '</b> completes it.') + '</div>' +
+      '<div class="savg-sc-sub">' + L('Elindeki <b class="num">' + eur(sim.effTotal) + '</b> üzerine <b class="num">' + eur(sim.gapAllCash) + '</b> daha biriktirdiğinde hedef tamamlanır.', 'Saving <b class="num">' + eur(sim.gapAllCash) + '</b> more on top of <b class="num">' + eur(sim.effTotal) + '</b> completes the goal.') + '</div>' +
       '<div class="savg-sc-rows num">' +
         '<div class="savg-sc-r"><span>' + L('Kalan açık:', 'Remaining gap:') + '</span><b>' + eur(sim.gapAllCash) + '</b></div>' +
         '<div class="savg-sc-r tot"><span>' + L('Tamamlanma Tarihi:', 'Completion Date:') + '</span><b style="color:var(--c150)">' + allDateTxt + '</b></div>' +
       '</div></div>';
   }
 
-  /* KART 2: Diğer Parana Dokunmadan (Sadece Ayırdığın Bütçe Üzerine Biriktirerek) */
+  /* KART 2: Ana Birikimine Dokunmadan (Sadece Hedef İçin Ayırdığın + Maaştan Düzenli Biriktirerek) */
   var pf = sim.planFixed;
   var savedTiny = sim.gapSaved > 0 && sim.gapSaved <= Math.max(25, dailyPace * 1.5);
   var badge2 = sim.gapSaved <= 0 ? ('🎉 ' + L('Hazır', 'Ready')) : savedTiny ? ('👌 ' + eur(sim.gapSaved) + ' ' + L('fark', 'diff')) : pf.unreachable ? ('⚠️ ' + L('Yetersiz', 'Low')) : ugDurTxt(pf.days);
   var big2 = sim.gapSaved <= 0
-    ? ('🎉 ' + L('Ayırdığın Bütçe Yetiyor!', 'Allocated Budget Covers It!'))
+    ? ('🎉 ' + L('Ayırdığın Bütçe Tek Başına Yetiyor!', 'Your Allocated Budget Covers It!'))
     : savedTiny
       ? ('👌 ' + L('Sadece ', 'Only ') + eur(sim.gapSaved) + L(' Kaldı', ' Left'))
       : pf.unreachable
         ? ('⚠️ ' + L('Giderler Birikimi Aşıyor', 'Expenses Exceed Savings'))
         : ('📅 ' + ugDateFull(pf.dateIso));
   var sub2 = sim.gapSaved <= 0
-    ? L('Ayırdığın <b class="num">' + eur(ug.saved) + '</b> bütçe hedefini bugün karşılıyor.', 'Your <b class="num">' + eur(ug.saved) + '</b> budget covers the goal today.')
+    ? L('Bu hedef için ayırdığın <b class="num">' + eur(ug.saved) + '</b> tek başına yetiyor; kenardaki ana birikimine hiç dokunmazsın.', 'Your <b class="num">' + eur(ug.saved) + '</b> goal budget covers it alone; your main savings stay untouched.')
     : savedTiny
-      ? L('Ayırdığın <b class="num">' + eur(ug.saved) + '</b> neredeyse tam hedef tutarında.', 'Your set-aside is almost at the full target.')
+      ? L('Ayırdığın <b class="num">' + eur(ug.saved) + '</b> neredeyse tam hedef tutarında.', 'Your allocated budget is almost at the full target.')
       : pf.unreachable
-        ? L('Eklediğin giderler maaşından fazla olduğu için para ayrılamıyor.', 'Added expenses exceed your pay.')
-        : L('Diğer parana dokunmadan, ayırdığın <b class="num">' + eur(ug.saved) + '</b> üzerine biriktirerek <b>' + ugDurTxt(pf.days) + '</b> sonra ulaşırsın.', 'Without touching other money, building on <b class="num">' + eur(ug.saved) + '</b> reaches the goal in <b>' + ugDurTxt(pf.days) + '</b>.');
+        ? L('Eklediğin giderler maaşından fazla olduğu için kenara para ayrılamıyor.', 'Added expenses exceed your pay.')
+        : L('Kenardaki ana birikimine (<b class="num">' + eur(Math.max(0, sim.regularCash)) + '</b>) hiç dokunmadan, bu hedef için ayırdığın <b class="num">' + eur(ug.saved) + '</b> üzerine maaşından biriktirerek <b>' + ugDurTxt(pf.days) + '</b> sonra hedefe ulaşırsın.', 'Leaving your main savings (<b class="num">' + eur(Math.max(0, sim.regularCash)) + '</b>) untouched, building on your <b class="num">' + eur(ug.saved) + '</b> goal budget from your pay reaches the goal in <b>' + ugDurTxt(pf.days) + '</b>.');
 
   h += '<div class="savg-sc plan">' +
-    '<div class="savg-sc-top"><span class="savg-sc-eb">🎯 ' + (ug.totalCash > 0 ? L('2. Diğer Parana (' + eur(Math.max(0, sim.regularCash)) + ') Dokunmadan', '2. Keeping Other Money (' + eur(Math.max(0, sim.regularCash)) + ')') : L('2. Sadece Biriktirerek', '2. By Saving Up')) + '</span><span class="savg-sc-bg num">' + badge2 + '</span></div>' +
+    '<div class="savg-sc-top"><span class="savg-sc-eb">🎯 ' + (ug.totalCash > 0 ? L('2. Ana Birikimine (' + eur(Math.max(0, sim.regularCash)) + ') Dokunmadan', '2. Keeping Main Savings (' + eur(Math.max(0, sim.regularCash)) + ') Untouched') : L('2. Maaştan Düzenli Biriktirerek', '2. Saving Regularly From Pay')) + '</span><span class="savg-sc-bg num">' + badge2 + '</span></div>' +
     '<div class="savg-sc-big num">' + big2 + '</div>' +
     '<div class="savg-sc-sub">' + sub2 + '</div>' +
     '<div class="savg-sc-rows num">' +
-      '<div class="savg-sc-r"><span>' + L('Birikim sonrası harcamaya kalan:', 'Left to spend after saving:') + '</span><b style="color:' + (spendWkNow >= 0 ? 'var(--good)' : 'var(--bad)') + '">' + spendNowTxt + spendEndTxt + '</b></div>' +
-      '<div class="savg-sc-r tot"><span>' + (ug.totalCash > 0 ? L('Cebinde Kalacak Diğer Paran:', 'Other Money Untouched:') : L('Biriktirilecek Kalan:', 'Remaining to Save:')) + '</span><b style="color:var(--good)">' + (ug.totalCash > 0 ? eur(Math.max(0, sim.regularCash)) + ' (' + L('Dokunulmaz', 'Untouched') + ')' : eur(sim.gapSaved)) + '</b></div>' +
+      '<div class="savg-sc-r-col">' +
+        '<div class="savg-sc-r-top"><span>👛 ' + L('Maaşından Cebine Kalan Harçlık:', 'Pocket Allowance Left From Pay:') + '</span><b style="color:' + (spendWkNow >= 0 ? 'var(--good)' : 'var(--bad)') + ';font-size:14.5px">' + spendNowTxt + '</b></div>' +
+        '<div class="savg-sc-r-sub">' + allowanceDesc + '</div>' +
+      '</div>' +
+      '<div class="savg-sc-r tot"><span>' + (ug.totalCash > 0 ? L('Korunan Ana Birikimin:', 'Protected Main Savings:') : L('Biriktirilecek Kalan Tutar:', 'Remaining Amount to Save:')) + '</span><b style="color:var(--good)">' + (ug.totalCash > 0 ? eur(Math.max(0, sim.regularCash)) + ' (' + L('Sabit Kalır', 'Stays Intact') + ')' : eur(sim.gapSaved)) + '</b></div>' +
     '</div></div>';
 
   h += '</div>';
