@@ -409,9 +409,12 @@ details.man .f{display:grid;gap:10px;margin-top:10px}
 .mrow:last-child{border-bottom:0}
 .mrow .mh{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .mrow .mh b{font-weight:700}
-.mrow .mh .mv{font-family:var(--display);font-weight:700;font-size:17px;color:var(--good)}
-.mrow .ms{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--muted);margin-top:2px;flex-wrap:wrap}
-.mrow .ms .tx{color:var(--bad)}
+.mrow .mh .mv{font-family:var(--display);font-weight:700;font-size:17.5px;color:var(--good);text-align:right}
+.mrow .mh .mv.neg{color:var(--bad)}
+.mrow .mh .mv small{display:block;font-family:var(--body);font-size:11px;font-weight:600;color:var(--muted);margin-top:1px}
+.mrow .ms{display:flex;justify-content:space-between;gap:10px;font-size:12.5px;color:var(--muted);margin-top:3px;flex-wrap:wrap}
+.mrow .ms .tx{color:var(--bad);font-weight:600}
+.mrow .ms .exp-sep{color:var(--c150);font-weight:600}
 .mbar{height:8px;border-radius:99px;background:var(--surface2);border:1px solid var(--line);overflow:hidden;margin-top:6px}
 .mbar i{display:block;height:100%;background:var(--good);border-radius:99px}
 .wk{display:flex;align-items:flex-end;gap:3px;height:92px;margin-top:6px}
@@ -2133,7 +2136,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v54';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v55';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3705,19 +3708,49 @@ function renderMonth(){
     while (d.getMonth() === mo){ if (d.getDay() === 4) c++; d.setDate(d.getDate() + 1); }
     return c;
   }
+  var hxTot = homeExpTotal();
+  var hxParts = (homeExpTotal.parts || []).slice();
   var ms = {}, keys = [];
   list.forEach(function(r){
     var pd = parseISO(addDays(r.w, 10)), k = pd.getFullYear() * 100 + pd.getMonth();
-    if (!ms[k]){ ms[k] = { y: pd.getFullYear(), m: pd.getMonth(), net: 0, gross: 0, tax: 0, hrs: 0, n: 0, slips: 0, ests: 0 }; keys.push(k); }
-    var m = ms[k]; m.net += r.p.payable; m.gross += r.p.gross || 0; m.tax += r.p.tax || 0; m.hrs += (r.t.norm || 0) + (r.t.irr || 0) + (r.t.over || 0); m.n++;
+    if (!ms[k]){
+      ms[k] = { y: pd.getFullYear(), m: pd.getMonth(), netNoPark: 0, park: 0, gross: 0, tax: 0, slipExp: 0, rentTot: 0, utilTot: 0, insTot: 0, wkHomeTot: 0, hrs: 0, n: 0, slips: 0, ests: 0 };
+      keys.push(k);
+    }
+    var m = ms[k], p = r.p, pk = parkOf(p);
+    /* Park ödeneği hariç haftalık net */
+    m.netNoPark = r2(m.netNoPark + (p.payable - pk));
+    m.park = r2(m.park + pk);
+    m.gross = r2(m.gross + (p.gross || 0));
+    /* Vergi + emeklilik/sosyal prim kesintileri */
+    m.tax = r2(m.tax + (p.tax || 0));
+    /* Bordrodan / haftalıktan düşen kira, su-elektrik, sağlık sigortası ve özel ev gideri payı */
+    var wRent = (p.housingTotal !== undefined ? +p.housingTotal : (+p.housingNet || 0) + (+p.housingGross || 0));
+    var wUtil = +p.utilities || 0;
+    var wIns  = (+p.insurance || 0) + (+p.extraIns || 0);
+    var wHome = +p.wkHomeDeduct || 0;
+    m.rentTot = r2(m.rentTot + wRent);
+    m.utilTot = r2(m.utilTot + wUtil);
+    m.insTot  = r2(m.insTot + wIns);
+    m.wkHomeTot = r2(m.wkHomeTot + wHome);
+    m.slipExp = r2(m.slipExp + wRent + wUtil + wIns + wHome);
+    m.hrs += (r.t.norm || 0) + (r.t.irr || 0) + (r.t.over || 0);
+    m.n++;
     if (r.slip) m.slips++; else m.ests++;
   });
   keys.sort(function(a, b){ return b - a; });
-  var mx = Math.max(1, Math.max.apply(null, keys.map(function(k){ return ms[k].net; })));
-  var hxTot = homeExpTotal();
-  var h = '<h2>📊 Aylık Özet</h2><div class="subhead">Maaşın yattığı aya göre</div>';
+  /* Her ayın 'Net Sana Kalan' tutarı: park hariç netten varsa aylık harici ev/kira/sigorta giderleri (hxTot) de düşülmüş net tutar */
   keys.forEach(function(k){
-    var m = ms[k], totPd = paydaysInMonth(m.y, m.m), avgW = m.n > 0 ? r2(m.net / m.n) : 0;
+    var m = ms[k];
+    /* Eğer o ay sadece 1 tahmin haftası varsa ve henüz tamamlanmamışsa aylık harici gideri o haftایه göre oranla veya tam ay ise tam düş */
+    m.finalNet = r2(m.netNoPark - hxTot);
+    m.totalRentAndExp = r2(m.slipExp + hxTot);
+  });
+  var mx = Math.max(1, Math.max.apply(null, keys.map(function(k){ return Math.max(0, ms[k].finalNet); })));
+  var h = '<h2>📊 Aylık Özet</h2><div class="subhead">' + L('Maaşın yattığı aya göre · Park ödeneği hariç ve tüm giderler düşülmüş net sana kalan', 'By pay month · Net left to you excluding parking and after all expenses') + '</div>';
+  keys.forEach(function(k){
+    var m = ms[k], totPd = paydaysInMonth(m.y, m.m);
+    var avgW = m.n > 0 ? r2(m.finalNet / m.n) : 0;
     var badge = '';
     if (m.slips > 0 && m.ests === 0 && m.slips >= totPd){
       badge = '<span class="mbadge ok">✓ ' + m.slips + '/' + totPd + ' ' + L('bordro kesin', 'slips confirmed') + '</span>';
@@ -3728,10 +3761,24 @@ function renderMonth(){
     } else {
       badge = '<span class="mbadge est">📊 ' + m.n + '/' + totPd + ' ' + L('tahmin', 'est.') + '</span>';
     }
-    var hxRow = hxTot > 0 ? '<div class="ms num hx"><span>Aylık giderler (' + homeExpTotal.parts.join(', ') + ') −' + eur(hxTot) + '</span><span>Elinde kalan <b class="' + (m.net - hxTot < 0 ? 'neg' : 'pos') + '">' + (m.net - hxTot < 0 ? '−' : '') + eur(Math.abs(r2(m.net - hxTot))) + '</b></span></div>' : '';
-    h += '<div class="mrow"><div class="mh"><div><b>' + MONTHS_L[m.m] + ' ' + m.y + '</b>' + badge + '</div><span class="mv num">' + eur(m.net) + '</span></div>' +
-      '<div class="ms num"><span>' + m.n + ' hafta · <span class="mavg">' + L('Ort.', 'Avg.') + ' ' + eur(avgW) + '/' + L('hf', 'wk') + '</span> · ' + hm(m.hrs) + ' saat · Brüt ' + eur(m.gross) + '</span><span><span class="tx">Vergi −' + eur(m.tax) + '</span></span></div>' +
-      hxRow + '<div class="mbar"><i style="width:' + Math.max(2, Math.min(100, Math.max(0, m.net) / mx * 100)) + '%"></i></div></div>';
+
+    /* Kira ve ek giderlerin detaylı etiketi */
+    var expDetails = [];
+    if (m.rentTot > 0) expDetails.push(L('kira', 'rent') + ' ' + eur(m.rentTot));
+    if (m.utilTot > 0) expDetails.push(L('su/elk', 'utilities') + ' ' + eur(m.utilTot));
+    if (m.insTot > 0)  expDetails.push(L('sigorta', 'insurance') + ' ' + eur(m.insTot));
+    if (m.wkHomeTot > 0) expDetails.push(L('ev gideri', 'home bills') + ' ' + eur(m.wkHomeTot));
+    if (hxTot > 0) expDetails.push((hxParts.length ? hxParts.join('+') : L('aylık gider', 'monthly bills')) + ' ' + eur(hxTot));
+    var expLabel = L('Kira & Ek Giderler', 'Rent & Extra Expenses') + (expDetails.length ? ' (' + expDetails.join(' · ') + ')' : '') + ' −' + eur(m.totalRentAndExp);
+
+    var parkNote = m.park > 0 ? (' · <span class="pkc">+' + eur(m.park) + ' ' + L('park hariç', 'excl. parking') + '</span>') : '';
+
+    h += '<div class="mrow">' +
+      '<div class="mh"><div><b>' + MONTHS_L[m.m] + ' ' + m.y + '</b>' + badge + '</div>' +
+      '<span class="mv num' + (m.finalNet < 0 ? ' neg' : '') + '">' + eur(m.finalNet) + '<small>' + L('Net sana kalan', 'Net left to you') + '</small></span></div>' +
+      '<div class="ms num"><span>' + m.n + ' ' + L('hafta', 'wks') + ' · <span class="mavg">' + L('Net Ort.', 'Net Avg.') + ' ' + eur(avgW) + '/' + L('hf', 'wk') + '</span> · ' + hm(m.hrs) + ' ' + L('saat', 'hrs') + ' · ' + L('Brüt', 'Gross') + ' ' + eur(m.gross) + parkNote + '</span></div>' +
+      '<div class="ms num"><span class="tx">' + L('Vergi', 'Tax') + ' −' + eur(m.tax) + '</span><span class="exp-sep">' + expLabel + '</span></div>' +
+      '<div class="mbar"><i style="width:' + Math.max(2, Math.min(100, Math.max(0, m.finalNet) / mx * 100)) + '%"></i></div></div>';
   });
   var rec = list.slice(-16), wmx = Math.max(1, Math.max.apply(null, rec.map(function(r){ return r.p.payable; })));
   var selW = view.wkSel && rec.some(function(r){ return r.w === view.wkSel; }) ? view.wkSel : rec[rec.length - 1].w;

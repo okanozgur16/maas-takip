@@ -14,7 +14,7 @@
 
 
 
-## v53 (`2026-11-23-shiftpay-v54`) — **Antigravity** — Birikim & Hedef Planlayıcı Sadeleştirme, Tarih Girişi Bug Düzeltmesi ve Gün Hassasiyetli Hesap
+## v53 (`2026-11-23-shiftpay-v55`) — **Antigravity** — Birikim & Hedef Planlayıcı Sadeleştirme, Tarih Girişi Bug Düzeltmesi ve Gün Hassasiyetli Hesap
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Düzeltilenler:**
   1. **Tarih (`gg.aa.yyyy`) Manuel Yıl (`0000`) Bug'ı Giderildi:** `<input type="date">` alanında yıl elle yazılırken (`0002` -> `0020` -> `2027`) `change` olayının `renderSavGoal(true)` çağırıp DOM'u yeniden oluşturması kaldırıldı ve yalnızca tam `2024+` yılı girildiğinde simülasyona işlenmesi sağlandı; ayrıca tek tıkla `Süresiz`, `+1 Ay`, `+2 Ay`, `+3 Ay`, `+6 Ay` hızlı bitiş çipleri eklendi.
