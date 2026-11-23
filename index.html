@@ -2361,7 +2361,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v63';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v64';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3548,7 +3548,7 @@ function ugItemDisplayName(it){
   return raw;
 }
 function ugAvgPayInfo(){
-  var S = SET(), list = allWeekList(), slips = list.filter(function(r){ return r.slip; });
+  var S = SET(), st = state.settings || {}, list = allWeekList(), slips = list.filter(function(r){ return r.slip; });
   var normSlips = slips.filter(function(r){ return ((r.t.norm || 0) + (r.t.irr || 0) + (r.t.over || 0)) >= 16; });
   var pool = normSlips.length ? normSlips.slice(-8) : (slips.length ? slips.slice(-8) : []);
   var src = 'slips';
@@ -3557,15 +3557,24 @@ function ugAvgPayInfo(){
     pool = normWks.length ? normWks.slice(-8) : list.slice(-8);
     src = pool.length ? 'shifts' : 'settings';
   }
-  var rawWk = 0;
+  var rawWk = 0, parkAvgWk = 0, poolHasRent = false;
   if (pool.length){
-    var sum = 0;
-    pool.forEach(function(r){ sum += (r.p.payable - parkOf(r.p)); });
+    var sum = 0, parkSum = 0;
+    pool.forEach(function(r){
+      var pk = parkOf(r.p);
+      sum += (r.p.payable - pk);
+      parkSum += pk;
+      if (((+r.p.housingNet || 0) + (+r.p.housingGross || 0)) > 0) poolHasRent = true;
+    });
     rawWk = r2(sum / pool.length);
+    parkAvgWk = r2(parkSum / pool.length);
   } else {
     var curAll = weekResult(view.week, 'all');
     if (curAll && curAll.p && !curAll.p.empty && curAll.p.payable > 0){
-      rawWk = r2(curAll.p.payable - parkOf(curAll.p));
+      var pk0 = parkOf(curAll.p);
+      rawWk = r2(curAll.p.payable - pk0);
+      parkAvgWk = pk0;
+      if (((+curAll.p.housingNet || 0) + (+curAll.p.housingGross || 0)) > 0) poolHasRent = true;
       src = 'planned';
     } else {
       var stdH = Math.max(1, +S.stdShiftHours || 8) * 5;
@@ -3574,9 +3583,40 @@ function ugAvgPayInfo(){
       src = 'settings';
     }
   }
-  var hxMo = homeExpTotal(), hxWk = r2(hxMo * 12 / 52);
-  var netWk = r2(rawWk - hxWk);
-  return { rawWk: rawWk, hxMo: hxMo, hxWk: hxWk, hxParts: (homeExpTotal.parts || []).slice(), netWk: netWk, netMo: r2(netWk * 52 / 12), src: src, cnt: pool.length };
+  var hm = st.housingMode || 'company';
+  var hxMo = homeExpTotal(), hxParts = (homeExpTotal.parts || []).slice();
+  /* Kira ayda bir kesiliyor seçiliyse ve son haftaların bordrosunda kira satırı yoksa aylık kiranın haftalık payını da düş */
+  var moRentExtra = 0;
+  if (hm === 'monthly' && (+st.rentMonthly || 0) > 0 && !poolHasRent){
+    moRentExtra = Math.abs(+st.rentMonthly || 0);
+    hxMo = r2(hxMo + moRentExtra);
+    if (hxParts.indexOf('kira') < 0) hxParts.unshift('kira');
+  }
+  var hxWk = r2(hxMo * 12 / 52);
+  var netWk = Math.max(0, r2(rawWk - hxWk));
+
+  /* Şeffaf bilgi etiketleri: özel kira/ev gideri (haftalık veya aylık düşülmüş), şirket kirası, otopark hariç tutarı ve sigorta */
+  var privHomeMo = hm === 'none' ? homeMonthlyActiveTotal(st) : moRentExtra;
+  var insSelfMo = st.insMode === 'self' ? Math.abs(+st.insMonthly || 0) : 0;
+  var compRentDed = (hm === 'company' && ((+S.housingTotal || 0) > 0 || poolHasRent));
+
+  return {
+    rawWk: rawWk,
+    parkAvgWk: parkAvgWk,
+    parkAvgMo: r2(parkAvgWk * 52 / 12),
+    hxMo: hxMo,
+    hxWk: hxWk,
+    hxParts: hxParts,
+    privHomeMo: privHomeMo,
+    privHomeWk: r2(privHomeMo * 12 / 52),
+    insSelfMo: insSelfMo,
+    compRentDed: compRentDed,
+    housingMode: hm,
+    netWk: netWk,
+    netMo: r2(netWk * 52 / 12),
+    src: src,
+    cnt: pool.length
+  };
 }
 function ugDateFull(iso){
   var d = parseISO(iso), daysTr = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'], daysEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -3846,9 +3886,22 @@ function renderSavGoalLive(){
   if ($('ug_per_hint')) $('ug_per_hint').textContent = isMo ? ('≈ ' + eur(wkSave) + ' / ' + L('hafta', 'week')) : ('≈ ' + eur(moSave) + ' / ' + L('ay', 'month'));
   if ($('ug_pay_box')) $('ug_pay_box').textContent = isMo ? (eur(payInfo.netMo) + ' / ' + L('ay', 'mo')) : (eur(payInfo.netWk) + ' / ' + L('hafta', 'wk'));
   if ($('ug_pay_hint')){
-    var srcTxt = isMo ? ('≈ ' + eur(payInfo.netWk) + '/' + L('hf', 'wk')) : ('≈ ' + eur(payInfo.netMo) + '/' + L('ay', 'mo'));
-    if (payInfo.hxMo > 0) srcTxt += ' · ' + L('Ayarlar gideri düşüldü', 'Settings bills deducted');
-    $('ug_pay_hint').textContent = srcTxt;
+    var hints = [isMo ? ('≈ ' + eur(payInfo.netWk) + '/' + L('hf', 'wk')) : ('≈ ' + eur(payInfo.netMo) + '/' + L('ay', 'mo'))];
+    if (payInfo.parkAvgWk > 0){
+      var pkDisp = isMo ? (eur(payInfo.parkAvgMo) + '/' + L('ay', 'mo')) : (eur(payInfo.parkAvgWk) + '/' + L('hf', 'wk'));
+      hints.push(L('Otopark (−' + pkDisp + ') hariç', 'Parking (−' + pkDisp + ') excluded'));
+    } else {
+      hints.push(L('Otopark hariç', 'Parking excluded'));
+    }
+    if (payInfo.privHomeMo > 0){
+      hints.push(L('Kira & ev gideri (−' + eur(payInfo.privHomeMo) + '/ay) düşülmüş', 'Rent & bills (−' + eur(payInfo.privHomeMo) + '/mo) deducted'));
+    } else if (payInfo.compRentDed){
+      hints.push(L('Şirket kirası düşülmüş', 'Company rent deducted'));
+    }
+    if (payInfo.insSelfMo > 0){
+      hints.push(L('Sigorta (−' + eur(payInfo.insSelfMo) + '/ay) düşülmüş', 'Insurance (−' + eur(payInfo.insSelfMo) + '/mo) deducted'));
+    }
+    $('ug_pay_hint').textContent = hints.join(' · ');
   }
   if ($('ug_wklbl')) $('ug_wklbl').innerHTML = (isMo ? L('Aylık Birikim Hızın:', 'Monthly Saving:') : L('Haftalık Birikim Hızın:', 'Weekly Saving:')) + ' <b class="num">' + (isMo ? eur(moSave) + ' / ' + L('ay', 'month') : eur(wkSave) + ' / ' + L('hafta', 'week')) + '</b>';
   if ($('ug_molbl')) $('ug_molbl').textContent = isMo ? ('≈ ' + eur(wkSave) + ' / ' + L('hafta', 'week')) : ('≈ ' + eur(moSave) + ' / ' + L('ay', 'month'));
@@ -3981,7 +4034,11 @@ function renderSavGoalResult(ug, payInfo, sim){
   var expCutVal  = isMo ? r2(pFirst.wExp * 52 / 12) : pFirst.wExp;
   var perShort   = isMo ? L('aylık', 'monthly') : L('haftalık', 'weekly');
 
-  var formulaParts = [L('Net maaşın', 'Net pay') + ' ' + eur(payBaseVal)];
+  var payTags = [];
+  if (payInfo.privHomeMo > 0) payTags.push(L('kira düşülmüş', 'rent deducted'));
+  if (payInfo.parkAvgWk > 0) payTags.push(L('otopark hariç', 'excl. parking'));
+  var payTagStr = payTags.length ? (' (' + payTags.join(', ') + ')') : '';
+  var formulaParts = [L('Net maaşın', 'Net pay') + payTagStr + ' ' + eur(payBaseVal)];
   var addedIn = 0, addedOut = 0;
   ug.items.forEach(function(it){
     var wVal = ugItemWeeklyAt(it, today, 0);
