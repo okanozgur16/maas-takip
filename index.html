@@ -874,10 +874,23 @@ html:not(.ui-classic) .grid[data-sub="yr"] [data-card="brk"]{display:none !impor
 .savg-sc-r.tot span{color:var(--ink)}
 .savg-cf{margin:12px 0;padding:13px 15px;border-radius:15px;background:var(--surface2);border:1px solid var(--line);display:grid;gap:10px}
 .savg-cf-top{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
-.savg-irow{display:grid;grid-template-columns:auto 1.35fr .75fr .85fr 1fr auto;gap:8px;align-items:center;padding:8px 10px;border-radius:11px;background:var(--surface);border:1px solid var(--line);font-size:13px}
-.savg-irow.off{opacity:.5}
-.savg-irow input[type=text],.savg-irow input[type=date],.savg-irow select{padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface2);color:var(--ink);font:inherit;font-size:13px;font-weight:600;min-width:0;width:100%}
-.savg-ikind{display:inline-flex;align-items:center;gap:4px;font-weight:800;font-size:12px;padding:4px 9px;border-radius:8px;white-space:nowrap}
+.savg-irow{display:flex;flex-direction:column;gap:10px;padding:11px 13px;border-radius:13px;background:var(--surface);border:1.5px solid var(--line);font-size:13px;transition:border-color .15s ease}
+.savg-irow.is-in{border-left:4px solid var(--good)}
+.savg-irow.is-out{border-left:4px solid var(--bad)}
+.savg-irow.off{opacity:.52}
+.savg-irow-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-bottom:8px;border-bottom:1px solid color-mix(in srgb,var(--line) 75%,transparent)}
+.savg-irow .c-chk{display:inline-flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.savg-irow .c-chk input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent);cursor:pointer;margin:0}
+.savg-ichk-txt{font-size:11.5px;font-weight:600;color:var(--muted)}
+.savg-idel{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:34px;padding:5px 12px;border-radius:9px;background:color-mix(in srgb,var(--bad) 13%,var(--surface2));border:1px solid color-mix(in srgb,var(--bad) 38%,var(--line));color:var(--bad);font:inherit;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .15s ease;flex-shrink:0}
+.savg-idel:hover{background:color-mix(in srgb,var(--bad) 22%,var(--surface2));border-color:var(--bad)}
+.savg-idel.crow-del{min-height:38px;padding:6px 11px}
+.savg-irow-grid{display:grid;grid-template-columns:1.35fr .85fr .95fr 1.05fr;gap:9px;align-items:end}
+.savg-ifld{display:flex;flex-direction:column;gap:4px;min-width:0}
+.savg-ilbl{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.01em}
+.savg-irow input[type=text],.savg-irow input[type=date],.savg-irow select{padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface2);color:var(--ink);font:inherit;font-size:13.5px;font-weight:600;min-width:0;width:100%;min-height:38px}
+.savg-irow input[type=text]:focus,.savg-irow input[type=date]:focus,.savg-irow select:focus{outline:none;border-color:var(--accent)}
+.savg-ikind{display:inline-flex;align-items:center;gap:4px;font-weight:800;font-size:12px;padding:4px 10px;border-radius:8px;white-space:nowrap}
 .savg-ikind.in{background:var(--good-soft);color:var(--good)}
 .savg-ikind.out{background:var(--bad-soft);color:var(--bad)}
 .savg-tl{padding:9px 11px;border-radius:11px;background:var(--surface);border:1px solid var(--line);font-size:12.5px;display:grid;gap:5px}
@@ -885,13 +898,13 @@ html:not(.ui-classic) .grid[data-sub="yr"] [data-card="brk"]{display:none !impor
 .savg-tl-r:first-of-type{border-top:0;padding-top:0}
 @media (max-width:680px){
   .savg-fx-grid{grid-template-columns:1fr}
-  .savg-irow{grid-template-columns:1fr 1fr;gap:7px}
-  .savg-irow .c-chk{grid-column:1}
-  .savg-irow .c-del{grid-column:2;justify-self:end}
-  .savg-irow .c-name{grid-column:1/-1}
-  .savg-irow .c-amt{grid-column:1}
-  .savg-irow .c-freq{grid-column:2}
-  .savg-irow .c-until{grid-column:1/-1}
+  .savg-irow{padding:11px 12px;gap:9px}
+  .savg-irow-grid{grid-template-columns:1fr 1fr;gap:8px}
+  .savg-irow-grid .c-name{grid-column:1}
+  .savg-irow-grid .c-amt{grid-column:2}
+  .savg-irow-grid .c-freq{grid-column:1}
+  .savg-irow-grid .c-until{grid-column:2}
+  .savg-idel{min-height:36px;padding:6px 13px;font-size:13px}
 }
 
 /* v56: Aylık Özet Tıklanabilir Kira & Ek Giderler (details.mexp) + Genel Web Sitesi Modern UI/UX */
@@ -2348,7 +2361,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v62';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v63';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3500,10 +3513,12 @@ function userGoalObj(){
     state.settings.userGoal = ug;
   }
   var items = Array.isArray(ug.items) ? ug.items.map(function(x){
+    var rawNm = String((x && x.name) !== undefined ? x.name : '').trim();
+    if (rawNm === 'Gider / Taksit' || rawNm === 'Expense / Installment' || rawNm === 'Ek Gelir' || rawNm === 'Extra Income') rawNm = '';
     return {
       id: String((x && x.id) || uid()),
       kind: (x && x.kind === 'in') ? 'in' : 'out',
-      name: String((x && x.name) !== undefined ? x.name : ''),
+      name: rawNm,
       amt: Math.max(0, +((x && x.amt) || 0)),
       freq: (x && (x.freq === 'month' || x.freq === 'once')) ? x.freq : 'week',
       until: (x && typeof x.until === 'string' && /^20[2-9]\d-\d{2}-\d{2}$/.test(x.until)) ? x.until : '',
@@ -3524,6 +3539,13 @@ function userGoalObj(){
 function ugSaveObj(ug){
   state.settings = state.settings || {};
   state.settings.userGoal = ug;
+}
+function ugItemDisplayName(it){
+  var raw = String((it && it.name) || '').trim();
+  if (!raw || raw === 'Gider / Taksit' || raw === 'Expense / Installment' || raw === 'Ek Gelir' || raw === 'Extra Income'){
+    return (it && it.kind === 'in') ? L('ek gelir', 'extra income') : L('ek gider', 'extra expense');
+  }
+  return raw;
 }
 function ugAvgPayInfo(){
   var S = SET(), list = allWeekList(), slips = list.filter(function(r){ return r.slip; });
@@ -3766,20 +3788,33 @@ function renderSavGoal(force){
 }
 function renderSavGoalItemsHTML(ug){
   if (!ug.items.length){
-    return '<div class="sub" style="font-size:12.5px;padding:2px">' + L('Henüz ek gelir veya gider eklenmedi.', 'No extra income or expense added yet.') + '</div>';
+    return '<div class="sub" style="font-size:12.5px;padding:4px 2px">' + L('Henüz ek gelir veya gider eklenmedi. Yukarıdaki butonlarla gelir ya da gider ekleyebilirsin.', 'No extra income or expense added yet. Use the buttons above to add an income or expense.') + '</div>';
   }
   return ug.items.map(function(it, idx){
-    return '<div class="savg-irow' + (it.active ? '' : ' off') + '">' +
-      '<label class="c-chk" style="display:inline-flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" data-ugi="' + idx + '" data-f="active"' + (it.active ? ' checked' : '') + ' style="width:16px;height:16px;accent-color:var(--accent)"><span class="savg-ikind ' + it.kind + '">' + (it.kind === 'in' ? '+ ' + L('Gelir', 'Income') : '− ' + L('Gider', 'Expense')) + '</span></label>' +
-      '<div class="c-name"><input type="text" data-ugi="' + idx + '" data-f="name" maxlength="40" value="' + esc(it.name) + '" placeholder="' + (it.kind === 'in' ? L('Örn. Sağlık sigortası yardımı', 'e.g. Health allowance') : L('Örn. Araba taksidi', 'e.g. Car payment')) + '" aria-label="' + L('Ad', 'Name') + '"></div>' +
-      '<div class="c-amt"><input type="text" inputmode="decimal" data-ugi="' + idx + '" data-f="amt" value="' + (it.amt > 0 ? esc(String(it.amt).replace('.', ',')) : '') + '" placeholder="€ ' + L('Tutar', 'Amount') + '" aria-label="Tutar (€)"></div>' +
-      '<div class="c-freq"><select data-ugi="' + idx + '" data-f="freq" aria-label="' + L('Sıklık', 'Frequency') + '">' +
-        '<option value="week"' + (it.freq === 'week' ? ' selected' : '') + '>' + L('Haftalık (€/hf)', 'Weekly (€/wk)') + '</option>' +
-        '<option value="month"' + (it.freq === 'month' ? ' selected' : '') + '>' + L('Aylık (€/ay)', 'Monthly (€/mo)') + '</option>' +
-        '<option value="once"' + (it.freq === 'once' ? ' selected' : '') + '>' + L('Tek Seferlik', 'One-time') + '</option>' +
-      '</select></div>' +
-      '<div class="c-until"><input type="date" min="2025-01-01" max="2035-12-31" data-ugi="' + idx + '" data-f="until" value="' + esc(it.until) + '" title="' + L('Bitiş tarihi (boş bırakılırsa süresiz)', 'End date (empty = ongoing)') + '" aria-label="' + L('Bitiş tarihi', 'End date') + '"></div>' +
-      '<button type="button" class="icon c-del" data-act="ugItemDel" data-i="' + idx + '" title="' + L('Sil', 'Remove') + '" aria-label="' + L('Sil', 'Remove') + '" style="width:30px;height:30px;font-size:14px">✕</button>' +
+    var isIn = it.kind === 'in';
+    var cleanVal = (it.name === 'Gider / Taksit' || it.name === 'Expense / Installment' || it.name === 'Ek Gelir' || it.name === 'Extra Income') ? '' : it.name;
+    return '<div class="savg-irow ' + (isIn ? 'is-in' : 'is-out') + (it.active ? '' : ' off') + '">' +
+      '<div class="savg-irow-top">' +
+        '<label class="c-chk"><input type="checkbox" data-ugi="' + idx + '" data-f="active"' + (it.active ? ' checked' : '') + '>' +
+          '<span class="savg-ikind ' + it.kind + '">' + (isIn ? '+ ' + L('Ek Gelir', 'Extra Income') : '− ' + L('Ek Gider', 'Extra Expense')) + '</span>' +
+          '<span class="savg-ichk-txt">' + (it.active ? L('Hesaba dahil', 'Included') : L('Devre dışı', 'Disabled')) + '</span>' +
+        '</label>' +
+        '<button type="button" class="savg-idel" data-act="ugItemDel" data-i="' + idx + '" title="' + L('Bu satırı sil', 'Delete this item') + '" aria-label="' + L('Kaldır', 'Remove') + '"><span aria-hidden="true">✕</span><span>' + L('Kaldır', 'Remove') + '</span></button>' +
+      '</div>' +
+      '<div class="savg-irow-grid">' +
+        '<div class="savg-ifld c-name"><span class="savg-ilbl">' + (isIn ? L('Gelir Adı', 'Income Name') : L('Gider Adı', 'Expense Name')) + '</span>' +
+          '<input type="text" data-ugi="' + idx + '" data-f="name" maxlength="40" value="' + esc(cleanVal) + '" placeholder="' + (isIn ? L('Geliri yaz…', 'Enter income…') : L('Gideri yaz…', 'Enter expense…')) + '" aria-label="' + L('Ad', 'Name') + '"></div>' +
+        '<div class="savg-ifld c-amt"><span class="savg-ilbl">' + L('Tutar (€)', 'Amount (€)') + '</span>' +
+          '<input type="text" inputmode="decimal" data-ugi="' + idx + '" data-f="amt" value="' + (it.amt > 0 ? esc(String(it.amt).replace('.', ',')) : '') + '" placeholder="' + L('Tutarı yaz (€)', 'Enter amount (€)') + '" aria-label="Tutar (€)"></div>' +
+        '<div class="savg-ifld c-freq"><span class="savg-ilbl">' + L('Periyot', 'Frequency') + '</span>' +
+          '<select data-ugi="' + idx + '" data-f="freq" aria-label="' + L('Sıklık', 'Frequency') + '">' +
+            '<option value="week"' + (it.freq === 'week' ? ' selected' : '') + '>' + L('Haftalık (€/hf)', 'Weekly (€/wk)') + '</option>' +
+            '<option value="month"' + (it.freq === 'month' ? ' selected' : '') + '>' + L('Aylık (€/ay)', 'Monthly (€/mo)') + '</option>' +
+            '<option value="once"' + (it.freq === 'once' ? ' selected' : '') + '>' + L('Tek Seferlik', 'One-time') + '</option>' +
+          '</select></div>' +
+        '<div class="savg-ifld c-until"><span class="savg-ilbl">' + L('Bitiş Tarihi (İsteğe Bağlı)', 'End Date (Optional)') + '</span>' +
+          '<input type="date" min="2025-01-01" max="2035-12-31" data-ugi="' + idx + '" data-f="until" value="' + esc(it.until) + '" title="' + L('Bitiş tarihi (boş bırakılırsa süresiz)', 'End date (empty = ongoing)') + '" aria-label="' + L('Bitiş tarihi', 'End date') + '"></div>' +
+      '</div>' +
     '</div>';
   }).join('');
 }
@@ -3832,13 +3867,21 @@ function renderSavGoalLive(){
       $('ug_tl_box').innerHTML = tl;
     } else if (hasActiveItems){
       var p0 = pList[0];
-      var incT = isMo ? (eur(r2(p0.wInc * 52 / 12)) + '/ay') : (eur(p0.wInc) + '/hf');
-      var expT = isMo ? (eur(r2(p0.wExp * 52 / 12)) + '/ay') : (eur(p0.wExp) + '/hf');
-      var spT  = isMo ? (eur(r2(p0.spendLeft * 52 / 12)) + '/ay') : (eur(p0.spendLeft) + '/hf');
+      var perSfx = isMo ? ('/' + L('ay', 'mo')) : ('/' + L('hf', 'wk'));
+      var spT = (isMo ? eur(r2(p0.spendLeft * 52 / 12)) : eur(p0.spendLeft)) + perSfx;
+      var chipParts = [];
+      ug.items.forEach(function(it){
+        var wv = ugItemWeeklyAt(it, today, 0);
+        if (wv > 0){
+          var pv = isMo ? r2(wv * 52 / 12) : wv;
+          var lbl = esc(ugItemDisplayName(it));
+          if (it.kind === 'in') chipParts.push('<b style="color:var(--good)">+ ' + lbl + ' ' + eur(pv) + perSfx + '</b>');
+          else chipParts.push('<b style="color:var(--bad)">− ' + lbl + ' ' + eur(pv) + perSfx + '</b>');
+        }
+      });
       $('ug_tl_box').innerHTML = '<div class="savg-tl num"><span>📊 ' +
-        L('Ek Gelir:', 'Extra Income:') + ' <b style="color:var(--good)">+' + incT + '</b> · ' +
-        L('Gider:', 'Expense:') + ' <b style="color:var(--bad)">−' + expT + '</b> → ' +
-        L('Harcamaya kalan:', 'Left to spend:') + ' <b>' + spT + '</b></span></div>';
+        chipParts.join(' · ') + ' → ' +
+        L('Cebine kalan harçlık:', 'Pocket allowance left:') + ' <b>' + spT + '</b></span></div>';
     } else {
       $('ug_tl_box').innerHTML = '';
     }
@@ -3931,7 +3974,7 @@ function renderSavGoalResult(ug, payInfo, sim){
   var spendWkEnd = pLast.spendLeft, spendMoEnd = r2(spendWkEnd * 52 / 12);
   var spendNowTxt = isMo ? (eur(spendMoNow) + ' / ' + L('ay', 'mo')) : (eur(spendWkNow) + ' / ' + L('hafta', 'wk'));
 
-  /* Maaştan Harcamaya Kalan Harçlığın Açık Matematik Dökümü */
+  /* Maaştan Harcamaya Kalan Harçlığın Açık ve %100 Dinamik Matematik Dökümü (Kullanıcı Ne Yazdıysa O Görünür) */
   var payBaseVal = isMo ? payInfo.netMo : payInfo.netWk;
   var saveCutVal = isMo ? r2(pFirst.effSave * 52 / 12) : pFirst.effSave;
   var incCutVal  = isMo ? r2(pFirst.wInc * 52 / 12) : pFirst.wInc;
@@ -3939,13 +3982,38 @@ function renderSavGoalResult(ug, payInfo, sim){
   var perShort   = isMo ? L('aylık', 'monthly') : L('haftalık', 'weekly');
 
   var formulaParts = [L('Net maaşın', 'Net pay') + ' ' + eur(payBaseVal)];
-  if (incCutVal > 0) formulaParts.push('+ ' + L('ek gelir', 'extra income') + ' ' + eur(incCutVal));
-  if (expCutVal > 0) formulaParts.push('− ' + L('ek gider', 'extra bills') + ' ' + eur(expCutVal));
+  var addedIn = 0, addedOut = 0;
+  ug.items.forEach(function(it){
+    var wVal = ugItemWeeklyAt(it, today, 0);
+    if (wVal > 0){
+      var pVal = isMo ? r2(wVal * 52 / 12) : wVal;
+      var itemLbl = esc(ugItemDisplayName(it));
+      if (it.kind === 'in'){
+        formulaParts.push('+ ' + itemLbl + ' ' + eur(pVal));
+        addedIn++;
+      } else {
+        formulaParts.push('− ' + itemLbl + ' ' + eur(pVal));
+        addedOut++;
+      }
+    }
+  });
+  if (!addedIn && incCutVal > 0) formulaParts.push('+ ' + L('ek gelir', 'extra income') + ' ' + eur(incCutVal));
+  if (!addedOut && expCutVal > 0) formulaParts.push('− ' + L('ek gider', 'extra expense') + ' ' + eur(expCutVal));
   formulaParts.push('− ' + L('hedef birikimi', 'goal saving') + ' ' + eur(saveCutVal));
+
   var allowanceDesc = formulaParts.join(' ') + ' = ' + L('cebinde serbest harcamaya (market, yakıt, kişisel gider) kalan ' + perShort + ' tutar.', 'free ' + perShort + ' allowance left in your pocket for groceries & daily life.');
   if (sim.phases.length > 1 && Math.abs(spendWkEnd - spendWkNow) > 0.5){
     var afterVal = isMo ? (eur(spendMoEnd) + '/' + L('ay', 'mo')) : (eur(spendWkEnd) + '/' + L('hf', 'wk'));
-    allowanceDesc += ' <b style="color:var(--good)">(' + L('Taksit/gider bitince:', 'After bill ends:') + ' ' + afterVal + ')</b>';
+    var endNames = [];
+    ug.items.forEach(function(it){
+      if (it && it.active && it.amt > 0 && ((it.until && /^20[2-9]\d-\d{2}-\d{2}$/.test(it.until)) || it.freq === 'once')){
+        var nm = ugItemDisplayName(it);
+        if (endNames.indexOf(nm) < 0) endNames.push(nm);
+      }
+    });
+    var endLbl = endNames.length ? esc(endNames.join(', ')) : L('süreli gider', 'dated expense');
+    var endCap = endLbl.charAt(0).toUpperCase() + endLbl.slice(1);
+    allowanceDesc += ' <b style="color:var(--good)">(' + (typeof LANG !== 'undefined' && LANG === 'en' ? ('After ' + endLbl + ' ends: ' + afterVal) : (endCap + ' bitince: ' + afterVal)) + ')</b>';
   }
 
   /* Tek Satırda 3 Ana Kutu: [🎯 Hedef Halkası] + [💳 1. Elindeki Parayı Kullanırsan] + [🎯 2. Ana Birikimine Dokunmadan] */
@@ -4949,7 +5017,7 @@ function renderSettings(){
           return '<button type="button" class="home-pchip' + (exists ? ' on' : '') + '" data-act="hexpPreset" data-n="' + esc(pr[1]) + '" data-a="' + pr[2] + '">' + (exists ? '✓ ' : '+ ') + pr[0] + '</button>';
         }).join('') + '</div>';
         hx.forEach(function(x, i){
-          h += '<div class="crow hrow"><input aria-label="Gider adı" data-hexp="' + i + '" data-f="n" value="' + esc(x.n || '') + '" placeholder="Örn. İnternet"><input aria-label="Aylık tutar (€)" data-hexp="' + i + '" data-f="a" type="text" inputmode="decimal" autocomplete="off" value="' + esc(String(x.a || '').replace('.', ',')) + '" placeholder="€/ay"><button class="icon" data-act="hexpDel" data-i="' + i + '" aria-label="Sil">✕</button></div>';
+          h += '<div class="crow hrow"><input aria-label="Gider adı" data-hexp="' + i + '" data-f="n" value="' + esc(x.n || '') + '" placeholder="' + L('Gideri yaz…', 'Enter expense…') + '"><input aria-label="Aylık tutar (€)" data-hexp="' + i + '" data-f="a" type="text" inputmode="decimal" autocomplete="off" value="' + esc(String(x.a || '').replace('.', ',')) + '" placeholder="€/' + L('ay', 'mo') + '"><button type="button" class="savg-idel crow-del" data-act="hexpDel" data-i="' + i + '" aria-label="' + L('Kaldır', 'Remove') + '"><span aria-hidden="true">✕</span><span>' + L('Sil', 'Delete') + '</span></button></div>';
         });
         h += '<div style="margin-top:6px"><button class="btn small" data-act="hexpAdd">+ Başka ev gideri ekle</button></div></div>';
       }
@@ -4970,7 +5038,7 @@ function renderSettings(){
     else h += '<div class="two">' + fld('insurance', 'Bordrodan kesilen sağlık sigortası (€/hafta)', 'number', '0.01', S) + fld('extraIns', 'Ek sigorta (€/hafta)', 'number', '0.01', S) + '</div>';
     h += '<div class="subhead">Diğer haftalık gelir ve kesintiler</div><small class="fh">Bordronda her hafta tekrar eden başka satırlar varsa burada görünür. Bordrodan gelenler otomatik eklenir.</small>';
     (Array.isArray(st.custom) ? st.custom : []).forEach(function(c, i){
-      h += '<div class="crow"><input aria-label="Ad" data-cust="' + i + '" data-f="n" value="' + esc(c.n || '') + '" placeholder="Ad"><select aria-label="Tür" data-cust="' + i + '" data-f="kind"><option value="out"' + (c.kind !== 'in' ? ' selected' : '') + '>Kesinti</option><option value="in"' + (c.kind === 'in' ? ' selected' : '') + '>Gelir</option></select><input aria-label="Tutar" data-cust="' + i + '" data-f="a" type="text" inputmode="decimal" autocomplete="off" value="' + esc(String(c.a || '').replace('.', ',')) + '"><button class="icon" data-act="custDel" data-i="' + i + '" aria-label="Sil">✕</button>' + (c.auto ? '<span class="autob">bordrodan</span>' : '') + '</div>';
+      h += '<div class="crow"><input aria-label="Ad" data-cust="' + i + '" data-f="n" value="' + esc(c.n || '') + '" placeholder="' + (c.kind === 'in' ? L('Geliri yaz…', 'Enter income…') : L('Gideri yaz…', 'Enter deduction…')) + '"><select aria-label="Tür" data-cust="' + i + '" data-f="kind"><option value="out"' + (c.kind !== 'in' ? ' selected' : '') + '>Kesinti</option><option value="in"' + (c.kind === 'in' ? ' selected' : '') + '>Gelir</option></select><input aria-label="Tutar" data-cust="' + i + '" data-f="a" type="text" inputmode="decimal" autocomplete="off" value="' + esc(String(c.a || '').replace('.', ',')) + '" placeholder="€"><button type="button" class="savg-idel crow-del" data-act="custDel" data-i="' + i + '" aria-label="' + L('Kaldır', 'Remove') + '"><span aria-hidden="true">✕</span><span>' + L('Sil', 'Delete') + '</span></button>' + (c.auto ? '<span class="autob">bordrodan</span>' : '') + '</div>';
     });
     h += '<button class="btn small" data-act="custAdd">+ Satır ekle</button>';
   } else if (setTabSel === 'sync'){
@@ -5292,10 +5360,14 @@ document.addEventListener('click', function(ev){
     UG_DRAWER_OPEN = true;
     var ik = el.getAttribute('data-k') === 'in' ? 'in' : 'out';
     var ugA = userGoalObj();
-    ugA.items.push({ id: uid(), kind: ik, name: ik === 'in' ? L('Ek Gelir', 'Extra Income') : L('Gider / Taksit', 'Expense / Installment'), amt: 0, freq: ugA.period === 'month' ? 'month' : 'week', until: '', active: true });
+    ugA.items.push({ id: uid(), kind: ik, name: '', amt: 0, freq: ugA.period === 'month' ? 'month' : 'week', until: '', active: true });
     ugSaveObj(ugA);
     commit();
     renderSavGoal(true);
+    setTimeout(function(){
+      var nms = document.querySelectorAll('#ug_items_list [data-ugi][data-f="name"]');
+      if (nms.length) nms[nms.length - 1].focus();
+    }, 30);
   }
   else if (a === 'ugItemDel'){
     UG_DRAWER_OPEN = true;
