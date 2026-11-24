@@ -315,9 +315,38 @@ jobs:
           done
           # Capture real Google Chrome headless PNG screenshots (Desktop 1280x820 & Mobile 390x844) for Claude's live_site_visual_check eyes!
           if command -v google-chrome >/dev/null 2>&1; then
-            TARGET_URL="https://shiftpay-app.pages.dev/?v=${EXPECTED}&_shot=$(date +%s)"
-            google-chrome --headless=new --no-sandbox --disable-gpu --hide-scrollbars --virtual-time-budget=2500 --window-size=1280,820 --screenshot=/tmp/shot_desktop.png "$TARGET_URL" || true
-            google-chrome --headless=new --no-sandbox --disable-gpu --hide-scrollbars --virtual-time-budget=2500 --window-size=390,844 --screenshot=/tmp/shot_mobile.png "$TARGET_URL" || true
+            export TARGET_URL="https://shiftpay-app.pages.dev/?v=${EXPECTED}&_shot=$(date +%s)"
+            google-chrome --headless=new --no-sandbox --disable-gpu --hide-scrollbars --force-device-scale-factor=1 --virtual-time-budget=2500 --window-size=1280,820 --screenshot=/tmp/shot_desktop.png "$TARGET_URL" || true
+            node -e '
+              const { spawn } = require("child_process");
+              const net = require("net");
+              const fs = require("fs");
+              // Use CDP Emulation.setDeviceMetricsOverride(390x844, mobile:true) for exact 390px mobile CSS media queries!
+              const p = spawn("google-chrome", ["--headless=new","--no-sandbox","--disable-gpu","--remote-debugging-port=9222","about:blank"], { stdio: "ignore" });
+              setTimeout(async () => {
+                try {
+                  const list = await (await fetch("http://127.0.0.1:9222/json")).json();
+                  const wsUrl = list[0].webSocketDebuggerUrl;
+                  const ws = new WebSocket(wsUrl);
+                  let id = 1;
+                  const send = (method, params={}) => new Promise(res => {
+                    const cid = id++;
+                    const fn = (ev) => { const m = JSON.parse(ev.data); if (m.id === cid) { ws.removeEventListener("message", fn); res(m.result); } };
+                    ws.addEventListener("message", fn);
+                    ws.send(JSON.stringify({ id: cid, method, params }));
+                  });
+                  ws.addEventListener("open", async () => {
+                    await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+                    await send("Page.enable");
+                    await send("Page.navigate", { url: process.env.TARGET_URL });
+                    await new Promise(r => setTimeout(r, 2500));
+                    const shot = await send("Page.captureScreenshot", { format: "png" });
+                    fs.writeFileSync("/tmp/shot_mobile.png", Buffer.from(shot.data, "base64"));
+                    p.kill(); process.exit(0);
+                  });
+                } catch (e) { console.error(e); p.kill(); process.exit(0); }
+              }, 1200);
+            ' || true
             if [ -s /tmp/shot_desktop.png ] && [ -s /tmp/shot_mobile.png ]; then
               curl -sS -X PUT "https://api.cloudflare.com/client/v4/accounts/3bf7fc774af3ec087fc3d01b6856c0bd/storage/kv/namespaces/9f5663780da9445ebbfc175d3d0fa1dd/values/live_shot_desktop" \
                 -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @/tmp/shot_desktop.png > /dev/null

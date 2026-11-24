@@ -384,7 +384,7 @@ async function runTool(name, args, env) {
     } catch (_) {}
 
     if (!imgBuf) {
-      const thumUrl = `https://image.thum.io/get/png/width/${width}/crop/${height}/noanimate/${targetUrl}`;
+      const thumUrl = `https://image.thum.io/get/png/viewportWidth/${width}/width/${width}/crop/${height}/noanimate/${targetUrl}`;
       const tRes = await fetch(thumUrl);
       if (tRes.ok && (tRes.headers.get("content-type") || "").includes("image")) {
         imgBuf = new Uint8Array(await tRes.arrayBuffer());
