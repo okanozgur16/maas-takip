@@ -10,9 +10,16 @@ Bu depo **%100 bulut/web tabanlı** çalışacak şekilde yapılandırılmışt�
 
 ---
 
-## 1. Hızlı İş Akışı ("Yaz -> Tak Tak Canlıya Al")
+## 1. Hızlı İş Akışı ("Yaz -> Sormadan Tak Tak Canlıya Al ve Gözünle Doğrula")
 
-1. **Önce Oku:** Her görev başında `AI-HANDOFF.md` (en üstteki son kayıtlar) ve `AI-CONTEXT.md` dosyalarını oku.
+0. **ALTIN KURAL — ONAY BEKLEME, DOĞRUDAN YAYINLA:** Kullanıcı (özellikle işteyken telefonundan) bir özellik, tasarım, düzeltme veya ayar istediğinde **"Yayınlayayım mı?" diye sorma!** Tıpkı Antigravity gibi doğrudan kodu düzenle, 6 dosyada sürümü artır, `main` dalına gönder (`github_edit_and_push` veya `git push`), ~30 saniye bekleyip `github_ci_status` ile yayını doğrula ve `live_site_visual_check` (`desktop` + `mobile`) ile canlı sayfayı **kendi gözünle** kontrol edip bitmiş sonucu raporla.
+1. **7/24 Aktif Bulut Araçların (`ShiftPay Tam Yetki` Uzak MCP Bağlayıcısı):**
+   - Bilgisayar kapalıyken bile telefondaki normal sohbetten şu araçlara tam yetkin vardır:
+     - `live_site_visual_check`: Canlı `https://shiftpay-app.pages.dev/` sitesini gerçek Chromium'da açıp masaüstü (`1280x820`) ve telefon (`390x844`) PNG ekran görüntüsünü doğrudan gözünün önüne getirir.
+     - `github_read_file`, `github_search_code`, `github_edit_and_push`, `github_ci_status`: Yerel bilgisayar olmadan `okanozgur16/maas-takip` (`main`) üzerinde satır okuma, arama, çoklu dosya atomik commit/push ve Actions kontrolü yapar.
+     - `cloudflare_manage`: `summer-mode-6176` (veya `shiftpay-mcp`) üzerindeki tüm gizli anahtarları (`OWNER_TOKEN`, `VAPID_PUBLIC`, `VAPID_PRIVATE`, `VAPID_SUBJECT`), Cron zamanlayıcısını (`get_schedules` / `set_schedules`) ve KV veritabanını yönetir.
+     - `firebase_manage`: `maas-takip-sync` projesinde hem `firestore.rules` okuma/yayınlama hem de Firestore belgelerini (`get_doc`, `list_docs`, `delete_doc`) yönetici yetkisiyle okuma/silme işlemi yapar.
+2. **Önce Oku:** Her görev başında `AI-HANDOFF.md` (en üstteki son kayıtlar) ve `AI-CONTEXT.md` dosyalarını oku.
 2. **Doğrudan `main` Dalında Güncelle & Otomatik Yayınla:**
    - Bu depoda `main` dalına commit/push yapıldığında `.github/workflows/deploy-cloudflare.yml` **~30 saniye içinde otomatik olarak**:
      1. **Pre-Deploy Safety Guard** çalıştırır (`node --check` V8 sözdizimi, `calcPay()` maaş matematiği testi, sürüm senkronizasyonu, tekrarlı HTML ID kontrolü, `I18N_EN` Türkçe karakter sızıntı testi ve gizli anahtar taraması).

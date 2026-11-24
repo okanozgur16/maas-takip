@@ -23,7 +23,7 @@ jobs:
       - name: Pre-Deploy Safety Guard (V8 Syntax, Math Regression, Version Sync, Duplicate IDs & Secret Scan)
         run: |
           python3 - << 'EOF'
-          import re, json, subprocess, tempfile, sys
+          import re, json, subprocess, tempfile, sys, os
 
           html = open('index.html', encoding='utf-8').read()
           v_json = json.load(open('version.json', encoding='utf-8'))
@@ -53,7 +53,13 @@ jobs:
           if res_sw.returncode != 0:
               print(f"[FAIL] JS syntax error in sw.js:\n{res_sw.stderr}", file=sys.stderr)
               sys.exit(1)
-          print(f"[OK] V8 JS syntax check passed ({len(scripts)} inline scripts + sw.js)")
+          for wf_js in ['server/bildirim-worker.js', 'server/shiftpay-mcp-worker.js']:
+              if os.path.exists(wf_js):
+                  res_w = subprocess.run(['node', '--check', wf_js], capture_output=True, text=True)
+                  if res_w.returncode != 0:
+                      print(f"[FAIL] JS syntax error in {wf_js}:\n{res_w.stderr}", file=sys.stderr)
+                      sys.exit(1)
+          print(f"[OK] V8 JS syntax check passed ({len(scripts)} inline scripts + sw.js + Workers)")
 
           # 3. Pre-Deploy Payroll Math Regression Test (calcPay via Node)
           main_sc = max(scripts, key=len)
@@ -154,6 +160,63 @@ jobs:
             cat /tmp/cf_worker_out.json || true
             exit 1
           fi
+          # Ensure summer-mode-6176 Cron schedule is hourly (0 * * * *) to stay well within free KV limits
+          SCHED_HTTP=$(curl -sS -o /tmp/cf_sched.json -w "%{http_code}" \
+            -X PUT "https://api.cloudflare.com/client/v4/accounts/3bf7fc774af3ec087fc3d01b6856c0bd/workers/scripts/summer-mode-6176/schedules" \
+            -H "Authorization: Bearer $CF_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '[{"cron":"0 * * * *"}]')
+          echo "Cloudflare Worker summer-mode-6176 schedule (0 * * * *) HTTP status: $SCHED_HTTP"
+
+      - name: Publish ShiftPay Remote MCP Worker (shiftpay-mcp — 24/7 Phone & Web Connector)
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          FB_SA: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          GH_PAT: ${{ secrets.MCP_GITHUB_PAT }}
+          MCP_SEC: ${{ secrets.MCP_PATH_SECRET }}
+        run: |
+          set -e
+          if [ ! -f "server/shiftpay-mcp-worker.js" ] || [ -z "$MCP_SEC" ]; then
+            echo "[SKIP] shiftpay-mcp-worker.js or MCP_PATH_SECRET not present"
+            exit 0
+          fi
+          python3 - << 'EOF'
+          import json, os
+
+          bindings = [
+              {"type": "secret_text", "name": "MCP_PATH_SECRET", "text": os.environ["MCP_SEC"]},
+              {"type": "secret_text", "name": "CF_API_TOKEN", "text": os.environ["CF_TOKEN"]},
+          ]
+          if os.environ.get("FB_SA"):
+              bindings.append({"type": "secret_text", "name": "FIREBASE_SA_JSON", "text": os.environ["FB_SA"]})
+          if os.environ.get("GH_PAT"):
+              bindings.append({"type": "secret_text", "name": "GITHUB_PAT", "text": os.environ["GH_PAT"]})
+
+          meta = {
+              "main_module": "shiftpay-mcp-worker.js",
+              "compatibility_date": "2024-11-01",
+              "keep_bindings": ["secret_text"],
+              "bindings": bindings
+          }
+          open("/tmp/mcp_meta.json", "w", encoding="utf-8").write(json.dumps(meta))
+          EOF
+          HTTP_MCP=$(curl -sS -o /tmp/cf_mcp_out.json -w "%{http_code}" \
+            -X PUT "https://api.cloudflare.com/client/v4/accounts/3bf7fc774af3ec087fc3d01b6856c0bd/workers/scripts/shiftpay-mcp" \
+            -H "Authorization: Bearer $CF_TOKEN" \
+            -F "metadata=@/tmp/mcp_meta.json;type=application/json" \
+            -F "shiftpay-mcp-worker.js=@server/shiftpay-mcp-worker.js;filename=shiftpay-mcp-worker.js;type=application/javascript+module")
+          rm -f /tmp/mcp_meta.json
+          echo "ShiftPay MCP Worker deploy HTTP status: $HTTP_MCP"
+          if [ "$HTTP_MCP" != "200" ]; then
+            cat /tmp/cf_mcp_out.json || true
+            exit 1
+          fi
+          # Enable workers.dev subdomain route for shiftpay-mcp
+          curl -sS -X POST "https://api.cloudflare.com/client/v4/accounts/3bf7fc774af3ec087fc3d01b6856c0bd/workers/scripts/shiftpay-mcp/subdomain" \
+            -H "Authorization: Bearer $CF_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data '{"enabled":true}' > /dev/null || true
+          echo "[OK] ShiftPay Remote MCP Worker (shiftpay-mcp.okan-counter.workers.dev) deployed and active!"
 
       - name: Validate & Publish Firebase Firestore Security Rules (maas-takip-sync)
         env:
