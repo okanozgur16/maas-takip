@@ -14,7 +14,36 @@
 
 
 
-## v53 (`2026-11-23-shiftpay-v64`) — **Antigravity** — Birikim & Hedef Planlayıcı Sadeleştirme, Tarih Girişi Bug Düzeltmesi ve Gün Hassasiyetli Hesap
+## v65 (`2026-11-24-shiftpay-v65`) — **Antigravity** — %100 Web Tabanlı Tam Senkronizasyon (Claude Pro Web / Claude Code Web Hazırlığı)
+- **Değişen / Eklenen Dosyalar:** `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`, `README.md`, `.gitignore`, ` _redirects`, `automation/*` (`run_sync.py`, `planbition_bot.py`, `myholland_bot.py`, `gmail_bot.py`, `pdf_parser.py`, `sync_engine.py`, `daemon.py`, `config.example.env`, `automation/README.md`), `index.html` (`APP_VER` + `buildAiContinuationPrompt`), `version.json`, `sw.js`
+- **Ne Yapıldı:**
+  1. **Tüm Kod Tabanı Web'e (GitHub `main`) Taşındı:** Yerel klasörde kalan gizli anahtarsız `automation/*.py` botları (Claude'un geliştirdiği tombstone korumalı `merge_shifts` içeren `planbition_bot.py` dahil) ve `_redirects` GitHub `main` dalına eklendi; eski `pc_watch_bot.py` temizlendi ve `.gitignore` ile `config.env` / yerel çıktılar koruma altına alındı.
+  2. **Claude Pro Web & Claude Code Web (`claude.ai/code`) Rehberi (`CLAUDE.md` & `AI-CONTEXT.md`):** Yerel bilgisayara ihtiyaç duymadan doğrudan GitHub üzerinden geliştirme ve `.github/workflows/deploy-cloudflare.yml` ile hem Cloudflare Pages hem Cloudflare Worker'a (`summer-mode-6176`) otomatik yayın akışı tüm detaylarıyla belgelendi.
+  3. **`v54`–`v64` Eksiksiz Devir Kayıtları:** Aşağıdaki `v54`–`v64` mimari ve UI/UX değişikliklerinin tamamı `AI-HANDOFF.md` ve `AI-CONTEXT.md` içine işlendi.
+
+---
+
+## v61–v64 (`2026-11-23-shiftpay-v64`) — **Antigravity** — Dinamik Gelir/Gider Kartları, Hedef Halkası Doğruluğu, Otopark/Kira Hariç Net Maaş Ortalaması ve Mobil Hizalama
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:**
+  1. **Net Maaş Ortalamasında Otopark Hariç & Kira Düşümü (`ugAvgPayInfo` — `v64`):** Birikim ekranındaki `Net Maaş Ortalaman` hesabında otopark ödenekleri (`parkOf`) kesin olarak hariç tutuldu ve `Otopark (−€.../hf) hariç` etiketiyle gösterildi; özel kirada (`housingMode === 'none'`) veya aylık bordro kirasında (`'monthly'`) kalanların kira, fatura ve özel sağlık sigortası giderleri ortalamadan düşülüp hem `#ug_pay_hint` hem Senaryo 2 formülünde (`Net maaşın (kira düşülmüş, otopark hariç)`) şeffafça belirtildi.
+  2. **%100 Dinamik Gelir/Gider İsimleri & Mobil Kart Tasarımı (`v63`):** Sabit `"taksit/borç"` metinleri ve otomatik doldurmalar tamamen kaldırıldı (`Geliri yaz…` / `Gideri yaz…`). Kullanıcının yazdığı gelir ve gider adları (`ugItemDisplayName`) Senaryo 2 harçlık formülüne ve bitiş tarihi notuna (`"... bitince: €..."`) dinamik yansıtıldı. Ek gelir/gider satırları (`.savg-irow`), sağ üst köşesinde belirgin kırmızı **`✕ Kaldır`** butonu ve başlıklı alanları olan modern kartlara dönüştürüldü.
+  3. **Hedef Halkası `0 €` Ayrılan Birikim Düzeltmesi (`renderSavGoalRingHTML` — `v62`):** Halkanın merkezi ve sağ üst rozeti doğrudan `Bu Hedef İçin Ayırdığın` (`ug.saved`) tutara bağlandı (`0 €` iken yanıltıcı `%100 Hazır` yerine `%0 Ayrıldı` / `Ayrı Birikim Yok` / `Kalan: €...` gösterir).
+  4. **Anlaşılır Harçlık Açıklaması, Ana Birikim İsimlendirmesi & Mobil Sekmeler (`v61`):** `"Diğer parana"` ifadesi `Ana Birikimine (€...) Dokunmadan` / `Korunan Ana Birikimin` olarak yenilendi; `"Birikim sonrası harcamaya kalan"` kutusu `👛 Maaşından Cebine Kalan Harçlık` başlığı ve açık formülle detaylandırıldı; mobilde (`<=959px`) 3 kategori sekmesi eşit yükseklikli 3 sütuna sabitlendi.
+
+---
+
+## v54–v60 (`2026-11-23-shiftpay-v60`) — **Antigravity** — Windows 11 Fluent Mica Arayüz, Halka Grafikler, Aylık Özet Net Kalan & Canlı Döviz Kuru
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md` (Yedek dal: `backup-v58`)
+- **Ne Yapıldı:**
+  1. **Windows 11 Fluent Mica Sol Menü & Tipografi (`v59`–`v60`):** Masaüstünde (`>=960px`) sol `❖ MENÜ` kenar çubuğu, `Segoe UI Variable` yazı ailesi ve kalabalığı gizleyen açılır çekmeceler (`#ug_drawer`, `details.chk-drawer`) uygulandı.
+  2. **Taşmayan Geniş SVG Halkalar (`v57`–`v60`):** Birikim ekranına çift halkalı `🎯 Hedef Halkası` (`176x176`, `rOut=74`, `rIn=62`) ve `🧾 Haftalık Döküm` ekranına 3 renkli `🍩 Paranın Nereye Gittiği` maaş dağılım halkası (`180x180`, `r=74`) eklendi.
+  3. **Aylık Özet Park Hariç Net Kalan & Tıklanabilir Gider Kutusu (`renderMonth` — `v55`–`v56`):** Aylık Özet ana tutarı otopark ödeneğini saymadan ve tüm kira/ek giderleri düştükten sonra gerçek `Net sana kalan` tutarı gösterecek şekilde güncellendi; altına ayrı `Vergi −€...` rozeti ve tıklayınca detay açan `Kira & Giderler −€... ▾` (`details.mexp`) eklendi.
+  4. **2 Saatte Bir Güncellenen Canlı Döviz & TL Çevirici (`fxEnsure` — `v54`):** Birikim ekranına `EUR`, `USD`, `GBP` -> `TRY` canlı kur ve hızlı çevirici eklendi (`api.frankfurter.dev` + `open.er-api.com` yedekli).
+
+---
+
+## v53 (`2026-11-23-shiftpay-v53`) — **Antigravity** — Birikim & Hedef Planlayıcı Sadeleştirme, Tarih Girişi Bug Düzeltmesi ve Gün Hassasiyetli Hesap
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Düzeltilenler:**
   1. **Tarih (`gg.aa.yyyy`) Manuel Yıl (`0000`) Bug'ı Giderildi:** `<input type="date">` alanında yıl elle yazılırken (`0002` -> `0020` -> `2027`) `change` olayının `renderSavGoal(true)` çağırıp DOM'u yeniden oluşturması kaldırıldı ve yalnızca tam `2024+` yılı girildiğinde simülasyona işlenmesi sağlandı; ayrıca tek tıkla `Süresiz`, `+1 Ay`, `+2 Ay`, `+3 Ay`, `+6 Ay` hızlı bitiş çipleri eklendi.

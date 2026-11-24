@@ -1,6 +1,6 @@
 {
-  "name": "Maaş Takip",
-  "short_name": "Maaş Takip",
+  "name": "ShiftPay - Vardiya ve Maaş Takibi",
+  "short_name": "ShiftPay",
   "description": "Haftalık vardiya ve maaş takibi. Veriler sadece kendi cihazında saklanır.",
   "lang": "tr",
   "start_url": "./",

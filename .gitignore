@@ -1,0 +1,13 @@
+# Secrets & Local Env
+config.env
+*.env
+!*.example.env
+
+# Local Scratch / Outputs / Build
+Claude outputs/
+dist/
+__pycache__/
+*.py[cod]
+*.log
+.DS_Store
+Thumbs.db

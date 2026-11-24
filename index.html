@@ -2361,7 +2361,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-23-shiftpay-v64';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-24-shiftpay-v65';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -5294,25 +5294,30 @@ function buildAiContinuationPrompt(){
   var lastSlipW = slipKeys.length ? slipKeys[slipKeys.length - 1] : 'yok';
   var lastSlipObj = lastSlipW !== 'yok' ? state.slips[lastSlipW] : null;
   return [
-    '=== SHIFTPAY EVRENSEL YAPAY ZEKA DEVAM & OTO-GÜNCELLEME KOMUTU ===',
+    '=== SHIFTPAY %100 WEB TABANLI YAPAY ZEKA (CLAUDE PRO / CLAUDE CODE WEB / ANTIGRAVITY) KOMUTU ===',
     'Proje Adı: ShiftPay (' + APP_VER + ')',
-    'Canlı URL: https://shiftpay-app.pages.dev/',
-    'GitHub Tek Doğru Kaynak (Source of Truth): https://github.com/okanozgur16/maas-takip (Dal: main)',
-    'Mimari Rehber Dosyaları: repodaki AI-HANDOFF.md, AI-CONTEXT.md ve CLAUDE.md',
+    'Canlı Web Uygulaması (Cloudflare Pages): https://shiftpay-app.pages.dev/',
+    'Canlı Bildirim & API Sunucusu (Cloudflare Worker): https://summer-mode-6176.okan-counter.workers.dev',
+    'GitHub Tek Doğru Kaynak (Tüm Web + Worker + Otomasyon Kodları): https://github.com/okanozgur16/maas-takip (Dal: main)',
+    'Önce Okunacak Dosyalar: CLAUDE.md, AI-CONTEXT.md, AI-HANDOFF.md',
+    '',
+    '--- %100 BULUT OTO-YAYIN (YEREL PC GEREKMEZ) ---',
+    '• GitHub main dalına commit atıldığında .github/workflows/deploy-cloudflare.yml otomatik çalışır:',
+    '  1) V8 JS sözdizimi + calcPay() maaş testi + I18N_EN (İngilizce değerlerde Türkçe karakter yasağı) + gizli anahtar taraması yapar.',
+    '  2) Cloudflare Pages (shiftpay-app.pages.dev) VE Cloudflare Worker (server/bildirim-worker.js -> summer-mode-6176) ikisini birden ~30 saniyede canlıya alır (mevcut KV ve secret bağlarını korur).',
     '',
     '--- ANLIK CANLI SİSTEM DURUMU (TELEMETRİ) ---',
     '• Aktif Sürüm: ' + APP_VER,
     '• Kayıtlı Bordro Sayısı: ' + slipKeys.length + (lastSlipObj ? ' (Son Bordro: Hafta ' + lastSlipObj.week + ' · ' + lastSlipW + ' · €' + lastSlipObj.payable + ')' : ''),
     '• Kayıtlı Vardiya / Gün Kaydı: ' + (state.entries || []).length,
-    '• Aktif Arayüz Düzeni: ' + (UI_VER === 'classic' ? 'Sıralamalı Tasarım (classic)' : 'Kategori Tasarımı (v2 - varsayılan)') + ' | Tema: ' + THEME,
+    '• Aktif Arayüz Düzeni: ' + (UI_VER === 'classic' ? 'Sıralamalı Tasarım (classic)' : 'Windows 11 Fluent Mica Sol Menülü Kategori Tasarımı (v2)') + ' | Tema: ' + THEME,
     '',
-    '--- YAPAY ZEKA İÇİN ZORUNLU KURALLAR ---',
-    '1. SÜRÜM SENKRONİZASYONU: Her kod güncellemesinde index.html (APP_VER), version.json, sw.js (CACHE), AI-CONTEXT.md ve AI-HANDOFF.md güncellenir.',
-    '2. GİZLİLİK VE ŞİFRELEME: isOwner() kontrolünü (çift SHA-256 OWNER_HASH), OWNER_TOKEN yetkisini ve AES-256-GCM eşitlemeyi koru. mergeStates() içindeki bordro zaman damgası (slip.u) korumasını bozma.',
-    '3. ÇİFT ARAYÜZ, ÇİFT TEMA VE ÇİFT DİL: Kategori/Sıralamalı tasarım, Açık/Koyu tema ve TR/EN (I18N_EN / L(tr, en)) uyumluluğunu koru.',
-    '4. SIFIR KOTA / SIFIR TOKEN: Uygulama çalışma zamanında %100 saf JS ve arka plan botlarıyla (myholland_bot.py, gmail_bot.py, planbition_bot.py) çalışır.',
+    '--- ZORUNLU KURALLAR ---',
+    '1. SÜRÜM EŞİTLEME: Her kod güncellemesinde index.html (APP_VER), version.json, sw.js (CACHE), README.md, AI-CONTEXT.md ve AI-HANDOFF.md aynı anda güncellenir.',
+    '2. GİZLİLİK & GERİ DÖNÜŞ KORUMASI: isOwner() (çift SHA-256 OWNER_HASH), OWNER_TOKEN ve AES-256-GCM eşitlemeyi koru. backup-pre-v19, backup-v40, backup-v50-with-pc ve backup-v58 dallarına dokunma.',
+    '3. ÇİFT TEMA & ÇİFT DİL: Açık/Koyu tema, Kategori/Sıralamalı düzen ve TR/EN (I18N_EN değerlerinde ğşıİöüçĞŞÖÜÇ bulunmamalıdır) tam uyumlu kalmalıdır.',
     '',
-    'Şimdi yukarıdaki kuralları ve canlı durumu hafızana al, vereceğim talimatı uygula:'
+    'Şimdi repodaki CLAUDE.md, AI-CONTEXT.md ve AI-HANDOFF.md dosyalarını baz alarak vereceğim talimatı doğrudan web reposu üzerinden uygula ve main dalına gönder:'
   ].join('\n');
 }
 

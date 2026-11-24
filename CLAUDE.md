@@ -1,8 +1,57 @@
-# CLAUDE.md — ShiftPay Ortak Yapay Zeka Kuralları (Claude & Antigravity)
+# CLAUDE.md — ShiftPay %100 Web Tabanlı Geliştirme Rehberi (Claude Pro / Claude Code Web & Antigravity)
 
-1. **Önce Oku:** Her işe başlamadan önce **`AI-HANDOFF.md`** (son yapılanlar & kimin yaptığı) ve **`AI-CONTEXT.md`** dosyalarını oku.
-2. **Ortak Devir Günlüğü (`AI-HANDOFF.md`):** Yaptığın her sürüm güncellemesinde `AI-HANDOFF.md` dosyasının EN ÜSTÜNE tarih, sürüm, kendi adını (`Claude Pro` veya `Antigravity`), değişen dosyaları ve diğer asistan için notları ekle.
-3. **Otomatik Yayın & Sürüm Eşitleme:** Her değişiklikte `index.html` (`APP_VER`), `version.json`, `sw.js` (`CACHE`) ve `AI-CONTEXT.md` sürüm numarasını aynı anda yükselt. GitHub `main` dalına commit atıldığında `.github/workflows/deploy-cloudflare.yml` Cloudflare Pages'i ~20 sn içinde otomatik yayınlar (ZIP gerekmez). `backup-pre-v19` dalına asla dokunma.
-4. **Güvenlik & Gizlilik:** `isOwner()` özellikleri (`mhAutoPull`, `copyAiCtx`, owner-only Planbition push) çift SHA-256 `OWNER_HASH` ve sunucu tarafında `env.OWNER_TOKEN` ile korunur; ham Firestore ID, e-posta, şifre veya token ASLA repoya yazılmaz. Kullanıcıya görünen metinlerde yapay zeka/Claude kelimeleri geçmez.
-5. **Çift Tema & Çift Dil:** Her yeni özellik Açık/Koyu temada, Kategori/Sıralamalı düzende ve Türkçe/İngilizce (`I18N_EN`) olarak tam uyumlu olmalıdır.
-6. **Kapsam:** ShiftPay (`maas-takip`) artık %100 saf Vardiya & Maaş Takibi uygulamasıdır (`v51` itibarıyla tüm eski PC Planı / fiyat takip kodları ve dosyaları kaldırılmıştır).
+> **Aktif Sürüm:** `2026-11-24-shiftpay-v65`  
+> **Canlı PWA (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`  
+> **Canlı API & Push Sunucusu (Cloudflare Worker):** `https://summer-mode-6176.okan-counter.workers.dev`  
+> **Tek Doğru Kaynak (GitHub):** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
+
+Bu depo **%100 bulut/web tabanlı** çalışacak şekilde yapılandırılmıştır. Yerel bilgisayardaki hiçbir klasöre erişim gerekmez: tüm önyüz (`index.html`, `sw.js`), sunucu (`server/bildirim-worker.js`), otomasyon botları (`automation/*.py`) ve otomatik yayın hattı (`.github/workflows/deploy-cloudflare.yml`) doğrudan bu GitHub deposundadır.
+
+---
+
+## 1. Hızlı İş Akışı ("Yaz -> Tak Tak Canlıya Al")
+
+1. **Önce Oku:** Her görev başında `AI-HANDOFF.md` (en üstteki son kayıtlar) ve `AI-CONTEXT.md` dosyalarını oku.
+2. **Doğrudan `main` Dalında Güncelle & Otomatik Yayınla:**
+   - Bu depoda `main` dalına commit/push yapıldığında `.github/workflows/deploy-cloudflare.yml` **~30 saniye içinde otomatik olarak**:
+     1. **Pre-Deploy Safety Guard** çalıştırır (`node --check` V8 sözdizimi, `calcPay()` maaş matematiği testi, sürüm senkronizasyonu, tekrarlı HTML ID kontrolü, `I18N_EN` Türkçe karakter sızıntı testi ve gizli anahtar taraması).
+     2. **Cloudflare Pages (`shiftpay-app`)** önyüzünü canlıya alır (`https://shiftpay-app.pages.dev/`).
+     3. **Cloudflare Worker (`summer-mode-6176`)** sunucusunu `server/bildirim-worker.js` dosyasından **otomatik günceller** (`keep_bindings` ile mevcut `OWNER_TOKEN`, `VAPID_*` secret'larını ve `KV` veritabanını %100 korur — elle panoya kod yapıştırmaya gerek yoktur!).
+     4. **Post-Deploy Smoke Test** ile canlı `https://shiftpay-app.pages.dev/version.json` sürümünü doğrular.
+3. **Zorunlu Sürüm Eşitleme (6 Dosya):**
+   - Kod değiştiğinde şu dosyaların sürüm etiketini aynı anda bir artır (`YYYY-MM-DD-shiftpay-vXX`):
+     1. `index.html` (`var APP_VER = '...'`)
+     2. `version.json` (`{"v": "..."}`)
+     3. `sw.js` (`var CACHE = 'maas-takip-v1-...'`)
+     4. `README.md`
+     5. `AI-CONTEXT.md`
+     6. `AI-HANDOFF.md` (en üste yeni sürüm özeti ekle)
+
+---
+
+## 2. Depo Klasör ve Dosya Haritası
+
+| Yol | Açıklama |
+|---|---|
+| `index.html` | Tek dosya PWA uygulaması (HTML + CSS + JS, ~5.850 satır). Windows 11 Fluent Mica sol menü (`❖ MENÜ`), maaş/vergi motoru, PDF bordro okuyucu, Planbition, şifreli Firestore eşitleme, Birikim & Hedef halkası, canlı döviz (`EUR/USD/GBP -> TRY`). |
+| `sw.js` | Çevrimdışı PWA önbellekleme ve Web Push bildirim tıklama yöneticisi. |
+| `version.json` | İstemci otomatik güncelleme yoklama dosyası (`?v=` cache-buster tetikler). |
+| `server/bildirim-worker.js` | Canlı Cloudflare Worker (`summer-mode-6176`) tam kaynak kodu: Web Push (`/api/sync`, `/api/off`, `/api/test`), canlı Planbition proxy (`/api/planbition`), canlı myHolland PDF bordro çekici (`/api/myholland-slips`) ve saatlik Cron bildirimleri. |
+| `automation/` | Arka plan Python botları (`run_sync.py`, `planbition_bot.py`, `myholland_bot.py`, `gmail_bot.py`, `pdf_parser.py`, `sync_engine.py`, `daemon.py`, `config.example.env`). Sadece kaynak koddur; `dist/` içine kopyalanmaz. |
+| `.github/workflows/deploy-cloudflare.yml` | Otomatik test + Cloudflare Pages + Cloudflare Worker CI/CD iş akışı. |
+| `_headers`, `_redirects`, `manifest.webmanifest`, `fonts/`, `lib/` | Güvenlik başlıkları, SPA yönlendirmesi, PWA manifestosu, yerel fontlar ve yerel `pdf.js` (`3.11.174`). |
+
+---
+
+## 3. Kritik Kurallar & CI Kırmızı Çizgileri
+
+1. **İngilizce Çeviri (`I18N_EN`) Kuralı (CI Kırıcı!):**
+   - `index.html` içindeki `var I18N_EN = {...};` nesnesinin **değerlerinde (sağ tarafta)** tek bir Türkçe karakter (`ğ, ş, ı, İ, ö, ü, ç, Ğ, Ş, Ö, Ü, Ç`) bile bulunursa GitHub Actions yayını reddeder. Yeni metinlerde `L('Türkçe metin', 'English text')` kullan veya `I18N_EN` içine saf İngilizce karşılık ekle.
+2. **Gizlilik & Güvenlik:**
+   - Ham eşitleme kodu, e-posta, şifre, `OWNER_TOKEN` (`sp_...`) veya API anahtarı **ASLA** koda ya da dokümanlara yazılmaz.
+   - Sahibe özel özellikler (`mhAutoPull`, `copyAiCtx`, owner Planbition push) istemcide çift SHA-256 `OWNER_HASH` (`isOwner()`) ve sunucuda sabit zamanlı `env.OWNER_TOKEN` ile korunur.
+3. **Korunan Yedek Dallar (Asla Silme / Force-Push Yapma):**
+   - `backup-pre-v19`, `backup-v40`, `backup-v50-with-pc`, `backup-v58`.
+4. **Hesaplama ve Veri Bütünlüğü:**
+   - `calcPay()`, `taxNormal()`, `weekResult()`, `parkOf()`, `mergeStates()` (bordro `slip.u` zaman damgası ve `state.del` tombstone koruması) ve `ugAvgPayInfo()` (otopark hariç + özel kira/sigorta düşülmüş net maaş ortalaması) mantığını bozma.
+   - Açık/Koyu tema (`data-theme="light"|"dark"`), Kategori/Sıralamalı görünüm (`UI_VER`) ve Masaüstü (`>=960px` sol menü) / Mobil (`390px` 3 sütunlu sekme barı) uyumunu koru.
