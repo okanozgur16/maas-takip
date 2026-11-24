@@ -14,6 +14,15 @@
 
 
 
+## v68 (`2026-11-24-shiftpay-v68`) — **Claude Pro** — Birikim Kartı Sadeleştirme (A Tasarımı: Önce Ayar, Sonra Tek Sonuç)
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:**
+  1. Asıl ayarlar ("🎯 Hedefim": ad, tutar, ayırdığım, haftalık/aylık birikim + kaydırıcı) gizli çekmeceden çıkıp sonucun üstüne, her zaman açık kutuya taşındı.
+  2. İki uzun senaryo kartı tek plan kartına indirildi; "elindeki tüm parayla" sonucu yalnızca farklıysa tek satır gösteriliyor. Harçlık formülü "Nasıl hesaplandı?" altında.
+  3. Toplam para, net maaş bilgisi, ek gelir/giderler ve onaylı sıfırlama "⚙️ Gelişmiş ayarlar" çekmecesinde. Hesaplama fonksiyonları ve kayıtlı veri yapısı değişmedi.
+
+---
+
 ## v67 (`2026-11-24-shiftpay-v67`) — **Claude Pro** — Takvim, Bordro Karşılaştırması, Güvenlik Temizliği & Ücretsiz Kota Koruması
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:**

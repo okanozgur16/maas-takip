@@ -1,12 +1,17 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-24-shiftpay-v67`
+- **Aktif Sürüm:** `2026-11-24-shiftpay-v68`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v68 Değişiklikleri (Claude Pro)
+- **Birikim kartı yeni yerleşim (`renderSavGoal`, `renderSavGoalResult`):** "🎯 Hedefim" kutusu (`ug_title`, `ug_target`, `ug_saved`, `ug_wk_in` + `ug_wk` kaydırıcısı) her zaman açık ve sonucun üstünde; telefonda 2 sütun. Sonuç: halka + tek plan kartı (`.savg-main2`); "elindeki tüm parayla" senaryosu yalnızca `sim.regularCash > 0` iken tek satır (`.savg-alt`). Uzun harçlık formülü "Nasıl hesaplandı?" altında.
+- **Gelişmiş ayarlar (`#ug_drawer`):** Toplam para (`ug_total`), net maaş bilgisi (`ug_pay_box`), ek gelir/giderler ve "Ayırdığım birikimi sıfırla…" (`ugReset`, onaylı). Başlıktaki Sıfırla düğmesi kaldırıldı.
+- `ugSimulate`, `ugAvgPayInfo`, `ugRunTrack`, alan kimlikleri ve kayıtlı `state.settings.userGoal` yapısı değişmedi.
 
 ## v67 Değişiklikleri (Claude Pro)
 - **Takvim kartı (`renderCal`, `calShift`, `#cal`, `LAY_DEF` → `cal`):** `📅 Takvim, Aylık & Birikim` sekmesinin en üstünde sade ay takvimi: hücrede yalnızca gün numarası + vardiya rengi (Sabah/Öğle/Pazar/İzin), planlı = kesikli çerçeve, Planbition onay bekleyen = turuncu nokta; tutar/saat yazısı yok, alt bilgide aylık vardiya ve saat toplamı. Güne dokununca (`data-act="calDay"`) o haftanın Haftalık Plan'ı açılır.
