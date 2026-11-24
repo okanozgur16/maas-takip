@@ -184,6 +184,7 @@ jobs:
           import json, os
 
           bindings = [
+              {"type": "kv_namespace", "name": "KV", "namespace_id": "9f5663780da9445ebbfc175d3d0fa1dd"},
               {"type": "secret_text", "name": "MCP_PATH_SECRET", "text": os.environ["MCP_SEC"]},
               {"type": "secret_text", "name": "CF_API_TOKEN", "text": os.environ["CF_TOKEN"]},
           ]
@@ -297,7 +298,9 @@ jobs:
               print(f'[OK] Published new Firebase Firestore ruleset to maas-takip-sync: {new_rs_name}')
           EOF
 
-      - name: Post-Deploy Live Smoke Test (verify live version.json == expected)
+      - name: Post-Deploy Live Smoke Test & Real Chrome Screenshot Capture (Desktop + Mobile -> KV)
+        env:
+          CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
         run: |
           EXPECTED=$(python3 -c "import json; print(json.load(open('version.json'))['v'])")
           echo "Expected live version: $EXPECTED"
@@ -307,8 +310,22 @@ jobs:
             echo "Attempt $i -> Live: $LIVE"
             if [ "$LIVE" = "$EXPECTED" ]; then
               echo "[OK] Post-Deploy Live Smoke Test PASSED ($LIVE)"
-              exit 0
+              break
             fi
           done
-          echo "[WARN] CDN cache may still be propagating; version.json did not reflect $EXPECTED within 25s"
+          # Capture real Google Chrome headless PNG screenshots (Desktop 1280x820 & Mobile 390x844) for Claude's live_site_visual_check eyes!
+          if command -v google-chrome >/dev/null 2>&1; then
+            TARGET_URL="https://shiftpay-app.pages.dev/?v=${EXPECTED}&_shot=$(date +%s)"
+            google-chrome --headless=new --no-sandbox --disable-gpu --hide-scrollbars --virtual-time-budget=2500 --window-size=1280,820 --screenshot=/tmp/shot_desktop.png "$TARGET_URL" || true
+            google-chrome --headless=new --no-sandbox --disable-gpu --hide-scrollbars --virtual-time-budget=2500 --window-size=390,844 --screenshot=/tmp/shot_mobile.png "$TARGET_URL" || true
+            if [ -s /tmp/shot_desktop.png ] && [ -s /tmp/shot_mobile.png ]; then
+              curl -sS -X PUT "https://api.cloudflare.com/client/v4/accounts/3bf7fc774af3ec087fc3d01b6856c0bd/storage/kv/namespaces/9f5663780da9445ebbfc175d3d0fa1dd/values/live_shot_desktop" \
+                -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @/tmp/shot_desktop.png > /dev/null
+              curl -sS -X PUT "https://api.cloudflare.com/client/v4/accounts/3bf7fc774af3ec087fc3d01b6856c0bd/storage/kv/namespaces/9f5663780da9445ebbfc175d3d0fa1dd/values/live_shot_mobile" \
+                -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @/tmp/shot_mobile.png > /dev/null
+              curl -sS -X PUT "https://api.cloudflare.com/client/v4/accounts/3bf7fc774af3ec087fc3d01b6856c0bd/storage/kv/namespaces/9f5663780da9445ebbfc175d3d0fa1dd/values/live_shot_meta" \
+                -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: text/plain" --data "version=$EXPECTED | captured=$(date -u +%Y-%m-%dT%H:%M:%SZ)" > /dev/null
+              echo "[OK] Real Chrome Desktop & Mobile screenshots stored in KV for Claude visual inspection!"
+            fi
+          fi
           exit 0

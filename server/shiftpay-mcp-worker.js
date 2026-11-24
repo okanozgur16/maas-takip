@@ -326,57 +326,89 @@ async function runTool(name, args, env) {
     const isMobile = args.device === "mobile";
     const width = isMobile ? 390 : 1280;
     const height = isMobile ? 844 : 820;
-    const scheme = args.color_scheme === "light" ? "light" : "dark";
+    const kvKey = isMobile ? "live_shot_mobile" : "live_shot_desktop";
     const baseTarget = args.url || LIVE_URL;
-    const sep = baseTarget.includes("?") ? "&" : "?";
-    const targetUrl = `${baseTarget}${sep}_cb=${Date.now()}`;
+    const isDefaultUrl = !args.url || args.url === LIVE_URL || args.url === "https://shiftpay-app.pages.dev";
 
-    // 1. Live version.json & HTTP check
+    // 1. Live version.json & HTTP check directly from edge
     let verInfo = "bilinmiyor";
     try {
       const vRes = await fetch(`${LIVE_URL}version.json?t=${Date.now()}`, { cf: { cacheTtl: 0 } });
-      verInfo = `${vRes.status} -> ${await vRes.text()}`;
+      verInfo = `${vRes.status} -> ${(await vRes.text()).trim()}`;
     } catch (e) {
       verInfo = `hata: ${e.message}`;
     }
 
-    // 2. Render real Chromium screenshot via Microlink Headless Chromium (deviceScaleFactor=1 for crisp compact PNG)
-    const mlParams = new URLSearchParams({
-      url: targetUrl,
-      screenshot: "true",
-      "viewport.width": String(width),
-      "viewport.height": String(height),
-      "viewport.deviceScaleFactor": "1",
-      "viewport.isMobile": isMobile ? "true" : "false",
-      colorScheme: scheme,
-      waitForTimeout: "1200"
-    });
-    const mlRes = await fetch(`https://api.microlink.io/?${mlParams.toString()}`, {
-      headers: { "User-Agent": "ShiftPay-Visual-Inspector/1.0" }
-    });
-    const mlJson = await mlRes.json();
-    const shotUrl = mlJson?.data?.screenshot?.url;
-    if (!shotUrl) {
+    // 2. Primary: Read real Google Chrome headless PNG captured by Post-Deploy CI in Cloudflare KV (0 rate limit, instant!)
+    if (isDefaultUrl && env.KV && (!args.color_scheme || args.color_scheme === "dark")) {
+      const buf = await env.KV.get(kvKey, "arrayBuffer");
+      const metaRaw = await env.KV.get("live_shot_meta", "text");
+      if (buf && buf.byteLength > 1000) {
+        const u8 = new Uint8Array(buf);
+        return {
+          content: [
+            {
+              type: "text",
+              text: `✅ Canlı Site Görsel Kontrolü (${isMobile ? "Telefon 390x844" : "Masaüstü 1280x820"} — Google Chrome Gerçek Render PNG)\n• URL: ${LIVE_URL}\n• Canlı version.json: ${verInfo}\n• Çekim Bilgisi: ${metaRaw || "son yayın"}\n• Görsel Boyutu: ${u8.byteLength} bayt`
+            },
+            {
+              type: "image",
+              data: b64FromBytes(u8),
+              mimeType: "image/png"
+            }
+          ]
+        };
+      }
+    }
+
+    // 3. Fallback for custom URLs or light-theme ad-hoc checks: Microlink -> Thum.io Chromium fallback
+    const sep = baseTarget.includes("?") ? "&" : "?";
+    const targetUrl = `${baseTarget}${sep}_cb=${Date.now()}`;
+    let imgBuf = null;
+    try {
+      const mlParams = new URLSearchParams({
+        url: targetUrl,
+        screenshot: "true",
+        "viewport.width": String(width),
+        "viewport.height": String(height),
+        "viewport.deviceScaleFactor": "1",
+        "viewport.isMobile": isMobile ? "true" : "false",
+        colorScheme: args.color_scheme === "light" ? "light" : "dark"
+      });
+      const mlRes = await fetch(`https://api.microlink.io/?${mlParams.toString()}`);
+      const mlJson = await mlRes.json();
+      if (mlJson?.data?.screenshot?.url) {
+        const r = await fetch(mlJson.data.screenshot.url);
+        if (r.ok) imgBuf = new Uint8Array(await r.arrayBuffer());
+      }
+    } catch (_) {}
+
+    if (!imgBuf) {
+      const thumUrl = `https://image.thum.io/get/png/width/${width}/crop/${height}/noanimate/${targetUrl}`;
+      const tRes = await fetch(thumUrl);
+      if (tRes.ok && (tRes.headers.get("content-type") || "").includes("image")) {
+        imgBuf = new Uint8Array(await tRes.arrayBuffer());
+      }
+    }
+
+    if (!imgBuf) {
       return {
         content: [{
           type: "text",
-          text: `Canlı version.json: ${verInfo}\nEkran görüntüsü servisi yanıtı: ${JSON.stringify(mlJson).slice(0, 800)}`
+          text: `Canlı version.json: ${verInfo}\nAnlık ekran görüntüsü alınamadı; son CI yayını tamamlandığında KV üzerinden otomatik hazır olur.`
         }]
       };
     }
-    const imgRes = await fetch(shotUrl);
-    const imgBuf = new Uint8Array(await imgRes.arrayBuffer());
-    const b64Png = b64FromBytes(imgBuf);
 
     return {
       content: [
         {
           type: "text",
-          text: `✅ Canlı Site Görsel Kontrolü (${isMobile ? "Telefon 390x844" : "Masaüstü 1280x820"}, ${scheme} tema)\n• URL: ${targetUrl}\n• Canlı version.json: ${verInfo.trim()}\n• Görsel Boyutu: ${imgBuf.byteLength} bayt (${width}x${height} PNG)`
+          text: `✅ Canlı Site Anlık Görsel Kontrolü (${isMobile ? "Telefon 390x844" : "Masaüstü 1280x820"})\n• URL: ${targetUrl}\n• Canlı version.json: ${verInfo}\n• Görsel Boyutu: ${imgBuf.byteLength} bayt`
         },
         {
           type: "image",
-          data: b64Png,
+          data: b64FromBytes(imgBuf),
           mimeType: "image/png"
         }
       ]
