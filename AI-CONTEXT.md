@@ -1,12 +1,15 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-24-shiftpay-v70`
+- **Aktif Sürüm:** `2026-11-24-shiftpay-v71`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v71 Değişiklikleri (Claude Pro)
+- **Birikim alan adı:** `ug_saved` etiketi "Toplam parandan dahil etmek istediğin tutar (€)" oldu (örnek: 500), alt çubukta "Hedefe dahil". Alan kimliği ve veri yapısı aynı.
 
 ## v70 Değişiklikleri (Claude Pro)
 - **Bordro kontrolü satırlarına "Detayları gör ›" / "Gizle" ipucu (`slipCmpHTML`, CSS `.cmp-end`, `.cmp-more`):** Durum etiketinin (✓ Uyuşuyor, Saat eksik…) yanında; açılınca "Gizle" olur ve ok döner. TR/EN, açık/koyu tema doğrulandı.

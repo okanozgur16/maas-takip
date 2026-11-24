@@ -14,6 +14,12 @@
 
 
 
+## v71 (`2026-11-24-shiftpay-v71`) — **Claude Pro** — Birikim: "Toplam parandan dahil etmek istediğin tutar" etiketi
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:** `ug_saved` alanı yeniden adlandırıldı; hesap aynı.
+
+---
+
 ## v70 (`2026-11-24-shiftpay-v70`) — **Claude Pro** — Bordro Kontrolü "Detayları gör" İpucu + Genel Tarama
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:** Bordro kontrolü satırlarında durum etiketinin yanına "Detayları gör ›" (açıkken "Gizle") eklendi. Telefon/dil/tema/ayar sekmeleri taraması temiz çıktı.

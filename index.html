@@ -2476,7 +2476,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-24-shiftpay-v70';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-24-shiftpay-v71';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3876,7 +3876,7 @@ function renderSavGoal(force){
     '<div class="savg-core-h">💶 ' + L('Param', 'My money') + '</div>' +
     '<div class="savg-grid3 savg-core-g">' +
       '<div class="field"><label for="ug_total">' + L('Toplam param (€)', 'All my money (€)') + '</label><input id="ug_total" type="text" inputmode="decimal" value="' + (ug.totalCash > 0 ? esc(String(ug.totalCash).replace('.', ',')) : '') + '" placeholder="' + L('Örneğin 1000 Euro', 'e.g. 1000 Euro') + '"><small class="fh num" id="ug_reg_hint"></small></div>' +
-      '<div class="field"><label for="ug_saved">' + L('Bunun hedefe ayrılan kısmı (€)', 'Of which set aside for this goal (€)') + '</label><input id="ug_saved" type="text" inputmode="decimal" value="' + (ug.saved > 0 ? esc(String(ug.saved).replace('.', ',')) : '') + '" placeholder="' + L('Ayırdığınız bütçeyi girin', 'Enter your allocated budget') + '"><small class="fh">' + L('Hedef için kenara ayrılan tutar', 'Amount reserved for this goal') + '</small></div>' +
+      '<div class="field"><label for="ug_saved">' + L('Toplam parandan dahil etmek istediğin tutar (€)', 'Amount of your total you want to include (€)') + '</label><input id="ug_saved" type="text" inputmode="decimal" value="' + (ug.saved > 0 ? esc(String(ug.saved).replace('.', ',')) : '') + '" placeholder="' + L('Örn. 500', 'e.g. 500') + '"><small class="fh">' + L('Toplam paranın bu hedefe katılacak kısmı', 'The part of your total that counts toward this goal') + '</small></div>' +
     '</div>' +
     '<div class="savg-split" id="ug_split"></div>' +
     '<div class="savg-core-h">📈 ' + L('Birikim hızı', 'Saving pace') + '</div>' +
@@ -4002,7 +4002,7 @@ function renderSavGoalLive(){
     if (tc > 0){
       var pSv = Math.max(0, Math.min(100, Math.round(sv0 / tc * 100))), free = r2(tc - sv0);
       $('ug_split').innerHTML = '<div class="savg-split-bar" role="img" aria-label="' + L('Paranın %' + pSv + '\'i hedefe ayrıldı', pSv + '% of your money is set aside') + '"><i style="width:' + pSv + '%"></i></div>' +
-        '<div class="savg-split-t num"><span><i class="d sv"></i>' + L('Hedefe ayrılan', 'Set aside') + ' <b>' + eur(sv0) + '</b></span>' +
+        '<div class="savg-split-t num"><span><i class="d sv"></i>' + L('Hedefe dahil', 'Included in goal') + ' <b>' + eur(sv0) + '</b></span>' +
         (free >= 0 ? '<span><i class="d fr"></i>' + L('Serbest kalan', 'Free') + ' <b>' + eur(free) + '</b></span>' : '<span style="color:var(--bad)">⚠️ ' + L('Ayrılan tutar toplam paradan fazla', 'Set-aside exceeds your total') + '</span>') + '</div>';
     } else {
       $('ug_split').innerHTML = '<div class="savg-split-t"><span>' + L('Toplam paranı da yazarsan hedefe ayrılanla serbest kalanı ayrı görürsün. Boş bırakabilirsin.', 'Add your total money to see set-aside vs. free money. You can leave it empty.') + '</span></div>';
