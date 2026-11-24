@@ -595,7 +595,7 @@ html:not(.ui-classic) .grid[data-sub="brk"] [data-card="savGoal"],
 html:not(.ui-classic) .grid[data-sub="brk"] [data-card="year"],
 html:not(.ui-classic) .grid[data-sub="brk"] [data-card="month"],
 html:not(.ui-classic) .grid[data-sub="brk"] [data-card="cal"],
-html:not(.ui-classic) .grid[data-sub="brk"] [data-card="slipChk"]{display:none !important}
+html:not(.ui-classic) .grid[data-sub="yr"] [data-card="slipChk"]{display:none !important}
 
 html:not(.ui-classic) .grid[data-sub="yr"] [data-card="hero"],
 html:not(.ui-classic) .grid[data-sub="yr"] [data-card="days"],
@@ -1123,6 +1123,18 @@ details.chk-drawer .chk-body{padding:10px 13px 12px;border-top:1px solid var(--l
   .row{font-size:14px}
 }
 
+/* v69: Birikim — Hedef / Param / Birikim hızı */
+.savg-core-h{margin-top:4px}
+.savg-core-h+.savg-grid3{margin-bottom:8px}
+.savg-core-1{grid-template-columns:minmax(0,1fr)!important}
+.savg-core #ug_reg_hint{display:none}
+.savg-split{margin:0 2px 12px}
+.savg-split-bar{height:10px;border-radius:99px;background:color-mix(in srgb,var(--good) 30%,var(--surface));overflow:hidden}
+.savg-split-bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.savg-split-t{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 12px;margin-top:6px;font-size:12.5px;color:var(--muted)}
+.savg-split-t b{color:var(--ink)}
+.savg-split-t .d{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:middle}
+.savg-split-t .d.sv{background:var(--accent)}.savg-split-t .d.fr{background:color-mix(in srgb,var(--good) 45%,var(--surface))}
 /* v68: Birikim — Hedefim üstte, tek sonuç kartı, gelişmiş ayarlar */
 .savg-core{margin:10px 0 12px;padding:12px;border-radius:16px;background:var(--surface2);border:1.5px solid color-mix(in srgb,var(--accent) 35%,var(--line))}
 .savg-core-h{font-size:12.5px;font-weight:800;letter-spacing:.04em;color:var(--accent);margin:0 2px 8px;text-transform:uppercase}
@@ -1142,6 +1154,22 @@ details.savg-how>summary{cursor:pointer;font-size:12.5px;font-weight:600;color:v
 details.savg-how>summary::-webkit-details-marker{display:none}
 .savg-reset{display:flex;justify-content:flex-end;margin-top:4px}
 .savg-reset .btn{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 35%,var(--line))}
+/* v69: Takvim aç/kapa + gün ayrıntısı */
+.cal-top{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.cal-top h2{margin:0}
+.cal-top .btn{min-height:40px}
+.cal-top+.cal-nav{margin-top:12px}
+.cal-d.sel{outline:3px solid var(--accent);outline-offset:1px}
+.cal-det{margin-top:12px;padding:12px 14px;border-radius:14px;border:1.5px solid color-mix(in srgb,var(--accent) 40%,var(--line));background:var(--surface2)}
+.cal-det-h{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:6px;font-size:15px}
+.cal-dr{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:7px 0;border-top:1px solid var(--line);font-size:13.5px}
+.cal-dr:first-of-type{border-top:0}
+.cal-dk{width:12px;height:12px;border-radius:4px;flex:none;border:1px solid var(--line)}
+.cal-dk.k-morn{background:var(--accent)}.cal-dk.k-late{background:var(--c150)}.cal-dk.k-sun{background:var(--c185)}.cal-dk.k-vac{background:var(--off)}.cal-dk.k-man{background:var(--c100)}.cal-dk.k-none{background:transparent}
+.cal-dn{flex:1;min-width:0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.cal-dv{color:var(--muted);font-weight:600}
+.cal-tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:99px;border:1px dashed var(--muted);color:var(--muted)}
+.cal-tag.warn{border:0;background:color-mix(in srgb,var(--c150) 20%,var(--surface));color:var(--ink)}
 /* v67: Takvim kartı — sadece gün numarası + vardiya rengi */
 .cal-nav{display:flex;align-items:center;gap:8px;margin:2px 0 12px}
 .cal-nav .t{flex:1;font-family:var(--display);font-weight:700;font-size:17px;text-align:center}
@@ -2442,7 +2470,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-24-shiftpay-v68';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-24-shiftpay-v69';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2582,7 +2610,7 @@ function renderSecBanner(){
   if (ms === 'brk'){
     ic = '🧾';
     title = L('Haftalık Maaş & Kesinti Dökümü', 'Weekly Pay & Deductions Breakdown');
-    desc = L('Brüt/net maaş kalemleri, vergi, sigorta, kira ve ek ödemelerin detaylı dağılımı.', 'Detailed breakdown of gross/net pay lines, tax, insurance, rent, and extra payments.');
+    desc = L('Brüt/net maaş kalemleri, vergi, sigorta, kira, ek ödemeler ve bordro kontrolü.', 'Gross/net pay lines, tax, insurance, rent, extra payments and payslip check.');
   } else if (ms === 'yr'){
     ic = '📅';
     title = L('Takvim, Birikim & Aylık / Yıllık Toplamlar', 'Calendar, Savings & Monthly / Yearly Totals');
@@ -3834,11 +3862,19 @@ function renderSavGoal(force){
   var slMin = isMo ? 50 : 15, slMax = isMo ? 2600 : 600, slStep = isMo ? 25 : 5;
   var slVal = Math.min(slMax, Math.max(slMin, Math.round(dispSaveVal)));
   h += '<div class="savg-core">' +
-    '<div class="savg-core-h">🎯 ' + L('Hedefim', 'My Goal') + '</div>' +
+    '<div class="savg-core-h">🎯 ' + L('Hedef', 'Goal') + '</div>' +
     '<div class="savg-grid3 savg-core-g">' +
-      '<div class="field"><label for="ug_title">' + L('Hedefim (Ne için?)', 'Goal Name') + '</label><input id="ug_title" type="text" maxlength="45" value="' + esc(ug.title) + '" placeholder="' + L('Örn. Tatil, Araba…', 'e.g. Holiday, Car…') + '"><small class="fh">' + L('Hedef adı', 'Goal title') + '</small></div>' +
-      '<div class="field"><label for="ug_target">' + L('Hedef Tutarı (€)', 'Target Amount (€)') + '</label><input id="ug_target" type="text" inputmode="decimal" value="' + (ug.targetAmt > 0 ? esc(String(ug.targetAmt).replace('.', ',')) : '') + '" placeholder="' + L('Örneğin 1500 Euro', 'e.g. 1500 Euro') + '"><small class="fh num" id="ug_gap_hint"></small></div>' +
-      '<div class="field"><label for="ug_saved">' + L('Bu Hedef İçin Ayırdığım (€)', 'Set Aside for This Goal (€)') + '</label><input id="ug_saved" type="text" inputmode="decimal" value="' + (ug.saved > 0 ? esc(String(ug.saved).replace('.', ',')) : '') + '" placeholder="' + L('Ayırdığınız bütçeyi girin', 'Enter your allocated budget') + '"><small class="fh">' + L('Hedef için kenara ayrılan tutar', 'Amount reserved for this goal') + '</small></div>' +
+      '<div class="field"><label for="ug_title">' + L('Ne için?', 'What for?') + '</label><input id="ug_title" type="text" maxlength="45" value="' + esc(ug.title) + '" placeholder="' + L('Örn. Tatil, Araba…', 'e.g. Holiday, Car…') + '"><small class="fh">' + L('Hedef adı', 'Goal title') + '</small></div>' +
+      '<div class="field"><label for="ug_target">' + L('Ne kadar? (€)', 'How much? (€)') + '</label><input id="ug_target" type="text" inputmode="decimal" value="' + (ug.targetAmt > 0 ? esc(String(ug.targetAmt).replace('.', ',')) : '') + '" placeholder="' + L('Örneğin 1500 Euro', 'e.g. 1500 Euro') + '"><small class="fh num" id="ug_gap_hint"></small></div>' +
+    '</div>' +
+    '<div class="savg-core-h">💶 ' + L('Param', 'My money') + '</div>' +
+    '<div class="savg-grid3 savg-core-g">' +
+      '<div class="field"><label for="ug_total">' + L('Toplam param (€)', 'All my money (€)') + '</label><input id="ug_total" type="text" inputmode="decimal" value="' + (ug.totalCash > 0 ? esc(String(ug.totalCash).replace('.', ',')) : '') + '" placeholder="' + L('Örneğin 1000 Euro', 'e.g. 1000 Euro') + '"><small class="fh num" id="ug_reg_hint"></small></div>' +
+      '<div class="field"><label for="ug_saved">' + L('Bunun hedefe ayrılan kısmı (€)', 'Of which set aside for this goal (€)') + '</label><input id="ug_saved" type="text" inputmode="decimal" value="' + (ug.saved > 0 ? esc(String(ug.saved).replace('.', ',')) : '') + '" placeholder="' + L('Ayırdığınız bütçeyi girin', 'Enter your allocated budget') + '"><small class="fh">' + L('Hedef için kenara ayrılan tutar', 'Amount reserved for this goal') + '</small></div>' +
+    '</div>' +
+    '<div class="savg-split" id="ug_split"></div>' +
+    '<div class="savg-core-h">📈 ' + L('Birikim hızı', 'Saving pace') + '</div>' +
+    '<div class="savg-grid3 savg-core-g savg-core-1">' +
       '<div class="field"><label for="ug_wk_in">' + (isMo ? L('Aylık Ayıracağım (€/ay)', 'Monthly Saving (€/mo)') : L('Haftalık Ayıracağım (€/hf)', 'Weekly Saving (€/wk)')) + '</label><input id="ug_wk_in" type="text" inputmode="decimal" value="' + esc(String(dispSaveVal).replace('.', ',')) + '" placeholder="' + (isMo ? L('Örneğin 1000 Euro', 'e.g. 1000 Euro') : L('Örneğin 250 Euro', 'e.g. 250 Euro')) + '"><small class="fh num" id="ug_per_hint"></small></div>' +
     '</div>' +
       '<div class="savg-sl" style="margin:0"><div class="t"><span id="ug_wklbl"></span><span class="num" id="ug_molbl"></span></div>' +
@@ -3852,14 +3888,13 @@ function renderSavGoal(force){
   h += '<details class="savg-drawer" id="ug_drawer"' + (UG_DRAWER_OPEN ? ' open' : '') + '>' +
     '<summary>' +
       '<div class="savg-drw-l">' +
-        '<span>⚙️ ' + L('Gelişmiş ayarlar', 'Advanced settings') + '</span>' +
+        '<span>⚙️ ' + L('Ek gelir/gider & diğer ayarlar', 'Extra income/expenses & more') + '</span>' +
         '<span class="savg-drw-pills num" id="ug_drw_pills"></span>' +
       '</div>' +
       '<span class="savg-drw-btn">' + L('Aç', 'Open') + ' <span class="savg-drw-chv">▾</span></span>' +
     '</summary>' +
     '<div class="savg-drw-body">' +
       '<div class="savg-grid3" style="margin-bottom:0">' +
-        '<div class="field"><label for="ug_total">' + L('Elimdeki Toplam Para (€)', 'My Total Money (€)') + '</label><input id="ug_total" type="text" inputmode="decimal" value="' + (ug.totalCash > 0 ? esc(String(ug.totalCash).replace('.', ',')) : '') + '" placeholder="' + L('Örneğin 1000 Euro', 'e.g. 1000 Euro') + '"><small class="fh num" id="ug_reg_hint"></small></div>' +
         '<div class="field"><label>' + L('Net Maaş Ortalaman', 'Your Avg. Net Pay') + '</label><div style="padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-weight:700;font-size:15px" class="num" id="ug_pay_box"></div><small class="fh num" id="ug_pay_hint"></small></div>' +
       '</div>' +
       '<div class="savg-cf" style="margin:0">' +
@@ -3953,8 +3988,19 @@ function renderSavGoalLive(){
   if ($('ug_drw_pills')){
     var actCnt = ug.items.filter(function(x){ return x.active && x.amt > 0; }).length;
     $('ug_drw_pills').innerHTML =
-      (ug.totalCash > 0 ? '<span class="savg-drw-pill">' + L('Toplam', 'Total') + ': <b>' + eur(ug.totalCash) + '</b></span>' : '') +
+      '<span class="savg-drw-pill">' + L('Net maaş ort.', 'Avg. net pay') + ' <b>' + (isMo ? eur(payInfo.netMo) + '/' + L('ay', 'mo') : eur(payInfo.netWk) + '/' + L('hf', 'wk')) + '</b></span>' +
       '<span class="savg-drw-pill">' + (actCnt > 0 ? actCnt + ' ' + L('gelir/gider', 'items') : L('Ek gelir/gider yok', 'No extra items')) + '</span>';
+  }
+  if ($('ug_split')){
+    var tc = +ug.totalCash || 0, sv0 = +ug.saved || 0;
+    if (tc > 0){
+      var pSv = Math.max(0, Math.min(100, Math.round(sv0 / tc * 100))), free = r2(tc - sv0);
+      $('ug_split').innerHTML = '<div class="savg-split-bar" role="img" aria-label="' + L('Paranın %' + pSv + '\'i hedefe ayrıldı', pSv + '% of your money is set aside') + '"><i style="width:' + pSv + '%"></i></div>' +
+        '<div class="savg-split-t num"><span><i class="d sv"></i>' + L('Hedefe ayrılan', 'Set aside') + ' <b>' + eur(sv0) + '</b></span>' +
+        (free >= 0 ? '<span><i class="d fr"></i>' + L('Serbest kalan', 'Free') + ' <b>' + eur(free) + '</b></span>' : '<span style="color:var(--bad)">⚠️ ' + L('Ayrılan tutar toplam paradan fazla', 'Set-aside exceeds your total') + '</span>') + '</div>';
+    } else {
+      $('ug_split').innerHTML = '<div class="savg-split-t"><span>' + L('Toplam paranı da yazarsan hedefe ayrılanla serbest kalanı ayrı görürsün. Boş bırakabilirsin.', 'Add your total money to see set-aside vs. free money. You can leave it empty.') + '</span></div>';
+    }
   }
   if ($('ug_reg_hint')){
     if (ug.totalCash > 0){
@@ -4205,6 +4251,7 @@ function renderSavGoalResult(ug, payInfo, sim){
   h += '</div>' + altRow;
   return h;
 }
+var CAL_OPEN = (function(){ try { return localStorage.getItem(LS + '-calopen') === '1'; } catch (e) { return false; } })();
 var CAL_M_EN = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 function calShift(ym, d){ var dt = new Date(+ym.slice(0, 4), +ym.slice(5, 7) - 1 + d, 1); return dt.getFullYear() + '-' + ('0' + (dt.getMonth() + 1)).slice(-2); }
 /* v67: Ay takvimi — vardiya türü, planlı/onay bekleyen işaretleri ve haftalık net; güne dokununca o haftanın planı açılır */
@@ -4233,16 +4280,42 @@ function renderCal(){
     else if (man){ k = 'man'; ar = L('Elle girilen saat', 'Manual hours'); }
     if (inM && (sh.length || man)){ (sh.length ? sh : [man]).forEach(function(e){ var x = entryHours(e, S); hrs += x.norm + x.irr + x.over; }); if (sh.length) nSh += sh.length; }
     var plan = sh.some(isPlanned), pend = sh.some(function(e){ return e.pbPending || e.pbChanged; });
-    var cls = 'cal-d' + (k ? ' k-' + k : '') + (inM ? '' : ' out') + (d === today ? ' today' : '') + (plan ? ' plan' : '') + (pend ? ' pend' : '');
+    var cls = 'cal-d' + (k ? ' k-' + k : '') + (inM ? '' : ' out') + (d === today ? ' today' : '') + (plan ? ' plan' : '') + (pend ? ' pend' : '') + (view.calSel === d ? ' sel' : '');
     var lab = (+d.slice(8)) + ' ' + (LANG === 'en' ? CAL_M_EN[+d.slice(5, 7) - 1] : MONTHS_L[+d.slice(5, 7) - 1]) + (ar ? ', ' + ar : '') + (plan ? ', ' + L('planlı', 'planned') : '') + (pend ? ', ' + L('onay bekliyor', 'awaiting approval') : '');
     g += '<button type="button" class="' + cls + '" data-act="calDay" data-d="' + d + '" aria-label="' + esc(lab) + '" title="' + esc(lab) + '">' + (+d.slice(8)) + '</button>';
   }
-  var h = '<h2>📅 ' + L('Takvim', 'Calendar') + '</h2>';
+  var h = '<div class="cal-top"><h2>📅 ' + L('Takvim', 'Calendar') + '</h2><button type="button" class="btn small' + (CAL_OPEN ? '' : ' primary') + '" data-act="calToggle" aria-expanded="' + CAL_OPEN + '">' + (CAL_OPEN ? L('Takvimi kapat', 'Hide calendar') : L('📅 Takvimi aç', '📅 Open calendar')) + '</button></div>';
+  if (!CAL_OPEN){ el.innerHTML = h + '<p class="note" style="margin:6px 0 0">' + L('Bu ay', 'This month') + ': <b>' + nSh + '</b> ' + L('vardiya', 'shifts') + ' · <b>' + hm(hrs) + '</b> ' + L('saat', 'hours') + '</p>'; return; }
   h += '<div class="cal-nav"><button type="button" class="btn small" data-act="calPrev" aria-label="' + L('Önceki ay', 'Previous month') + '">‹</button><div class="t">' + mName + ' ' + y + '</div><button type="button" class="btn small" data-act="calNext" aria-label="' + L('Sonraki ay', 'Next month') + '">›</button>' + (ym !== today.slice(0, 7) ? '<button type="button" class="btn small" data-act="calToday">' + L('Bugün', 'Today') + '</button>' : '') + '</div>';
   h += '<div class="cal-g">' + g + '</div>';
   h += '<div class="cal-leg"><span><i class="k-morn"></i>' + L('Sabah', 'Morning') + '</span><span><i class="k-late"></i>' + L('Öğle', 'Late') + '</span><span><i class="k-sun"></i>' + L('Pazar', 'Sunday') + '</span><span><i class="k-vac"></i>' + L('İzin', 'Leave') + '</span><span><i class="lg-plan"></i>' + L('Planlı', 'Planned') + '</span><span><i class="lg-pend"></i>' + L('Onay bekliyor', 'Awaiting approval') + '</span></div>';
-  h += '<p class="note cal-foot">' + L('Bu ay', 'This month') + ': <b>' + nSh + '</b> ' + L('vardiya', 'shifts') + ' · <b>' + hm(hrs) + '</b> ' + L('saat', 'hours') + '. ' + L('Bir güne dokun: o haftanın planı açılır.', 'Tap a day to open that week’s plan.') + '</p>';
+  h += calDayDetailHTML(view.calSel, byD, S);
+  h += '<p class="note cal-foot">' + L('Bu ay', 'This month') + ': <b>' + nSh + '</b> ' + L('vardiya', 'shifts') + ' · <b>' + hm(hrs) + '</b> ' + L('saat', 'hours') + '. ' + L('Bir güne dokun: o günün vardiya ayrıntısı görünür.', 'Tap a day to see its shift details.') + '</p>';
   el.innerHTML = h;
+}
+/* v69: Takvimde seçilen günün ayrıntısı — girilen saatler varsa saatler, yoksa tarih + gün + vardiya türü */
+function calDayDetailHTML(d, byD, S){
+  if (!d) return '';
+  var dt = parseISO(d), mo = dt.getMonth(), dw = dt.getDay();
+  var dayTxt = dt.getDate() + ' ' + (LANG === 'en' ? CAL_M_EN[mo] : MONTHS_L[mo]) + ' ' + (LANG === 'en' ? DAYS_LONG_EN[dw] : DAYS_LONG[dw]);
+  var list = (byD && byD[d]) || [], rows = '';
+  var off = list.some(function(e){ return e.type === 'off' || e.type === 'cancel'; });
+  if (off) rows = '<div class="cal-dr"><span class="cal-dk k-none"></span><span>' + L('İzinli / iptal edilmiş gün', 'Day off / cancelled') + '</span></div>';
+  else sortItems(list).forEach(function(e){
+    var h = entryHours(e, S), tot = h.norm + h.irr + h.over;
+    if (e.type === 'shift'){
+      var sun = dw === 0, k = sun ? 'sun' : (e.shift === 'late' ? 'late' : 'morn');
+      var nm = sun ? L('Pazar vardiyası', 'Sunday shift') : (e.shift === 'late' ? L('Öğle vardiyası', 'Late shift') : L('Sabah vardiyası', 'Morning shift'));
+      var tags = (isPlanned(e) ? '<span class="cal-tag">' + L('Planlı', 'Planned') + '</span>' : '') + ((e.pbPending || e.pbChanged) ? '<span class="cal-tag warn">' + L('Onay bekliyor', 'Awaiting approval') + '</span>' : '');
+      rows += '<div class="cal-dr"><span class="cal-dk k-' + k + '"></span><span class="cal-dn"><b>' + nm + '</b>' + tags + '</span><span class="cal-dv num">' + (e.start && e.end ? esc(e.start) + '–' + esc(e.end) + ' · ' : '') + hm(tot) + ' ' + L('saat', 'h') + '</span></div>';
+    } else if (e.type === 'vacation'){
+      rows += '<div class="cal-dr"><span class="cal-dk k-vac"></span><span class="cal-dn"><b>' + L('Tatil / izin', 'Vacation / leave') + '</b></span><span class="cal-dv num">' + hm(+e.hours || 0) + ' ' + L('saat', 'h') + '</span></div>';
+    } else if (e.type === 'manual'){
+      rows += '<div class="cal-dr"><span class="cal-dk k-man"></span><span class="cal-dn"><b>' + L('Elle girilen saat', 'Manual hours') + '</b></span><span class="cal-dv num">' + hm(tot) + ' ' + L('saat', 'h') + '</span></div>';
+    }
+  });
+  if (!rows) rows = '<div class="cal-dr"><span class="cal-dk k-none"></span><span>' + L('Bu gün için kayıt yok', 'Nothing logged for this day') + '</span></div>';
+  return '<div class="cal-det" id="calDet" aria-live="polite"><div class="cal-det-h"><b>' + dayTxt + '</b><button type="button" class="btn small" data-act="calWeek" data-d="' + d + '">' + L('Haftayı aç', 'Open week') + ' ›</button></div>' + rows + '</div>';
 }
 /* v67: Bordro kontrolü kartı — son haftalarda girilen vardiyalar ile bordrolar; bordro gelmemiş haftalar da listelenir. Hiç veri yoksa kart gizlenir. */
 function renderSlipChk(){
@@ -5311,7 +5384,7 @@ setInterval(tick, 30000); window.addEventListener('focus', tick); document.addEv
 /* ---------- Kart düzeni (bu cihazda saklanır) ---------- */
 var LAYK = LS + '-layout';
 var LAY_DEF = {
-  maas: [['hero', 'Özet', 'l'], ['days', 'Günler', 'r'], ['goal', 'Haftalık hedef', 'l'], ['brk', 'Maaş dökümü', 'l'], ['cal', 'Takvim', 'l'], ['slipChk', 'Bordro kontrolü', 'l'], ['savGoal', 'Birikimim & Hedefim', 'l'], ['month', 'Aylık özet', 'l'], ['year', 'Yıl toplamları', 'l']]
+  maas: [['hero', 'Özet', 'l'], ['days', 'Günler', 'r'], ['goal', 'Haftalık hedef', 'l'], ['brk', 'Maaş dökümü', 'l'], ['slipChk', 'Bordro kontrolü', 'l'], ['cal', 'Takvim', 'l'], ['savGoal', 'Birikimim & Hedefim', 'l'], ['month', 'Aylık özet', 'l'], ['year', 'Yıl toplamları', 'l']]
 };
 var layS = {}; try { layS = JSON.parse(localStorage.getItem(LAYK) || '{}') || {}; } catch (e) { layS = {}; }
 function laySave(){ try { localStorage.setItem(LAYK, JSON.stringify(layS)); } catch (e) {} }
@@ -5423,7 +5496,7 @@ function applyMaasSub(){
 function setMaasSub(v){
   view.maasSub = (v === 'brk' || v === 'yr') ? v : 'wk';
   
-  var mL = layGet('maas'), cards = view.maasSub === 'brk' ? ['brk'] : view.maasSub === 'yr' ? ['cal', 'slipChk', 'savGoal', 'month', 'year'] : ['hero', 'days', 'goal'];
+  var mL = layGet('maas'), cards = view.maasSub === 'brk' ? ['brk', 'slipChk'] : view.maasSub === 'yr' ? ['cal', 'savGoal', 'month', 'year'] : ['hero', 'days', 'goal'];
   var chF = false;
   cards.forEach(function(cid){ if (mL.fold && mL.fold[cid]){ mL.fold[cid] = false; chF = true; } });
   if (chF){ laySave(); layApply(); }
@@ -5614,7 +5687,9 @@ document.addEventListener('click', function(ev){
   else if (a === 'ntfDay'){ var nd = +el.getAttribute('data-v'), ni = NTF.days.indexOf(nd); if (ni >= 0) NTF.days.splice(ni, 1); else NTF.days.push(nd); ntfSave(); ntfRedraw(); ntfSync(true); }
   else if (a === 'calPrev' || a === 'calNext'){ view.calM = calShift(view.calM || today.slice(0, 7), a === 'calPrev' ? -1 : 1); renderCal(); }
   else if (a === 'calToday'){ view.calM = today.slice(0, 7); renderCal(); }
-  else if (a === 'calDay'){ var cdD = el.getAttribute('data-d'); if (cdD){ view.week = weekStart(cdD); setMaasSub('wk'); renderAll(); window.scrollTo({ top: 0 }); } }
+  else if (a === 'calDay'){ var cdD = el.getAttribute('data-d'); if (cdD){ view.calSel = (view.calSel === cdD ? '' : cdD); renderCal(); var dp = $('calDet'); if (dp && view.calSel) dp.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); } }
+  else if (a === 'calWeek'){ var cwD = el.getAttribute('data-d'); if (cwD){ view.week = weekStart(cwD); setMaasSub('wk'); renderAll(); window.scrollTo({ top: 0 }); } }
+  else if (a === 'calToggle'){ CAL_OPEN = !CAL_OPEN; try { localStorage.setItem(LS + '-calopen', CAL_OPEN ? '1' : '0'); } catch (e) {} renderCal(); }
   else if (a === 'prev'){ view.week = addDays(view.week, -7); renderAll(); }
   else if (a === 'next'){ view.week = addDays(view.week, 7); renderAll(); }
   else if (a === 'today'){ view.week = weekStart(today); renderAll(); }

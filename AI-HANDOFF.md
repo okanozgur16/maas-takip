@@ -14,6 +14,15 @@
 
 
 
+## v69 (`2026-11-24-shiftpay-v69`) — **Claude Pro** — Açılır Takvim + Gün Detayı, Bordro Kontrolü Döküm'de, Birikim Girişleri Birleşik
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:**
+  1. Takvim kapatılıp açılabiliyor ("📅 Takvimi aç"); güne dokununca tarih + gün adı + girilen saatler/vardiya türü gösteriliyor, kayıt yoksa yalnızca tarih/gün.
+  2. "🔍 Bordro kontrolü" kartı Haftalık Döküm sekmesine taşındı.
+  3. Birikim: Hedef / Param / Birikim hızı olarak üç başlıkta birleşik; "Toplam param" ve "hedefe ayrılan kısmı" yan yana, altında ayrılan/serbest para çubuğu.
+
+---
+
 ## v68 (`2026-11-24-shiftpay-v68`) — **Claude Pro** — Birikim Kartı Sadeleştirme (A Tasarımı: Önce Ayar, Sonra Tek Sonuç)
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:**

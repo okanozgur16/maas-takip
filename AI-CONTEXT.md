@@ -1,12 +1,17 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-24-shiftpay-v68`
+- **Aktif Sürüm:** `2026-11-24-shiftpay-v69`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v69 Değişiklikleri (Claude Pro)
+- **Takvim aç/kapat (`renderCal`, `CAL_OPEN`, `calToggle`):** Takvim varsayılan kapalı; kartta "📅 Takvimi aç" düğmesi var (tercih `localStorage` `-calopen`). Kapalıyken yalnızca aylık vardiya/saat özeti görünür. Güne dokununca (`calDay` → `view.calSel`) altta `calDayDetailHTML` paneli açılır: "18 Kasım Çarşamba" + girilen saatler (vardiya adı, başlangıç–bitiş, saat) veya kayıt yoksa "Bu gün için kayıt yok"; "Haftayı aç ›" (`calWeek`) o haftanın planına gider.
+- **Bordro kontrolü Haftalık Döküm'e taşındı (`setMaasSub`, `LAY_DEF`, CSS `data-sub`):** `#slipChk` artık `brk` sekmesinde; `yr` sekmesinde (Takvim, Aylık & Birikim) gizli.
+- **Birikim girişleri birleşik (`renderSavGoal`, `renderSavGoalLive`):** Hedef (Ne için? / Ne kadar?), Param (Toplam param / Bunun hedefe ayrılan kısmı + `#ug_split` görsel çubuk), Birikim hızı (haftalık/aylık + kaydırıcı). Gelişmiş çekmece "Ek gelir/gider & diğer ayarlar" oldu (`ug_total` çekmeceden çıktı). Hesap fonksiyonları ve `userGoal` yapısı değişmedi.
 
 ## v68 Değişiklikleri (Claude Pro)
 - **Birikim kartı yeni yerleşim (`renderSavGoal`, `renderSavGoalResult`):** "🎯 Hedefim" kutusu (`ug_title`, `ug_target`, `ug_saved`, `ug_wk_in` + `ug_wk` kaydırıcısı) her zaman açık ve sonucun üstünde; telefonda 2 sütun. Sonuç: halka + tek plan kartı (`.savg-main2`); "elindeki tüm parayla" senaryosu yalnızca `sim.regularCash > 0` iken tek satır (`.savg-alt`). Uzun harçlık formülü "Nasıl hesaplandı?" altında.
