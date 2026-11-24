@@ -2361,7 +2361,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-24-shiftpay-v65';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-24-shiftpay-v66';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -5304,7 +5304,7 @@ function buildAiContinuationPrompt(){
     '--- %100 BULUT OTO-YAYIN (YEREL PC GEREKMEZ) ---',
     '• GitHub main dalına commit atıldığında .github/workflows/deploy-cloudflare.yml otomatik çalışır:',
     '  1) V8 JS sözdizimi + calcPay() maaş testi + I18N_EN (İngilizce değerlerde Türkçe karakter yasağı) + gizli anahtar taraması yapar.',
-    '  2) Cloudflare Pages (shiftpay-app.pages.dev) VE Cloudflare Worker (server/bildirim-worker.js -> summer-mode-6176) ikisini birden ~30 saniyede canlıya alır (mevcut KV ve secret bağlarını korur).',
+    '  2) Cloudflare Pages (shiftpay-app.pages.dev), Cloudflare Worker (server/bildirim-worker.js -> summer-mode-6176) VE Firebase Firestore Güvenlik Kuralları (firestore.rules -> maas-takip-sync) üçünü birden ~30 saniyede otomatik canlıya alır.',
     '',
     '--- ANLIK CANLI SİSTEM DURUMU (TELEMETRİ) ---',
     '• Aktif Sürüm: ' + APP_VER,

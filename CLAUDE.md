@@ -1,8 +1,9 @@
 # CLAUDE.md — ShiftPay %100 Web Tabanlı Geliştirme Rehberi (Claude Pro / Claude Code Web & Antigravity)
 
-> **Aktif Sürüm:** `2026-11-24-shiftpay-v65`  
+> **Aktif Sürüm:** `2026-11-24-shiftpay-v66`  
 > **Canlı PWA (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`  
 > **Canlı API & Push Sunucusu (Cloudflare Worker):** `https://summer-mode-6176.okan-counter.workers.dev`  
+> **Canlı Şifreli Eşitleme Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules` + `firebase.json` + `.firebaserc`)  
 > **Tek Doğru Kaynak (GitHub):** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 Bu depo **%100 bulut/web tabanlı** çalışacak şekilde yapılandırılmıştır. Yerel bilgisayardaki hiçbir klasöre erişim gerekmez: tüm önyüz (`index.html`, `sw.js`), sunucu (`server/bildirim-worker.js`), otomasyon botları (`automation/*.py`) ve otomatik yayın hattı (`.github/workflows/deploy-cloudflare.yml`) doğrudan bu GitHub deposundadır.
@@ -16,7 +17,8 @@ Bu depo **%100 bulut/web tabanlı** çalışacak şekilde yapılandırılmışt�
    - Bu depoda `main` dalına commit/push yapıldığında `.github/workflows/deploy-cloudflare.yml` **~30 saniye içinde otomatik olarak**:
      1. **Pre-Deploy Safety Guard** çalıştırır (`node --check` V8 sözdizimi, `calcPay()` maaş matematiği testi, sürüm senkronizasyonu, tekrarlı HTML ID kontrolü, `I18N_EN` Türkçe karakter sızıntı testi ve gizli anahtar taraması).
      2. **Cloudflare Pages (`shiftpay-app`)** önyüzünü canlıya alır (`https://shiftpay-app.pages.dev/`).
-     3. **Cloudflare Worker (`summer-mode-6176`)** sunucusunu `server/bildirim-worker.js` dosyasından **otomatik günceller** (`keep_bindings` ile mevcut `OWNER_TOKEN`, `VAPID_*` secret'larını ve `KV` veritabanını %100 korur — elle panoya kod yapıştırmaya gerek yoktur!).
+     3. **Cloudflare Worker (`summer-mode-6176`)** sunucusunu `server/bildirim-worker.js` dosyasından **otomatik günceller** (`keep_bindings` ile mevcut `OWNER_TOKEN`, `VAPID_*` secret'larını ve `KV` veritabanını %100 korur).
+     4. **Firebase Firestore (`maas-takip-sync`)** güvenlik kurallarını `firestore.rules` dosyasından derleyip doğrular (`:test`) ve değişiklik varsa **otomatik canlıya yayınlar** (`FIREBASE_SERVICE_ACCOUNT`).
      4. **Post-Deploy Smoke Test** ile canlı `https://shiftpay-app.pages.dev/version.json` sürümünü doğrular.
 3. **Zorunlu Sürüm Eşitleme (6 Dosya):**
    - Kod değiştiğinde şu dosyaların sürüm etiketini aynı anda bir artır (`YYYY-MM-DD-shiftpay-vXX`):
@@ -37,6 +39,7 @@ Bu depo **%100 bulut/web tabanlı** çalışacak şekilde yapılandırılmışt�
 | `sw.js` | Çevrimdışı PWA önbellekleme ve Web Push bildirim tıklama yöneticisi. |
 | `version.json` | İstemci otomatik güncelleme yoklama dosyası (`?v=` cache-buster tetikler). |
 | `server/bildirim-worker.js` | Canlı Cloudflare Worker (`summer-mode-6176`) tam kaynak kodu: Web Push (`/api/sync`, `/api/off`, `/api/test`), canlı Planbition proxy (`/api/planbition`), canlı myHolland PDF bordro çekici (`/api/myholland-slips`) ve saatlik Cron bildirimleri. |
+| `firestore.rules`, `firebase.json`, `.firebaserc` | Canlı Firebase Firestore (`maas-takip-sync`) güvenlik kuralları. `/sync/{id}` üzerinde 64-hex SHA-256 belge adı, `['c','u','v']` şema doğrulaması ve iptal edilen kodun (`c == ""`) yeniden kullanımını kalıcı engelleyen kural seti. |
 | `automation/` | Arka plan Python botları (`run_sync.py`, `planbition_bot.py`, `myholland_bot.py`, `gmail_bot.py`, `pdf_parser.py`, `sync_engine.py`, `daemon.py`, `config.example.env`). Sadece kaynak koddur; `dist/` içine kopyalanmaz. |
 | `.github/workflows/deploy-cloudflare.yml` | Otomatik test + Cloudflare Pages + Cloudflare Worker CI/CD iş akışı. |
 | `_headers`, `_redirects`, `manifest.webmanifest`, `fonts/`, `lib/` | Güvenlik başlıkları, SPA yönlendirmesi, PWA manifestosu, yerel fontlar ve yerel `pdf.js` (`3.11.174`). |

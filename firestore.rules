@@ -1,0 +1,107 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Project: maas-takip-sync (ShiftPay E2EE Cross-Device Sync)
+// Security Architecture:
+//   Zero-account, capability-addressed end-to-end encryption (E2EE).
+//   There is intentionally no Firebase Authentication in this application:
+//   clients derive a 256-bit AES-GCM key via PBKDF2-HMAC-SHA256 (150,000
+//   iterations, salt 'maas-takip-v1-salt') from a 16-character secret sync
+//   code that never leaves the device, and address their document solely by
+//   the 64-character lowercase hex SHA-256 digest of
+//   ('maas-takip-sync|' + syncCode). Collection listing and document deletion
+//   are strictly forbidden.
+//
+// Collection: sync
+// Document ID: {id} — 64-character lowercase hex SHA-256 digest (^[0-9a-f]{64}$)
+// Fields:
+//   - c: string (required, length < 1000000)
+//        Base64(12-byte IV || AES-256-GCM ciphertext || 16-byte GCM tag).
+//        Must be non-empty (size() > 0) on create.
+//        May be set to "" (size() == 0) on update by syncWipe() during
+//        syncRotate() / syncDelete() to permanently tombstone/revoke a sync
+//        code; once resource.data.c.size() == 0, no further updates or deletes
+//        are ever permitted.
+//   - u: int (required, 0 <= u <= 253402300799999)
+//        Client state update epoch timestamp in milliseconds (0 for fresh
+//        unmodified state, or Date.now()).
+//   - v: int (required, immutable value == 1)
+//        Sync envelope schema version.
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Validate required fields exist on the incoming document
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Enforce strict schema (reject any extraneous fields)
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // Validate 64-char lowercase hex SHA-256 capability ID
+    function validId(id) {
+      return id is string &&
+        id.size() == 64 &&
+        id.matches('^[0-9a-f]{64}$');
+    }
+
+    // ===============================================================
+    // Domain Validators (Used in BOTH create and update)
+    // ===============================================================
+
+    function isValidSyncDoc(data) {
+      return hasRequiredFields(['c', 'u', 'v']) &&
+        hasOnlyAllowedFields(['c', 'u', 'v']) &&
+        data.c is string &&
+        data.c.size() < 1000000 &&
+        data.u is int &&
+        data.u >= 0 &&
+        data.u <= 253402300799999 &&
+        data.v is int &&
+        data.v == 1;
+    }
+
+    function validData() {
+      return isValidSyncDoc(request.resource.data);
+    }
+
+    // ===============================================================
+    // Collection Rules
+    // ===============================================================
+
+    match /sync/{id} {
+      // Exact-ID capability lookup only; collection enumeration is strictly forbidden.
+      allow get: if validId(id);
+      allow list, delete: if false;
+
+      // New sync document must carry non-empty AES-256-GCM ciphertext.
+      allow create: if validId(id) &&
+        validData() &&
+        request.resource.data.c.size() > 0;
+
+      // Updates require valid schema and a non-revoked existing document (resource.data.c.size() > 0).
+      // Writing c == "" revokes the sync code permanently by making resource.data.c.size() == 0.
+      allow update: if validId(id) &&
+        validData() &&
+        resource != null &&
+        resource.data.c.size() > 0;
+    }
+
+    // Default deny all other collections, documents, and subcollections.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

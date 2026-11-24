@@ -155,6 +155,61 @@ jobs:
             exit 1
           fi
 
+      - name: Authenticate to Google Cloud for Firebase Rules (maas-takip-sync)
+        id: auth
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          token_format: access_token
+
+      - name: Validate & Publish Firebase Firestore Security Rules (maas-takip-sync)
+        if: ${{ secrets.FIREBASE_SERVICE_ACCOUNT != '' }}
+        env:
+          GCP_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+        run: |
+          python3 - << 'EOF'
+          import json, os, urllib.request, sys
+
+          tok = os.environ['GCP_ACCESS_TOKEN'].strip()
+          hdrs = {'Authorization': f'Bearer {tok}', 'Content-Type': 'application/json'}
+          proj = 'maas-takip-sync'
+          rules_src = open('firestore.rules', encoding='utf-8').read()
+
+          # 1. Compiler syntax & semantics check via :test
+          test_body = json.dumps({
+              'source': {'files': [{'name': 'firestore.rules', 'content': rules_src}]},
+              'testSuite': {'testCases': []}
+          }).encode()
+          req_t = urllib.request.Request(f'https://firebaserules.googleapis.com/v1/projects/{proj}:test', data=test_body, headers=hdrs, method='POST')
+          t_res = json.loads(urllib.request.urlopen(req_t).read().decode())
+          issues = [i for i in t_res.get('issues', []) if i.get('severity') == 'ERROR']
+          if issues:
+              print('[FAIL] Firestore rules compilation errors:', issues, file=sys.stderr)
+              sys.exit(1)
+          print('[OK] firestore.rules compiled cleanly (0 errors)')
+
+          # 2. Compare with currently active live ruleset so we only create a new release when rules changed
+          req_rel = urllib.request.Request(f'https://firebaserules.googleapis.com/v1/projects/{proj}/releases/cloud.firestore', headers=hdrs)
+          cur_rel = json.loads(urllib.request.urlopen(req_rel).read().decode())
+          cur_rs_name = cur_rel['rulesetName']
+          req_cur_rs = urllib.request.Request(f'https://firebaserules.googleapis.com/v1/{cur_rs_name}', headers=hdrs)
+          cur_rs = json.loads(urllib.request.urlopen(req_cur_rs).read().decode())
+          cur_content = (cur_rs.get('source', {}).get('files', [{}])[0].get('content') or '')
+
+          if cur_content.strip() == rules_src.strip():
+              print(f'[OK] Live Firebase ruleset ({cur_rs_name}) already matches firestore.rules')
+          else:
+              create_body = json.dumps({'source': {'files': [{'name': 'firestore.rules', 'content': rules_src}]}}).encode()
+              req_c = urllib.request.Request(f'https://firebaserules.googleapis.com/v1/projects/{proj}/rulesets', data=create_body, headers=hdrs, method='POST')
+              new_rs = json.loads(urllib.request.urlopen(req_c).read().decode())
+              new_rs_name = new_rs['name']
+              patch_body = json.dumps({'release': {'name': f'projects/{proj}/releases/cloud.firestore', 'rulesetName': new_rs_name}}).encode()
+              req_p = urllib.request.Request(f'https://firebaserules.googleapis.com/v1/projects/{proj}/releases/cloud.firestore', data=patch_body, headers=hdrs, method='PATCH')
+              urllib.request.urlopen(req_p).read()
+              print(f'[OK] Published new Firebase Firestore ruleset to maas-takip-sync: {new_rs_name}')
+          EOF
+
       - name: Post-Deploy Live Smoke Test (verify live version.json == expected)
         run: |
           EXPECTED=$(python3 -c "import json; print(json.load(open('version.json'))['v'])")

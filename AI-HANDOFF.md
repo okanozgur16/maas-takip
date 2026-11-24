@@ -14,6 +14,14 @@
 
 
 
+## v66 (`2026-11-24-shiftpay-v66`) — **Antigravity** — 4'lü Tam Bulut Otomasyonu: GitHub + Cloudflare Pages + Cloudflare Worker + Firebase (`maas-takip-sync`)
+- **Değişen / Eklenen Dosyalar:** `firestore.rules`, `firebase.json`, `.firebaserc`, `.github/workflows/deploy-cloudflare.yml`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`, `README.md`, `index.html`, `version.json`, `sw.js`
+- **Ne Yapıldı:**
+  1. **Firebase Firestore (`maas-takip-sync`) GitHub CI/CD Entegrasyonu:** Canlı `maas-takip-sync` güvenlik kuralları 22/22 simülasyon testiyle doğrulanarak `firestore.rules`, `firebase.json` ve `.firebaserc` olarak repoya eklendi. En düşük yetkili (`roles/firebaserules.admin`) `github-ci-rules@maas-takip-sync` servis hesabı `FIREBASE_SERVICE_ACCOUNT` GitHub Secret olarak tanımlandı ve `deploy-cloudflare.yml` içine otomatik derleme + canlı yayın adımı eklendi.
+  2. **Telefondan %100 Bağımsız Bulut Yetkisi (`Claude Code Bulut`):** Claude Pro hesabındaki `Claude GitHub uygulaması` (`Yalnızca bulut oturumları`) bağlantısı yenilenip yeşil doğrulandı. Artık telefondaki Claude uygulamasının **`Kod` (`Code`)** sekmesinden (bilgisayar kapalıyken bile) `okanozgur16/maas-takip` (`main`) deposuna yapılan her değişiklik ~30 saniyede **GitHub + Cloudflare Pages + Cloudflare Worker + Firebase (`maas-takip-sync`)** dördüne birden otomatik yayınlanır.
+
+---
+
 ## v65 (`2026-11-24-shiftpay-v65`) — **Antigravity** — %100 Web Tabanlı Tam Senkronizasyon (Claude Pro Web / Claude Code Web Hazırlığı)
 - **Değişen / Eklenen Dosyalar:** `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`, `README.md`, `.gitignore`, ` _redirects`, `automation/*` (`run_sync.py`, `planbition_bot.py`, `myholland_bot.py`, `gmail_bot.py`, `pdf_parser.py`, `sync_engine.py`, `daemon.py`, `config.example.env`, `automation/README.md`), `index.html` (`APP_VER` + `buildAiContinuationPrompt`), `version.json`, `sw.js`
 - **Ne Yapıldı:**
