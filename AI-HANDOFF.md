@@ -14,6 +14,17 @@
 
 
 
+## v67 (`2026-11-24-shiftpay-v67`) — **Claude Pro** — Takvim, Bordro Karşılaştırması, Güvenlik Temizliği & Ücretsiz Kota Koruması
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:**
+  1. **📅 Takvim (`renderCal`):** Üçüncü sekme `📅 Takvim, Aylık & Birikim` oldu; en üstte sade ay takvimi kartı (yalnızca gün numarası + vardiya rengi, planlı/onay bekleyen işaretleri, güne dokununca o haftaya gitme; tutar yazısı yok). TR/EN ve açık/koyu tema 390px telefon ve 1360px masaüstünde görsel olarak test edildi.
+  2. **🔍 Bordro kontrolü kartı (`renderSlipChk`, `slipCmpHTML`):** Aynı sekmede takvimin altında son 6 hafta: bordrolu haftalarda girilen vardiyalar ile bordro saat/tutar tablosu + eksik/fazla saat uyarısı (açılır); bordrosu olmayan haftalarda "Bordro bekleniyor" (beklenen Çarşamba) ya da süre geçtiyse "Bordro yüklenmedi" + `slipAdd` butonu. Veri yoksa kart gizlenir. Haftalık Döküm'e dokunulmadı.
+  3. **Güvenlik:** v19'dan beri `index.html`'de düz yazıyla duran eski eşitleme kodu eşlemesi kaldırıldı (belge `334e83e9…`). Kod git geçmişinde kalmaya devam ettiği için o eski Firestore belgesinin sahip tarafından konsoldan silinmesi gerekiyor (CI servis hesabı yalnızca `firebaserules.admin`, veri yazamaz). Ham `OWNER_ID` ve ölü `Claude` sözlük girdileri silindi; `isOwner()` eşitleme kodu yokken `false` döner.
+  4. **Kota:** Firestore yoklaması 60 sn → 3 dk + pencere odağında (30 sn korumalı) eşitleme.
+- **Antigravity İçin Not:** `calcPay`, `weekResult`, `mergeStates`, Planbition, myHolland ve sahip akışlarına dokunulmadı. `index.html` CRLF satır sonlarıyla kaydedildi.
+
+---
+
 ## v66 (`2026-11-24-shiftpay-v66`) — **Antigravity** — 4'lü Tam Bulut Otomasyonu: GitHub + Cloudflare Pages + Cloudflare Worker + Firebase (`maas-takip-sync`)
 - **Değişen / Eklenen Dosyalar:** `firestore.rules`, `firebase.json`, `.firebaserc`, `.github/workflows/deploy-cloudflare.yml`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`, `README.md`, `index.html`, `version.json`, `sw.js`
 - **Ne Yapıldı:**

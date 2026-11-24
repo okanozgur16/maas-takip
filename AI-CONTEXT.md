@@ -1,12 +1,17 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-24-shiftpay-v66`
+- **Aktif Sürüm:** `2026-11-24-shiftpay-v67`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v67 Değişiklikleri (Claude Pro)
+- **Takvim kartı (`renderCal`, `calShift`, `#cal`, `LAY_DEF` → `cal`):** `📅 Takvim, Aylık & Birikim` sekmesinin en üstünde sade ay takvimi: hücrede yalnızca gün numarası + vardiya rengi (Sabah/Öğle/Pazar/İzin), planlı = kesikli çerçeve, Planbition onay bekleyen = turuncu nokta; tutar/saat yazısı yok, alt bilgide aylık vardiya ve saat toplamı. Güne dokununca (`data-act="calDay"`) o haftanın Haftalık Plan'ı açılır.
+- **Bordro kontrolü kartı (`renderSlipChk` + `slipCmpHTML`, `#slipChk`, `LAY_DEF` → `slipChk`):** Aynı sekmede takvimin altında; son 6 haftayı listeler. Bordrosu olan haftada girilen vardiyalardan (`sumEntries(weekEntries(ws,'done'))` + `calcPay`) hesaplanan saat/tutar ile bordro satırları yan yana; ≥15 dk saat farkında "Saat eksik / Saat fazla", aksi halde "✓ Uyuşuyor" ya da "Tutar farkı". `calcPay`, `weekResult`, `mergeStates` değişmedi.
+- **Güvenlik & kota:** Herkese açık repoda duran eski eşitleme kodu eşlemesi (3 satır), ham `OWNER_ID` ve kullanılmayan 4 "Claude" sözlük girdisi kaldırıldı; `isOwner()` kayıtlı eşitleme kodu yoksa arayüzde sahip özelliklerini göstermez (sunucu yetkisi zaten `OWNER_TOKEN`). Firestore arka plan yoklaması 60 sn → 3 dk (değişiklikte, odakta ve çevrimiçi olunca anında eşitleme sürüyor).
 
 ## 1. Genel Mimari Özeti (`v65`)
 ShiftPay %100 saf **Hollanda Uitzendbureau Vardiya, Bordro, Maaş ve Kişisel Birikim Takibi** PWA uygulamasıdır. Tüm sistem (önyüz, Cloudflare Worker API/Push sunucusu ve Python senkronizasyon botları) GitHub `main` dalında tek merkezde tutulur ve her commit'te GitHub Actions üzerinden hem Cloudflare Pages'e hem Cloudflare Worker'a otomatik yayınlanır.
