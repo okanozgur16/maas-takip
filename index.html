@@ -1203,6 +1203,12 @@ details.savg-how>summary::-webkit-details-marker{display:none}
 .cmp{margin-top:14px;border:1px solid var(--line);border-radius:14px;background:var(--surface2);padding:0 14px 10px}
 .cmp>summary{list-style:none;display:flex;align-items:center;gap:8px;min-height:48px;cursor:pointer;font-weight:700;font-size:15px}
 .cmp>summary::-webkit-details-marker{display:none}
+.cmp>summary{flex-wrap:wrap;row-gap:2px}
+.cmp-end{margin-left:auto;display:inline-flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.cmp-end .cmp-tag{margin-left:0}
+.cmp-more{font-size:12.5px;font-weight:700;color:var(--accent);white-space:nowrap}
+.cmp-more .mo-o{display:none}.cmp[open] .cmp-more .mo-c{display:none}.cmp[open] .cmp-more .mo-o{display:inline}
+.cmp-more::after{content:'›';display:inline-block;margin-left:4px;transition:transform .15s}.cmp[open] .cmp-more::after{transform:rotate(90deg)}
 .cmp-tag{margin-left:auto;font-size:12px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--surface);color:var(--ink);border:1px solid var(--line);white-space:nowrap}
 .cmp-good .cmp-tag{background:var(--good-soft);color:var(--good);border-color:transparent}
 .cmp-bad .cmp-tag{background:var(--bad-soft);color:var(--bad);border-color:transparent}
@@ -2470,7 +2476,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-24-shiftpay-v69';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-24-shiftpay-v70';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -4344,7 +4350,7 @@ function renderSlipChk(){
 function slipCmpHTML(ws, cur, S, head){
   var mine = sumEntries(weekEntries(ws, 'done'), S), slip = cur.slip, p = cur.p, sh = slip.hours || null;
   var title = '<span class="sc-t">' + (head || ('🔍 ' + L('Bordro karşılaştırması', 'Payslip check'))) + '</span>';
-  if (!mine.any) return '<details class="cmp"><summary>' + title + '<span class="cmp-tag">' + L('Vardiya yok', 'No shifts') + '</span></summary><p class="cmp-msg">' + L('Bu hafta için vardiya girmediğin için bordroyu karşılaştıramıyorum. Vardiyalarını girersen eksik ya da fazla ödenen saat burada görünür.', 'No shifts are logged for this week, so the payslip can’t be checked. Log your shifts to see missing or extra paid hours here.') + '</p></details>';
+  if (!mine.any) return '<details class="cmp"><summary>' + title + '<span class="cmp-end"><span class="cmp-tag">' + L('Vardiya yok', 'No shifts') + '</span><span class="cmp-more"><span class="mo-c">' + L('Detayları gör', 'See details') + '</span><span class="mo-o">' + L('Gizle', 'Hide') + '</span></span></span></summary><p class="cmp-msg">' + L('Bu hafta için vardiya girmediğin için bordroyu karşılaştıramıyorum. Vardiyalarını girersen eksik ya da fazla ödenen saat burada görünür.', 'No shifts are logged for this week, so the payslip can’t be checked. Log your shifts to see missing or extra paid hours here.') + '</p></details>';
   var est = calcPay(mine, S), rows = [];
   var hrRow = function(l, a, b){ var d = r2(b - a); return '<tr' + (Math.abs(d) >= 0.25 ? ' class="bad"' : '') + '><td>' + l + '</td><td>' + hm(a) + '</td><td>' + hm(b) + '</td><td class="d">' + (Math.abs(d) < 0.02 ? '—' : (d > 0 ? '+' : '−') + hm(Math.abs(d))) + '</td></tr>'; };
   var euRow = function(l, a, b){ var d = r2(b - a); return '<tr><td>' + l + '</td><td>' + eur(a) + '</td><td>' + eur(b) + '</td><td class="d">' + (Math.abs(d) < 0.005 ? '—' : sgn(d)) + '</td></tr>'; };
@@ -4366,7 +4372,7 @@ function slipCmpHTML(ws, cur, S, head){
   else if (ts !== null && ts - tm >= 0.25){ cls = 'warn'; tag = L('Saat fazla', 'Extra hours'); msg = L('Bordroda, girdiğinden <b>' + hm(ts - tm) + ' saat fazla</b> var. Bir vardiyayı girmeyi unutmuş olabilirsin.', 'The payslip has <b>' + hm(ts - tm) + ' more hours</b> than you logged. You may have forgotten to enter a shift.'); }
   else if (Math.abs(dPay) <= 3){ cls = 'good'; tag = L('✓ Uyuşuyor', '✓ Matches'); msg = L('Bordro, girdiğin vardiyalarla uyuşuyor.', 'The payslip matches your logged shifts.'); }
   else { cls = 'warn'; tag = L('Tutar farkı', 'Amount gap'); msg = L('Saatler uyuşuyor. Tutardaki <b>' + sgn(dPay) + '</b> fark genelde vergi tahmininden, kesintilerden ya da mahsuptan gelir.', 'Hours match. The <b>' + sgn(dPay) + '</b> difference usually comes from the tax estimate, deductions or adjustments.'); }
-  return '<details class="cmp cmp-' + cls + '"><summary>' + title + '<span class="cmp-tag">' + tag + '</span></summary><p class="cmp-msg">' + msg + '</p>' +
+  return '<details class="cmp cmp-' + cls + '"><summary>' + title + '<span class="cmp-end"><span class="cmp-tag">' + tag + '</span><span class="cmp-more"><span class="mo-c">' + L('Detayları gör', 'See details') + '</span><span class="mo-o">' + L('Gizle', 'Hide') + '</span></span></span></summary><p class="cmp-msg">' + msg + '</p>' +
     '<div class="cmp-tw"><table><thead><tr><th scope="col">' + L('Kalem', 'Item') + '</th><th scope="col">' + L('Senin kaydın', 'Your log') + '</th><th scope="col">' + L('Bordro', 'Payslip') + '</th><th scope="col">' + L('Fark', 'Diff') + '</th></tr></thead><tbody>' + rows.join('') + '</tbody></table></div>' +
     '<div class="cmp-src">' + L('“Senin kaydın”: bu hafta girdiğin vardiyalardan yapılan hesap. Planlı ama henüz bitmemiş vardiyalar sayılmaz.', '“Your log”: calculated from the shifts you entered this week. Planned shifts that haven’t ended yet are not counted.') + '</div></details>';
 }
