@@ -6,6 +6,10 @@
 
 ---
 
+## v84 (`2026-11-26-shiftpay-v84`) — **Claude Pro** — v83 Doğrulama + 3 Hata
+- v83 kullanıcı gibi test edildi (izinli güne vardiya, Haftayı aç, hafta etiketi seçici, yıl toplamları, ayar onayı).
+- Bulunan/düzeltilen: (1) İzinli yapıp geri alınca o günün vardiyası kalıcı siliniyordu; (2) ayarlarda yazarken Esc/arka plan onayı atlayıp değişikliği sessizce kaydediyordu; (3) izinli günlerdeki gizli vardiyalar bildirim planına ve kopyalamaya girmesin diye filtre eklendi.
+
 ## v83 (`2026-11-26-shiftpay-v83`) — **Antigravity** — Mantık, Hesap, Ekran Sadeleştirme & Altyapı Düzeltmeleri (Sekme/Kart Düzeni Korundu)
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`, `.github/workflows/deploy-cloudflare.yml` (ve gereksiz `.nojekyll` kaldırıldı).
 - **Sekme yeri ve kart sırası (`wk` / `brk` / `yr` ve `LAY_DEF`) kullanıcının isteğiyle %100 korundu**; Claude'un `v82` yuvarlama düzeltmesi de korundu ve eksik kalan `tSugWk` (`ugApplyWk`) 4 ondalığa (`1e4`) tamamlandı.

@@ -2283,6 +2283,7 @@ function ntfPlan(){
   var out = [], t0 = toISO(new Date());
   for (var i = 0; i < 7; i++){
     var dd = addDays(t0, i), es = state.entries.filter(function(e){ return e.date === dd; }), end = null, beg = null;
+    if (es.some(function(e){ return e.type === 'off' || e.type === 'cancel'; })) es = es.filter(function(e){ return e.type === 'off' || e.type === 'cancel'; });
     es.forEach(function(e){ if (e.type === 'shift' && e.start){ var bv = dd + 'T' + e.start; if (!beg || bv < beg) beg = bv; } if (e.type === 'shift' && e.start && e.end){ var ed = toMin(e.end) <= toMin(e.start) ? addDays(dd, 1) : dd, v = ed + 'T' + e.end; if (!end || v > end) end = v; } });
     out.push({ d: dd, s: es.length ? 1 : 0, b: beg, e: end });
   }
@@ -2572,7 +2573,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-26-shiftpay-v83';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-26-shiftpay-v84';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3013,7 +3014,8 @@ function renderHero(){
   if (p.empty){
     var other45 = Object.keys(state.slips).filter(function(w){ return w !== ws; }).sort().pop();
     var prevWeekStart = addDays(ws, -7), prevWeekEnd = addDays(ws, -1);
-    var prevShifts = state.entries.filter(function(e){ return e && e.type === 'shift' && e.date >= prevWeekStart && e.date <= prevWeekEnd; });
+    var prevOffD = {}; state.entries.forEach(function(e){ if (e && (e.type === 'off' || e.type === 'cancel')) prevOffD[e.date] = 1; });
+    var prevShifts = state.entries.filter(function(e){ return e && e.type === 'shift' && e.date >= prevWeekStart && e.date <= prevWeekEnd && !prevOffD[e.date]; });
     h += '<div class="callout"><span>Bu haftaya henüz saat girilmedi. Günlerden birine vardiya ekle.</span><div style="display:flex;gap:6px;flex-wrap:wrap">' +
       (prevShifts.length ? '<button class="btn small primary" data-act="copyPrevWeek">📋 ' + L('Geçen haftanın planını kopyala (' + prevShifts.length + ' gün)', 'Copy last week’s shifts (' + prevShifts.length + ' days)') + '</button>' : '') +
       (other45 ? '<button class="btn small" data-act="openWeek" data-w="' + other45 + '">Son bordro haftasını aç</button>' : '') + '</div></div>';
@@ -5047,8 +5049,10 @@ function saveSheet(){
   var S_e = SET(weekStart(e.date));
   if (e.type === 'shift' && (entryHours(e, S_e).norm + entryHours(e, S_e).irr + entryHours(e, S_e).over) <= 0){ updatePreview(); return; }
   /* İzinli veya İptal işaretli bir güne vardiya/tatil/elle saat kaydedilirse o günün İzinli/İptal kaydını otomatik kaldır ki yeni kayıt gizli kalmasın */
+  var wasOffDay = state.entries.some(function(x){ return x && x.date === e.date && (x.type === 'off' || x.type === 'cancel'); });
   state.entries = state.entries.filter(function(x){
     if (x && x.date === e.date && (x.type === 'off' || x.type === 'cancel')){ tomb(x.id); return false; }
+    if (wasOffDay && x && x.date === e.date && x.id !== e.id){ tomb(x.id); return false; }
     return true;
   });
   e.userEdited = true;
@@ -5336,7 +5340,8 @@ function autoFromSlips(force){
 function drvFromSlip(ws){
   var x = state.slips[ws]; if (!x || !x.lines) return '';
   var amt = +x.lines.driver || 0, hr = x.hours || {}, worked = ((+hr.norm || 0) + (+hr.irr || 0) + (+hr.over || 0)) > 0;
-  var we = addDays(ws, 6), sh = state.entries.filter(function(e){ return e.type === 'shift' && e.date >= ws && e.date <= we; }).sort(function(a, b){ return (a.date + (a.start || '')).localeCompare(b.date + (b.start || '')); });
+  var we = addDays(ws, 6), drvOffD = {}; state.entries.forEach(function(e){ if (e && (e.type === 'off' || e.type === 'cancel')) drvOffD[e.date] = 1; });
+  var sh = state.entries.filter(function(e){ return e.type === 'shift' && e.date >= ws && e.date <= we && !drvOffD[e.date]; }).sort(function(a, b){ return (a.date + (a.start || '')).localeCompare(b.date + (b.start || '')); });
   var st = state.settings, msg = '';
   if (amt > 0){
     if ((st.driverMode || 'on') === 'off'){ st.driverMode = 'on'; st.driverAns = 'yes'; msg = 'araç eki ayarın açıldı; '; }
@@ -5949,7 +5954,8 @@ document.addEventListener('click', function(ev){
   else if (a === 'ownerTok'){ ownerTokPrompt(); renderOwnerAutoSlipBox(); }
   else if (a === 'copyPrevWeek'){
     var curW = view.week, prvW = addDays(curW, -7), prvEnd = addDays(curW, -1);
-    var prvList = state.entries.filter(function(e){ return e && e.type === 'shift' && e.date >= prvW && e.date <= prvEnd; });
+    var prvOff = {}; state.entries.forEach(function(e){ if (e && (e.type === 'off' || e.type === 'cancel') && e.date >= prvW && e.date <= prvEnd) prvOff[e.date] = 1; });
+    var prvList = state.entries.filter(function(e){ return e && e.type === 'shift' && e.date >= prvW && e.date <= prvEnd && !prvOff[e.date]; });
     if (prvList.length){
       var nowU = Date.now();
       prvList.forEach(function(pe){
@@ -6127,6 +6133,7 @@ document.addEventListener('click', function(ev){
     var sb0 = $('setBody'); if (sb0) sb0.scrollTop = 0;
   }
   else if (a === 'closeSet'){
+    var aeSet = document.activeElement; if (aeSet && aeSet.closest && aeSet.closest('#ov2') && aeSet.blur) aeSet.blur();
     var chg = (function(oldS, newS){
       if (!oldS || !newS) return [];
       var out = [];
@@ -6287,8 +6294,7 @@ document.addEventListener('click', function(ev){
     had.forEach(function(x){ tomb(x.id); });
     state.entries = state.entries.filter(function(e){ return !((e.type === 'off' || e.type === 'cancel') && e.date === dd); });
     if (!same){
-      state.entries.filter(function(e){ return e.date === dd; }).forEach(function(x){ if (x.id) tomb(x.id); });
-      state.entries = state.entries.filter(function(e){ return e.date !== dd; });
+      /* v84: Günün vardiyaları silinmez, sadece gizlenir; İzinli/İptal geri alınınca aynen geri gelir */
       state.entries.push({ id: uid(), type: kind, date: dd, userEdited: true, u: Date.now() });
     }
     commit();

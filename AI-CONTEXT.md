@@ -1,12 +1,17 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-26-shiftpay-v83`
+- **Aktif Sürüm:** `2026-11-26-shiftpay-v84`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v84 Değişiklikleri (Claude Pro)
+- **İzinli/İptal artık vardiyayı silmez:** `toggleOff/toggleCancel` günün kayıtlarını `tomb` etmiyor, sadece gizliyor (weekEntries zaten off günlerini dışlıyor); geri alınınca vardiya aynen döner. İzinli güne `saveSheet` ile yeni kayıt girilirse o günün gizli eski kayıtları da kaldırılır (çift vardiya olmaz).
+- Gizli vardiyalar sızmasın diye `ntfPlan` (push bildirimi), `copyPrevWeek` ve kopyala düğmesi sayacı, `drvFromSlip` izinli/iptal günlerini dışlar.
+- **Ayar onayı:** `closeSet` önce `#ov2` içindeki odaklı alanı `blur()` eder; yazarken Esc veya arka plan tıklamasında değişiklik onayı artık atlanmıyor.
 
 ## v83 Değişiklikleri (Antigravity)
 - **Mevcut 3 sekme ve kart düzeni (`LAY_DEF`) korundu**, kalan tüm mantık, hesap ve alan israfı sorunları giderildi:
