@@ -14,6 +14,17 @@
 
 
 
+## v79 (2026-11-25-shiftpay-v79) — **Antigravity** — v68–v78 Genel Denetim & 6 İnce Hata Düzeltmesi
+- **Değişen Dosyalar:** index.html, ersion.json, sw.js, README.md, CLAUDE.md, AI-CONTEXT.md, AI-HANDOFF.md
+- **Denetim & Düzeltilenler:**
+  1. **Birikim Kalan Tutar TL Karşılığı (#ug_gap_hint):** Ayırdığından kalan satırında toplam hedef (ug.targetAmt) yerine gerçekten kalan tutarın (sim.gapSaved) TL karşılığı gösterilecek şekilde düzeltildi.
+  2. **Döviz Çevirici Etiketi (#ug_goal_try):** Sağda etiketsiz duran TL tutarına Hedef karşılığı: ≈ ₺... (Goal total: ≈ ₺...) başlığı eklendi.
+  3. **Nasıl hesaplandı? (details.savg-how):** Açılır ok (▾) eklendi ve canlı kur/girdi yenilemelerinde açık durumunun (UG_HOW_OPEN) kapanmaması sağlandı.
+  4. **Açılış Sihirbazı Şirket Aracı Sorusu (wzNo):** Şirket aracı kullanıyor musun? sorusuna ilk kez Hayır, kullanmıyorum dendiğinde sihirbazdan çıkıp Ayarlar sayfasına atması düzeltildi; doğrudan bir sonraki sihirbaz sorusuna geçer.
+  5. **Şirket Aracı Rozeti & İngilizce (EN) Tam Uyum:** Sabit +€5/gün yerine dinamik S.driverDay bağlandı; İngilizce görünümde kalan 4 Türkçe metin (%150 saatler, her hafta otomatik, 	ahmin, Şirket arabası) temizlendi.
+
+---
+
 ## v78 (`2026-11-25-shiftpay-v78`) — **Claude Pro** — Birikim: Gelir/Gider Dahil Et + Gerçekçi Öneri
 - Yeni kutu `ug_incl` ("Gelir ve giderlerimi de hesaba kat"): kapalı = sadece yazılan tutara göre tarih; açık = ek gelir/gider birikim hızına eklenir/düşülür. Açıklama metni moda göre değişir.
 - Tutar gelir-giderlerle karşılanamıyorsa `.savg-tip` kartı alternatif tutarı, yeni hedef tarihini ve "olarak ayarla" (`ugApplyWk`) butonunu gösterir. Kalan şey yok; Antigravity sorunsuz devam edebilir.

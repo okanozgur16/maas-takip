@@ -1198,7 +1198,8 @@ details.chk-drawer .chk-body{padding:10px 13px 12px;border-top:1px solid var(--l
 .savg-alt b{color:var(--ink)}
 .savg-alt.ok{background:var(--good-soft);border-color:color-mix(in srgb,var(--good) 35%,var(--line))}
 .savg-alt.ok b{color:var(--good)}
-details.savg-how>summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--accent);padding:4px 0;list-style:none}
+details.savg-how>summary{cursor:pointer;font-size:12.5px;font-weight:600;color:var(--accent);padding:4px 0;list-style:none;display:inline-flex;align-items:center;gap:4px;user-select:none}
+details.savg-how[open]>summary .savg-drw-chv{transform:rotate(180deg)}
 details.savg-how>summary::-webkit-details-marker{display:none}
 .savg-reset{display:flex;justify-content:flex-end;margin-top:4px}
 .savg-reset .btn{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 35%,var(--line))}
@@ -2552,7 +2553,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v78';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v79';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3383,7 +3384,7 @@ function itemHTML(e, S){
     if (x.irr > 0) badges += '<span class="p150">' + pct(S.mIrr) + ' ' + hm(x.irr) + '</span>';
     if (x.over > 0) badges += '<span class="p185">' + pct(S.mOver) + ' ' + hm(x.over) + '</span>';
     var deptTag = (e.dept || e.tag) ? '<span class="chip dept">' + esc(e.dept || e.tag) + '</span>' : '';
-    var drvTag = e.driver ? '<span class="chip drv" title="Şirket arabası (+€5/gün)">🚗</span>' : '';
+    var drvTag = e.driver ? '<span class="chip drv" title="' + esc(L('Şirket aracı (+' + eur(S.driverDay) + '/gün)', 'Company car (+' + eur(S.driverDay) + '/day)')) + '">🚗</span>' : '';
     var pbNotice = '';
     if (e.pbPending || e.pbChanged){
       var pbTxt = (e.pbChanged && e.pbPending)
@@ -3591,9 +3592,9 @@ function renderBreak(){
   var bsec = function(title, sum, cls, body){ return '<div class="bsec"><div class="bh"><span class="t">' + title + '</span><span class="s ' + cls + ' num">' + sum + '</span></div><div class="rows">' + body + '</div></div>'; };
   var earn = row('Normal saatler (' + pct(S.mNormal) + ')', eur(p.wN), 'plus', hm(Math.max(0, t.norm - (p.leer || 0) / S.rate)) + ' saat');
   if (p.leer > 0) earn += row('Eğitim saatleri (Leeruren)', eur(p.leer), 'plus', hm(p.leer / S.rate) + ' saat');
-  if (t.irr > 0) earn += row(pct(S.mIrr) + ' saatler', eur(p.wI), 'plus', hm(t.irr) + ' saat');
-  if (t.over > 0) earn += row(pct(S.mOver) + ' saatler', eur(p.wO), 'plus', hm(t.over) + ' saat');
-  if (p.vacPay > 0) earn += row('Tatil saati ödemesi', eur(p.vacPay), 'plus', hm(t.vacH + (cur.slip ? 0 : (p.vacAutoH || 0))) + ' saat' + (!cur.slip && p.vacAutoH > 0 && !t.vacH ? ' (her hafta otomatik)' : ''));
+  if (t.irr > 0) earn += row(L(pct(S.mIrr) + ' saatler', Math.round(S.mIrr * 100) + '% hours'), eur(p.wI), 'plus', hm(t.irr) + ' ' + L('saat', 'hours'));
+  if (t.over > 0) earn += row(L(pct(S.mOver) + ' saatler', Math.round(S.mOver * 100) + '% hours'), eur(p.wO), 'plus', hm(t.over) + ' ' + L('saat', 'hours'));
+  if (p.vacPay > 0) earn += row('Tatil saati ödemesi', eur(p.vacPay), 'plus', hm(t.vacH + (cur.slip ? 0 : (p.vacAutoH || 0))) + ' ' + L('saat', 'hours') + (!cur.slip && p.vacAutoH > 0 && !t.vacH ? L(' (her hafta otomatik)', ' (automatic every week)') : ''));
   earn += row('Tatil parası (' + pct(S.vacPct) + ')', eur(p.vacGeld), 'plus', 'Her hafta ödenir');
   earn += row('ADV zammı', eur(p.advPay), 'plus', hm(p.advH) + ' saat × ' + eur(S.adv));
   earn += row('Emeklilik telafisi', eur(p.pensComp), 'plus');
@@ -3742,7 +3743,7 @@ function fxUpdateDom(){
   if (gTry){
     var ug = userGoalObj();
     if (FX_STATE.eurTry > 0 && ug.targetAmt > 0){
-      gTry.textContent = '≈ ' + fxFmtTry(r2(ug.targetAmt * FX_STATE.eurTry));
+      gTry.textContent = L('Hedef karşılığı: ≈ ', 'Goal total: ≈ ') + fxFmtTry(r2(ug.targetAmt * FX_STATE.eurTry));
     } else {
       gTry.textContent = '';
     }
@@ -4019,7 +4020,7 @@ function ugSimulate(ug, payInfo){
     phases: planFixed.phases
   };
 }
-var UG_DRAWER_OPEN = false, UG_KEEP = false;
+var UG_DRAWER_OPEN = false, UG_HOW_OPEN = false, UG_KEEP = false;
 function ugCommitKeep(){ UG_KEEP = true; try { commit(); } finally { UG_KEEP = false; } }
 function renderSavGoal(force){
   var el = $('savGoal'); if (!el) return;
@@ -4198,7 +4199,7 @@ function renderSavGoalLive(){
     }
   }
   if ($('ug_gap_hint')){
-    var tryHint = (FX_STATE.eurTry > 0 && ug.targetAmt > 0) ? (' · ≈ ' + fxFmtTry(r2(ug.targetAmt * FX_STATE.eurTry))) : '';
+    var tryHint = (FX_STATE.eurTry > 0 && sim.gapSaved > 0) ? (' · ≈ ' + fxFmtTry(r2(sim.gapSaved * FX_STATE.eurTry))) : '';
     $('ug_gap_hint').innerHTML = L('Ayırdığından kalan: ', 'Remaining: ') + '<b>' + eur(sim.gapSaved) + '</b>' + tryHint;
   }
   if ($('ug_incl_hint')) $('ug_incl_hint').textContent = ug.incl
@@ -4261,8 +4262,12 @@ function renderSavGoalLive(){
     }
   }
 
+  var prevHow = document.querySelector('#ug_out details.savg-how');
+  if (prevHow) UG_HOW_OPEN = !!prevHow.open;
   fxUpdateDom();
   $('ug_out').innerHTML = renderSavGoalResult(ug, payInfo, sim);
+  var newHow = document.querySelector('#ug_out details.savg-how');
+  if (newHow) newHow.addEventListener('toggle', function(){ UG_HOW_OPEN = !!newHow.open; });
 }
 function renderSavGoalRingHTML(ug, sim){
   var target = Math.max(1, ug.targetAmt || 1);
@@ -4433,7 +4438,7 @@ function renderSavGoalResult(ug, payInfo, sim){
       (addedIn + addedOut > 0 ? '<div class="savg-sc-note">ℹ️ ' + (ug.incl ? L('Ek gelirler birikim hızına eklendi, ek giderler düşüldü; hedef tarih buna göre hesaplandı.', 'Extra income was added to your saving pace and extra expenses were taken off; the goal date reflects that.') : L('Hedef tarih, ayırdığın birikim hızına göre hesaplanır. Ek gelir ve giderler cebine kalan harçlığı değiştirir; harçlığın birikim hızının altına düşerse tarih uzar.', 'The goal date follows the saving pace you set. Extra income and expenses change your pocket allowance; if it drops below your saving pace the date moves later.')) + '</div>' : '') +
       '<div class="savg-sc-r-col">' +
         '<div class="savg-sc-r-top"><span>👛 ' + L('Maaşından Cebine Kalan Harçlık:', 'Pocket Allowance Left From Pay:') + '</span><b style="color:' + (spendWkNow >= 0 ? 'var(--good)' : 'var(--bad)') + ';font-size:14.5px">' + spendNowTxt + '</b></div>' +
-        '<details class="savg-how"><summary>' + L('Nasıl hesaplandı?', 'How is this calculated?') + '</summary><div class="savg-sc-r-sub">' + allowanceDesc + '</div></details>' +
+        '<details class="savg-how"' + (UG_HOW_OPEN ? ' open' : '') + '><summary>' + L('Nasıl hesaplandı?', 'How is this calculated?') + ' <span class="savg-drw-chv" aria-hidden="true">▾</span></summary><div class="savg-sc-r-sub">' + allowanceDesc + '</div></details>' +
       '</div>' +
       '<div class="savg-sc-r tot"><span>' + (ug.totalCash > 0 ? L('Korunan Ana Birikimin:', 'Protected Main Savings:') : L('Biriktirilecek Kalan Tutar:', 'Remaining Amount to Save:')) + '</span><b style="color:var(--good)">' + (ug.totalCash > 0 ? eur(Math.max(0, sim.regularCash)) + ' (' + L('Sabit Kalır', 'Stays Intact') + ')' : eur(sim.gapSaved)) + '</b></div>' +
     '</div></div>';
@@ -4705,7 +4710,7 @@ function renderYear(){
   var aw = allWeekList().filter(function(r){ return wYear(r.w) === yr; }), tn = 0, ne = 0, ns = 0;
   aw.forEach(function(r){ tn += r.p.payable; if (r.slip) ns++; else ne++; });
   var h = '<h2>' + yr + ' toplamları</h2>' +
-    '<div class="netbox"><div class="k">Toplam net kazanç</div><div class="v num">' + eur(tn) + '</div><div class="n">' + (aw.length ? 'Girilen ' + aw.length + ' hafta: ' + ns + ' bordro' + (ne ? ', ' + ne + ' tahmin' : '') + '. Yeni bordro eklenince kendiliğinden güncellenir.' : 'Henüz bordro ya da vardiya yok.') + '</div></div>' +
+    '<div class="netbox"><div class="k">' + L('Toplam net kazanç', 'Total net earnings') + '</div><div class="v num">' + eur(tn) + '</div><div class="n">' + (aw.length ? L('Girilen ' + aw.length + ' hafta: ' + ns + ' bordro' + (ne ? ', ' + ne + ' tahmin' : '') + '. Yeni bordro eklenince kendiliğinden güncellenir.', 'Entered ' + aw.length + ' weeks: ' + ns + ' payslips' + (ne ? ', ' + ne + (ne === 1 ? ' estimate' : ' estimates') : '') + '. Updates automatically when a new payslip is added.') : L('Henüz bordro ya da vardiya yok.', 'No payslips or shifts yet.')) + '</div></div>' +
     (ytdOk ? '<div class="subhead">Bordroya göre, hafta ' + wk + ' dahil</div><div class="stats">' +
     st('Brüt maaş', eur(y.gross), '', 'inc') + st('Gelir vergisi', eur(y.tax), '', 'exp') + st('Sağlık sigortası', eur(y.ins), '', 'exp') + st('Tatil günü bakiyesi', hm(y.vacBal) + ' saat') + '</div>' : '<div class="note" style="margin:10px 0 4px">' + yr + ' yılının ilk bordrosu gelince yılbaşından bu yana toplamlar burada görünür.</div>') +
     '<div class="subhead">' + (ytdOk ? 'Sonraki haftalar' : yr + ' haftaları') + (a.n ? ' (' + a.n + ' hafta)' : '') + '</div>';
@@ -6047,7 +6052,11 @@ document.addEventListener('click', function(ev){
     wzRender();
   }
   else if (a === 'wzNo'){
-    var w1 = wzSteps()[0]; if (w1){ if (w1.k === 'd' && !w1.answered) drvAnswer('no'); wzOpenSettings(w1.k, w1.tab); }
+    var w1 = wzSteps()[0];
+    if (w1){
+      if (w1.k === 'd' && !w1.answered){ drvAnswer('no'); wzRender(); }
+      else wzOpenSettings(w1.k, w1.tab);
+    }
   }
   else if (a === 'wzSlip'){
     WZ.waiting = 'pay'; $('wz').hidden = true;
