@@ -566,6 +566,9 @@ html:not(.ui-classic) .dayhead .d .t-today{background:var(--accent);color:var(--
 .pwa-tx b{display:block;font-size:14.5px;line-height:1.25}
 .pwa-tx small{display:block;color:var(--muted);font-size:12.5px;margin-top:3px;line-height:1.35}
 .pwa-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pwa-steps{margin:8px 0 2px;padding-left:20px;font-size:13px;line-height:1.45;color:var(--ink)}
+.pwa-steps li{margin:3px 0}
+.pwa-tx .pwa-steps b{display:inline;font-size:inherit;line-height:inherit}
 
 /* Maaş 3-Alt-Sekmeli Sade Görünüm + Bölüm Başlıkları */
 .maassubbar{display:flex;margin:0 0 12px;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
@@ -1799,30 +1802,51 @@ function pwaReadState(){
 function pwaSaveState(st){
   try { localStorage.setItem(LS + '-pwa', JSON.stringify({ st: st, t: Date.now() })); } catch (e) {}
 }
+/* v74: Web'den (tarayıcıdan) açanlara HER açılışta göster; düğme her cihazda bir şey yapar:
+   Android/Chrome → yerel kurulum penceresi; iPhone/diğer → adım adım rehber. "Şimdi değil" sadece o oturumu kapatır. */
+var PWA_HELP = false;
+function pwaEnv(){
+  var ua = navigator.userAgent || '';
+  var ios = /iPhone|iPad|iPod/i.test(ua) && !window.MSStream || (/Macintosh/i.test(ua) && (navigator.maxTouchPoints || 0) > 1);
+  var android = /Android/i.test(ua);
+  var inApp = /FBAN|FBAV|Instagram|WhatsApp|Line\/|Telegram|Snapchat|TikTok|MicroMessenger|Twitter|GSA\/|; wv\)/i.test(ua);
+  return { ios: ios, android: android, mobile: ios || android, inApp: inApp };
+}
+function pwaSessionHidden(){ try { return sessionStorage.getItem(LS + '-pwa-hide') === '1'; } catch (e) { return false; } }
 function pwaCanShow(){
   if (!STANDALONE) return false;
   if (isStandalonePwa()){ pwaSaveState('installed'); return false; }
-  var s = pwaReadState();
-  if (s.st === 'installed') return false;
-  if (s.st === 'dismissed' && (Date.now() - (+s.t || 0)) < 14 * 86400000) return false;
-  var isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent || '') && !window.MSStream;
-  return !!(PWA_PROMPT || isIos);
+  if (pwaSessionHidden()) return false;
+  var env = pwaEnv();
+  return !!(PWA_PROMPT || env.mobile);
+}
+function pwaHelpHtml(env){
+  var steps;
+  if (env.inApp){
+    steps = [L('Şu an uygulama içi bir tarayıcıdasın (WhatsApp, Instagram vb.). Sağ üstteki <b>⋯</b> / <b>⋮</b> menüsünden <b>Tarayıcıda aç</b>’ı seç.', 'You are in an in-app browser (WhatsApp, Instagram, etc.). Open the <b>⋯</b> / <b>⋮</b> menu and choose <b>Open in browser</b>.'),
+      env.ios ? L('Safari’de açılınca alttaki <b>Paylaş</b> ⬆️ › <b>Ana Ekrana Ekle</b>’ye dokun.', 'In Safari tap <b>Share</b> ⬆️ › <b>Add to Home Screen</b>.') : L('Chrome’da açılınca <b>⋮</b> › <b>Ana ekrana ekle</b> (veya <b>Uygulamayı yükle</b>) seç.', 'In Chrome tap <b>⋮</b> › <b>Add to Home screen</b> (or <b>Install app</b>).')];
+  } else if (env.ios){
+    steps = [L('Alttaki (iPad’de üstteki) <b>Paylaş</b> ⬆️ düğmesine dokun.', 'Tap the <b>Share</b> ⬆️ button at the bottom (top on iPad).'),
+      L('Listeyi aşağı kaydırıp <b>Ana Ekrana Ekle</b>’yi seç.', 'Scroll down and choose <b>Add to Home Screen</b>.'),
+      L('Sağ üstte <b>Ekle</b>’ye dokun. Artık ShiftPay ana ekranında uygulama gibi açılır.', 'Tap <b>Add</b> at the top right. ShiftPay now opens from your home screen like an app.')];
+  } else if (env.android){
+    steps = [L('Tarayıcının sağ üstündeki <b>⋮</b> menüsünü aç.', 'Open the browser <b>⋮</b> menu at the top right.'),
+      L('<b>Ana ekrana ekle</b> veya <b>Uygulamayı yükle</b>’yi seç.', 'Choose <b>Add to Home screen</b> or <b>Install app</b>.'),
+      L('Açılan pencerede <b>Ekle / Yükle</b>’ye dokun.', 'Confirm with <b>Add / Install</b>.')];
+  } else {
+    steps = [L('Adres çubuğunun sağındaki <b>yükle</b> simgesine (veya menü › <b>ShiftPay’i yükle</b>) tıkla.', 'Click the <b>install</b> icon in the address bar (or menu › <b>Install ShiftPay</b>).')];
+  }
+  return '<ol class="pwa-steps">' + steps.map(function(x){ return '<li>' + x + '</li>'; }).join('') + '</ol>';
 }
 function renderPwaBanner(){
   var el = $('pwaBanner'); if (!el) return;
   if (!pwaCanShow()){ el.hidden = true; el.innerHTML = ''; return; }
-  var isIos = /iPhone|iPad|iPod/i.test(navigator.userAgent || '') && !window.MSStream;
+  var env = pwaEnv();
   var h = '<div class="pwa-tx"><b>📲 ' + L('ShiftPay’i Uygulama Olarak Kur', 'Install ShiftPay App') + '</b><small>' +
-    (isIos && !PWA_PROMPT
-      ? L('Safari alt menüden <b>Paylaş</b> › <b>Ana Ekrana Ekle</b>’ye dokun; internetsiz ve tam ekran çalışır.', 'Tap Share › Add to Home Screen in Safari for full-screen & offline access.')
-      : L('Ana ekrana tek dokunuşla ekle; bildirimler ve çevrimdışı mod sorunsuz çalışsın.', 'Add to Home Screen in one tap for notifications and offline mode.')) +
-    '</small></div><div class="pwa-act">';
-  if (PWA_PROMPT){
-    h += '<button type="button" class="btn small primary" data-act="pwaInstall">' + L('Ana Ekrana Ekle', 'Add to Home Screen') + '</button>';
-  } else {
-    h += '<button type="button" class="btn small primary" data-act="pwaInstalled">' + L('✓ Kurdum', '✓ Installed') + '</button>';
-  }
-  h += '<button type="button" class="btn small" data-act="pwaSnooze">' + L('14 gün hatırlatma', 'Remind in 14 days') + '</button></div>';
+    L('Ana ekrana ekle; tam ekran açılır, bildirimler ve çevrimdışı mod sorunsuz çalışır.', 'Add it to your home screen for full-screen use, notifications and offline mode.') +
+    '</small>' + (PWA_HELP ? pwaHelpHtml(env) : '') + '</div><div class="pwa-act">';
+  h += '<button type="button" class="btn small primary" data-act="pwaInstall">' + L('Ana Ekrana Ekle', 'Add to Home Screen') + '</button>';
+  h += '<button type="button" class="btn small" data-act="pwaSnooze">' + L('Şimdi değil', 'Not now') + '</button></div>';
   el.innerHTML = h;
   el.hidden = false;
 }
@@ -2480,7 +2504,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v73';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v74';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -5691,15 +5715,17 @@ document.addEventListener('click', function(ev){
   }
   else if (a === 'pwaInstall'){
     if (PWA_PROMPT){
-      var pr = PWA_PROMPT; PWA_PROMPT = null;
-      pr.prompt().then(function(){ return pr.userChoice; }).then(function(r){
-        pwaSaveState(r && r.outcome === 'accepted' ? 'installed' : 'dismissed');
-        renderPwaBanner();
-      }).catch(function(){ pwaSaveState('dismissed'); renderPwaBanner(); });
-    }
+      var pr = PWA_PROMPT;
+      try {
+        pr.prompt();
+        Promise.resolve(pr.userChoice).then(function(r){
+          if (r && r.outcome === 'accepted'){ PWA_PROMPT = null; pwaSaveState('installed'); }
+          renderPwaBanner();
+        }).catch(function(){ PWA_PROMPT = null; PWA_HELP = true; renderPwaBanner(); });
+      } catch (err){ PWA_PROMPT = null; PWA_HELP = true; renderPwaBanner(); }
+    } else { PWA_HELP = !PWA_HELP; renderPwaBanner(); }
   }
-  else if (a === 'pwaInstalled'){ pwaSaveState('installed'); renderPwaBanner(); }
-  else if (a === 'pwaSnooze'){ pwaSaveState('dismissed'); renderPwaBanner(); }
+  else if (a === 'pwaSnooze'){ try { sessionStorage.setItem(LS + '-pwa-hide', '1'); } catch (e) {} PWA_HELP = false; renderPwaBanner(); }
   else if (a === 'pbPull'){ pbPull(); }
   else if (a === 'pbSet'){ pbSetCreds(); }
   else if (a === 'ntfOn') ntfOn();

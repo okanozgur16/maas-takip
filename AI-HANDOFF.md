@@ -14,6 +14,12 @@
 
 
 
+## v74 (`2026-11-25-shiftpay-v74`) — **Claude Pro** — Ana Ekrana Ekle Her Açılışta + Rehber
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:** Web'den açanlara kurulum bandı her açılışta gösterilir; düğme yerel kurulum penceresi veya platforma özel adım adım rehber açar (iOS Safari, Android, uygulama içi tarayıcı).
+
+---
+
 ## v73 (`2026-11-25-shiftpay-v73`) — **Claude Pro** — Bordro Uyarısı 2 → 3
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:** "En az 2 bordro" uyarısı 3'e çıkarıldı, açıklama güncellendi (tatil ödeneği ortancası + tekrar eden kalemler).
