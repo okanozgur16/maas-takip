@@ -568,6 +568,9 @@ html:not(.ui-classic) .dayhead .d .t-today{background:var(--accent);color:var(--
 .pwa-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .pwa-steps{margin:8px 0 2px;padding-left:20px;font-size:13px;line-height:1.45;color:var(--ink)}
 .pwa-steps li{margin:3px 0}
+/* v77: gelir/gider açıklama notu */
+.savg-sc-note{font-size:12px;line-height:1.4;color:var(--muted);padding:2px 0 4px}
+
 /* v75: ÖNEMLİ! etiketi + açılış sihirbazı */
 @keyframes impSoft{0%,100%{opacity:1}50%{opacity:.58}}
 .imp{display:inline-block;margin-right:7px;padding:2px 8px;border-radius:7px;background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad);font-weight:900;font-size:11.5px;letter-spacing:.06em;animation:impSoft 2.8s ease-in-out infinite;vertical-align:1px}
@@ -2539,7 +2542,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v76';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v77';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -4004,9 +4007,11 @@ function ugSimulate(ug, payInfo){
     phases: planFixed.phases
   };
 }
-var UG_DRAWER_OPEN = false;
+var UG_DRAWER_OPEN = false, UG_KEEP = false;
+function ugCommitKeep(){ UG_KEEP = true; try { commit(); } finally { UG_KEEP = false; } }
 function renderSavGoal(force){
   var el = $('savGoal'); if (!el) return;
+  if (!force && UG_KEEP && $('ug_out')){ renderSavGoalLive(); return; }
   var ae = document.activeElement;
   if (!force && ae && el.contains(ae) && /^(INPUT|SELECT|TEXTAREA)$/.test(ae.tagName) && ae.id !== 'ug_wk'){
     renderSavGoalLive();
@@ -4409,6 +4414,7 @@ function renderSavGoalResult(ug, payInfo, sim){
     '<div class="savg-sc-big num">' + big2 + '</div>' +
     '<div class="savg-sc-sub">' + sub2 + '</div>' +
     '<div class="savg-sc-rows num">' +
+      (addedIn + addedOut > 0 ? '<div class="savg-sc-note">ℹ️ ' + L('Hedef tarih, ayırdığın birikim hızına göre hesaplanır. Ek gelir ve giderler cebine kalan harçlığı değiştirir; harçlığın birikim hızının altına düşerse tarih uzar.', 'The goal date follows the saving pace you set. Extra income and expenses change your pocket allowance; if it drops below your saving pace the date moves later.') + '</div>' : '') +
       '<div class="savg-sc-r-col">' +
         '<div class="savg-sc-r-top"><span>👛 ' + L('Maaşından Cebine Kalan Harçlık:', 'Pocket Allowance Left From Pay:') + '</span><b style="color:' + (spendWkNow >= 0 ? 'var(--good)' : 'var(--bad)') + ';font-size:14.5px">' + spendNowTxt + '</b></div>' +
         '<details class="savg-how"><summary>' + L('Nasıl hesaplandı?', 'How is this calculated?') + '</summary><div class="savg-sc-r-sub">' + allowanceDesc + '</div></details>' +
@@ -6156,7 +6162,7 @@ document.addEventListener('change', function(ev){
   else if (t.id === 'pdfIn' || t.id === 'pdfIn2'){ var fl = Array.prototype.slice.call(t.files || []); t.value = ''; if (fl.length) importFiles(fl); }
   else if (t.id === 'sDate'){ fillSlipForm(); }
   else if (t.id === 'wpDate'){ if (t.value){ view.week = weekStart(t.value); $('ov4').hidden = true; renderAll(); window.scrollTo({ top: 0 }); } }
-  else if (t.id === 'ug_total' || t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk' || t.id === 'ug_wk_in'){ commit(); renderSavGoalLive(); }
+  else if (t.id === 'ug_total' || t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk' || t.id === 'ug_wk_in'){ ugCommitKeep(); renderSavGoalLive(); }
   else if (t.getAttribute && t.getAttribute('data-ugi') !== null){
     var ugiC = +t.getAttribute('data-ugi'), ugFC = t.getAttribute('data-f'), ugLC = userGoalObj(), itUC = ugLC.items[ugiC];
     if (itUC){
@@ -6174,7 +6180,7 @@ document.addEventListener('change', function(ev){
       }
       ugSaveObj(ugLC);
     }
-    commit();
+    ugCommitKeep();
     renderSavGoalLive();
   }
 

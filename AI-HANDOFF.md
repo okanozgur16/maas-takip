@@ -14,6 +14,12 @@
 
 
 
+## v77 (`2026-11-25-shiftpay-v77`) — **Claude Pro** — Birikim Gelir/Gider Tutar Hatası
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:** Birikim bölümünde ek gelir/gider satırında ad yazdıktan sonra tutar alanına dokunulunca panel yeniden çizilip tutar kayboluyordu (tutar 0 kalıyor, hedef tarih değişmiyor gibi görünüyordu). Düzeltildi; ayrıca ana karta gelir/giderlerin tarihi değil harçlığı değiştirdiğini anlatan kısa not eklendi.
+
+---
+
 ## v76 (`2026-11-25-shiftpay-v76`) — **Claude Pro** — Bordro Uyarısı Metni
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:** 3 bordro uyarısının son cümlesi "…tahmini belirgin şekilde iyileştirir" olarak düzeltildi.

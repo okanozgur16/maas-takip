@@ -1,12 +1,17 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-25-shiftpay-v76`
+- **Aktif Sürüm:** `2026-11-25-shiftpay-v77`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v77 Değişiklikleri (Claude Pro)
+- **Birikim gelir/gider hatası düzeltildi:** Ek gelir/gider satırında ad yazıp tutar alanına dokununca panel yeniden çiziliyor, tutar alanı kayboluyor ve ilk dokunuş/yazı kayboluyordu (tutar 0 kalıyordu). `UG_KEEP` + `ugCommitKeep()` ile alan değişikliğinde (`change`) panel yeniden çizilmeden kaydediliyor (`renderSavGoal` bu durumda yalnızca `renderSavGoalLive` çalıştırır).
+- **Açıklama notu:** Ek gelir/gider varken ana kartta "Hedef tarih, ayırdığın birikim hızına göre hesaplanır; gelir/giderler cebine kalan harçlığı değiştirir, harçlık birikim hızının altına düşerse tarih uzar" notu (`.savg-sc-note`, TR/EN).
+- **Hesap mantığı (değişmedi):** `ugRunTrack(...,false)` birikimi `weeklySave` olarak sabit tutar; gelir/gider yalnızca harçlığı değiştirir, serbest nakit birikim hızının altına inerse `effSave` düşer ve tarih uzar. `planBoost` hesaplanıyor ama arayüzde kullanılmıyor.
 
 ## v76 Değişiklikleri (Claude Pro)
 - 3 bordro uyarısı metni: "…3 bordro tahmini belirgin şekilde iyileştirir." (EN: "…3 payslips noticeably improve the estimate.")
