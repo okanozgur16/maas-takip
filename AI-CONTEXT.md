@@ -1,12 +1,16 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-26-shiftpay-v81`
+- **Aktif Sürüm:** `2026-11-26-shiftpay-v82`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v82 Değişiklikleri (Claude Pro)
+- **Aylık görünüm yuvarlama kayması:** aylık yazılan net maaş / birikim tutarı haftalığa `r2` ile çevrildiği için geri dönüşte €1.800 → €1.799,98 oluyordu. `customNetWk` ve `weeklySave` artık 4 ondalık hassasiyetle saklanır (`Math.round(x*1e4)/1e4`); görüntülemede `r2` kullanılır.
+- v81 (Antigravity) gözden geçirildi ve insan-gibi testlerle doğrulandı (tüyo gerçek bitiş tarihi, elle net maaş, otomatiğe dön, kalıcılık, EN taşma).
 
 ## v81 Değişiklikleri (Antigravity)
 - **`ugRunTrack` & `ugSimulate` nakit tavan koruması (`ug.incl = true`):** Kutu açıkken `baseWk > avgWk` olduğunda `effSave` toplam nakit girişini (`avgWk + wInc - wExp`) aşabiliyordu ve negatif harçlıkla hayali erken tarih üretiyordu; her iki modda da `Math.max(0, totalCashIn)` ile sınırlandı.

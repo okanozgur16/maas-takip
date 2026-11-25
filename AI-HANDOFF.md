@@ -14,6 +14,9 @@
 
 
 
+## v82 (`2026-11-26-shiftpay-v82`) — **Claude Pro** — v81 Doğrulama + Aylık Yuvarlama Kayması
+- v81 testlerden geçti. Tek bulgu: aylık görünümde girilen net maaş/birikim tutarı yenileyince kuruş kayıyordu (1.800 → 1.799,98); 4 ondalık saklamayla giderildi.
+
 ## v81 (`2026-11-26-shiftpay-v81`) — **Antigravity** — Claude v80 Üzerine Kalan Mantık, Matematik & UX Düzeltmeleri
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Claude'un `v80` düzeltmeleri %100 korundu** (elle bordro+park, medyandan aykırı hafta filtreleme, boş hedef, `Birikime Ekle`, EN tarih/taşma) ve kalan 6 ince mantık/UX açığı kapatıldı:

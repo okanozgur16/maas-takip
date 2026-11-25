@@ -2559,7 +2559,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-26-shiftpay-v81';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-26-shiftpay-v82';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3833,7 +3833,7 @@ function userGoalObj(){
     title: String(ug.title !== undefined ? ug.title : 'Hedefim'),
     targetAmt: Math.max(0, +ug.targetAmt || 0),
     weeklySave: wkS,
-    customNetWk: Math.max(0, r2(+ug.customNetWk || 0)),
+    customNetWk: Math.max(0, Math.round((+ug.customNetWk || 0) * 1e4) / 1e4),
     period: ug.period === 'month' ? 'month' : 'week',
     incl: !!ug.incl,
     items: items
@@ -3908,7 +3908,7 @@ function ugAvgPayInfo(){
   var autoNetWk = Math.max(0, r2(rawWk - hxWk));
   var autoNetMo = r2(autoNetWk * 52 / 12);
   var ugRaw = (st && st.userGoal) || {};
-  var customNetWk = Math.max(0, r2(+ugRaw.customNetWk || 0));
+  var customNetWk = Math.max(0, Math.round((+ugRaw.customNetWk || 0) * 1e4) / 1e4);
   var isCustom = customNetWk > 0;
   var netWk = isCustom ? customNetWk : autoNetWk;
 
@@ -4083,7 +4083,7 @@ function renderSavGoal(force){
   var prevDrw = $('ug_drawer');
   if (prevDrw) UG_DRAWER_OPEN = !!prevDrw.open;
   var ug = userGoalObj(), payInfo = ugAvgPayInfo(), isMo = ug.period === 'month';
-  var dispSaveVal = isMo ? r2(ug.weeklySave * 52 / 12) : ug.weeklySave;
+  var dispSaveVal = isMo ? r2(ug.weeklySave * 52 / 12) : r2(ug.weeklySave);
 
   var h = '<div class="savg-head"><h2>💰 ' + L('Birikimim & Hedefim', 'My Savings & Goal') + '</h2>' +
     '<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">' +
@@ -4134,7 +4134,7 @@ function renderSavGoal(force){
       '<div class="savg-grid3 savg-core-1" style="margin-bottom:0">' +
         '<div class="field"><label for="ug_net_ovr" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>' + (isMo ? L('Net Maaş Ortalaman (€/ay)', 'Your Avg. Net Pay (€/mo)') : L('Net Maaş Ortalaman (€/hf)', 'Your Avg. Net Pay (€/wk)')) + '</span><span id="ug_pay_mode_badge" style="font-size:11px;font-weight:700;color:var(--accent)"></span></label>' +
           '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' +
-            '<input id="ug_net_ovr" type="text" inputmode="decimal" style="flex:1;min-width:150px" value="' + (ug.customNetWk > 0 ? esc(String(isMo ? r2(ug.customNetWk * 52 / 12) : ug.customNetWk).replace('.', ',')) : '') + '" placeholder="' + esc(L('Otomatik: ', 'Auto: ') + (isMo ? eur(payInfo.autoNetMo) + '/' + L('ay', 'mo') : eur(payInfo.autoNetWk) + '/' + L('hf', 'wk')) + L(' (farklıysa buraya yaz)', ' (type to override)')) + '">' +
+            '<input id="ug_net_ovr" type="text" inputmode="decimal" style="flex:1;min-width:150px" value="' + (ug.customNetWk > 0 ? esc(String(isMo ? r2(ug.customNetWk * 52 / 12) : r2(ug.customNetWk)).replace('.', ',')) : '') + '" placeholder="' + esc(L('Otomatik: ', 'Auto: ') + (isMo ? eur(payInfo.autoNetMo) + '/' + L('ay', 'mo') : eur(payInfo.autoNetWk) + '/' + L('hf', 'wk')) + L(' (farklıysa buraya yaz)', ' (type to override)')) + '">' +
             '<button type="button" class="btn small" id="ug_net_rst" data-act="ugAutoPay"' + (ug.customNetWk > 0 ? '' : ' hidden') + '>↺ ' + L('Otomatiğe dön', 'Use auto') + '</button>' +
           '</div>' +
           '<small class="fh num" id="ug_pay_hint"></small></div>' +
@@ -6286,7 +6286,7 @@ document.addEventListener('input', function(ev){
   }
   if (t.id === 'ug_wk'){
     var ugW = userGoalObj(), rawSlider = Math.max(5, +t.value || 50);
-    ugW.weeklySave = ugW.period === 'month' ? Math.max(5, r2(rawSlider * 12 / 52)) : rawSlider;
+    ugW.weeklySave = ugW.period === 'month' ? Math.max(5, Math.round(rawSlider * 12 / 52 * 1e4) / 1e4) : rawSlider;
     ugSaveObj(ugW);
     if ($('ug_wk_in')) $('ug_wk_in').value = String(rawSlider).replace('.', ',');
     renderSavGoalLive();
@@ -6300,11 +6300,11 @@ document.addEventListener('input', function(ev){
     else if (t.id === 'ug_target') ugI.targetAmt = Math.max(0, num(t.value));
     else if (t.id === 'ug_net_ovr'){
       var vNet = Math.max(0, num(t.value));
-      ugI.customNetWk = vNet > 0 ? (ugI.period === 'month' ? r2(vNet * 12 / 52) : r2(vNet)) : 0;
+      ugI.customNetWk = vNet > 0 ? (ugI.period === 'month' ? Math.round(vNet * 12 / 52 * 1e4) / 1e4 : r2(vNet)) : 0;
     }
     else if (t.id === 'ug_wk_in'){
       var vIn = Math.max(5, num(t.value) || 5);
-      ugI.weeklySave = ugI.period === 'month' ? Math.max(5, r2(vIn * 12 / 52)) : vIn;
+      ugI.weeklySave = ugI.period === 'month' ? Math.max(5, Math.round(vIn * 12 / 52 * 1e4) / 1e4) : vIn;
       if ($('ug_wk')) $('ug_wk').value = String(Math.round(vIn));
     }
     ugSaveObj(ugI);
