@@ -2539,7 +2539,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v75';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v76';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2813,7 +2813,7 @@ function accuracyHtml(ws, slip){
   }
   var n = pdfSlipCount();
   if (n < 3){
-    h += '<div class="callout" style="display:block;margin:0 0 10px">📄 ' + impBadge() + '<b>' + L('En iyi sonuç için en az 3 bordro yükle', 'Upload at least 3 payslips for the best result') + '</b> <span class="num">(' + n + '/3)</span><div class="sub" style="margin-top:4px">' + L('Ücret, kira ve sigorta son bordrodan okunur. Tatil ödeneği ve her hafta tekrar eden kalemler ise birkaç bordronun ortalamasıyla hesaplanır; 3 bordro tahmini belirgin şekilde güvenilir yapar.', 'Wage, rent and insurance are read from your latest payslip. Holiday pay and weekly recurring lines are averaged over several payslips, so 3 payslips make the estimate noticeably more reliable.') + '</div><div style="margin-top:8px"><button type="button" class="btn small primary" data-act="slipAdd">+ ' + L('Bordro ekle', 'Add payslip') + '</button></div></div>';
+    h += '<div class="callout" style="display:block;margin:0 0 10px">📄 ' + impBadge() + '<b>' + L('En iyi sonuç için en az 3 bordro yükle', 'Upload at least 3 payslips for the best result') + '</b> <span class="num">(' + n + '/3)</span><div class="sub" style="margin-top:4px">' + L('Ücret, kira ve sigorta son bordrodan okunur. Tatil ödeneği ve her hafta tekrar eden kalemler ise birkaç bordronun ortalamasıyla hesaplanır; 3 bordro tahmini belirgin şekilde iyileştirir.', 'Wage, rent and insurance are read from your latest payslip. Holiday pay and weekly recurring lines are averaged over several payslips, so 3 payslips noticeably improve the estimate.') + '</div><div style="margin-top:8px"><button type="button" class="btn small primary" data-act="slipAdd">+ ' + L('Bordro ekle', 'Add payslip') + '</button></div></div>';
   }
   var ref = slip ? ws : Object.keys(state.slips || {}).filter(function(w){ return state.slips[w] && w <= ws; }).sort().pop(), g = ref ? slipGap(ref) : null;
   if (g && g.big){
