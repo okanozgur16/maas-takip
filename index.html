@@ -568,6 +568,38 @@ html:not(.ui-classic) .dayhead .d .t-today{background:var(--accent);color:var(--
 .pwa-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .pwa-steps{margin:8px 0 2px;padding-left:20px;font-size:13px;line-height:1.45;color:var(--ink)}
 .pwa-steps li{margin:3px 0}
+/* v75: ÖNEMLİ! etiketi + açılış sihirbazı */
+@keyframes impSoft{0%,100%{opacity:1}50%{opacity:.58}}
+.imp{display:inline-block;margin-right:7px;padding:2px 8px;border-radius:7px;background:color-mix(in srgb,var(--bad) 16%,transparent);color:var(--bad);font-weight:900;font-size:11.5px;letter-spacing:.06em;animation:impSoft 2.8s ease-in-out infinite;vertical-align:1px}
+.wz-bd{position:fixed;inset:0;background:rgba(5,8,20,.62);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);z-index:60;display:flex;align-items:flex-end;justify-content:center}
+.wz-bd[hidden]{display:none}
+.wz{width:100%;max-width:460px;max-height:100dvh;overflow:auto;background:var(--surface);color:var(--ink);border-radius:26px 26px 0 0;padding:14px 20px calc(24px + env(safe-area-inset-bottom,0px));border:1px solid var(--line);box-shadow:0 -12px 40px rgba(0,0,0,.35);animation:wzUp .28s ease-out}
+@keyframes wzUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+@media (min-width:600px){.wz-bd{align-items:center}.wz{border-radius:26px}}
+.wz-grab{width:42px;height:4px;border-radius:4px;background:var(--line);margin:0 auto 14px}
+.wz-top{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:12.5px;color:var(--muted);font-weight:700}
+.wz-top button{background:none;border:0;color:var(--muted);font:inherit;font-weight:700;cursor:pointer;padding:4px 0}
+.wz-dots{display:flex;gap:6px;margin:10px 0 18px}.wz-dots i{flex:1;height:5px;border-radius:5px;background:var(--line);transition:background .25s}.wz-dots i.on{background:var(--accent)}
+.wz-ic{font-size:42px;line-height:1}
+.wz h2{margin:10px 0 6px;font-size:22px;line-height:1.2}
+.wz p{margin:0 0 18px;color:var(--muted);font-size:14.5px;line-height:1.45}
+.wz p b{color:var(--ink)}
+.wz .wz-big{display:flex;flex-direction:column;gap:10px}
+.wz .wz-big button{font:inherit;cursor:pointer;border-radius:15px;padding:15px;font-weight:800;font-size:16px}
+.wz .wz-yes{background:var(--accent);color:#fff;border:0}
+.wz .wz-no{background:transparent;color:var(--ink);border:1.5px solid var(--line)}
+.wz ol{margin:0 0 18px;padding-left:20px;font-size:14.5px;line-height:1.5}
+.wz-done{text-align:center;padding:14px 0 6px}
+.wz-ok{width:96px;height:96px;display:block;margin:6px auto 12px;animation:wzPop .5s .55s both}
+.wz-ok circle{stroke:var(--good);stroke-width:3;stroke-dasharray:145;stroke-dashoffset:145;animation:wzDraw .6s ease-out forwards}
+.wz-ok path{stroke:var(--good);stroke-width:4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:42;stroke-dashoffset:42;animation:wzDraw .4s .5s ease-out forwards}
+@keyframes wzDraw{to{stroke-dashoffset:0}}
+@keyframes wzPop{0%{transform:scale(1)}50%{transform:scale(1.14)}100%{transform:scale(1)}}
+.wz-done h2{font-size:26px;margin:4px 0}.wz-done p{margin:0 0 16px;font-size:16px}
+.wz-hint{display:flex;align-items:center;gap:8px;padding:10px 16px;background:color-mix(in srgb,var(--accent) 16%,var(--surface));border-bottom:1px solid var(--line);font-size:13.5px;font-weight:700;line-height:1.35}
+.wz-hint[hidden]{display:none}
+@media (prefers-reduced-motion:reduce){.imp,.wz,.wz-ok,.wz-ok circle,.wz-ok path{animation:none!important}.wz-ok circle,.wz-ok path{stroke-dashoffset:0}}
+
 .pwa-tx .pwa-steps b{display:inline;font-size:inherit;line-height:inherit}
 
 /* Maaş 3-Alt-Sekmeli Sade Görünüm + Bölüm Başlıkları */
@@ -1332,6 +1364,8 @@ details.savg-how>summary::-webkit-details-marker{display:none}
 </div>
 
 <!-- Ayarlar -->
+<div class="wz-bd" id="wz" hidden><div class="wz" id="wzBox" role="dialog" aria-modal="true" aria-labelledby="wzTitle"></div></div>
+
 <div class="overlay" id="ov2" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="setTitle">
     <div class="sh-head">
@@ -1339,12 +1373,13 @@ details.savg-how>summary::-webkit-details-marker{display:none}
       <h2 id="setTitle">Ayarlar</h2>
       <button type="button" class="btn small set-close" data-act="closeSet" aria-label="Kapat">✕ Kapat</button>
     </div>
+    <div class="wz-hint" id="wzHint" hidden></div>
     <div class="sh-body" id="setBody"></div>
     <div class="sh-foot">
       <div class="sh-foot-in">
         <button class="btn danger" data-act="resetSet">Varsayılanlara dön</button>
         <span class="spacer"></span>
-        <button class="btn primary" data-act="closeSet">Tamam</button>
+        <button class="btn primary" data-act="closeSet" id="setOkBtn">Tamam</button>
       </div>
     </div>
   </div>
@@ -2504,7 +2539,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v74';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v75';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2746,7 +2781,7 @@ function checklistHtml(gapRef){
     return h;
   }
   var doneCnt = items.length - open.length;
-  h += '<details class="chk-drawer"' + (gapRef ? ' open' : '') + '><summary><span>✅ ' + L('Maaş & Kira Ayar Kontrolü', 'Pay & Rent Settings Check') + ' <small style="color:var(--muted);font-weight:600">(' + doneCnt + '/' + items.length + ' ' + L('doğrulandı', 'confirmed') + ')</small></span><span class="savg-drw-btn">' + L('Kontrol Et', 'Review') + ' <span class="savg-drw-chv">▾</span></span></summary><div class="chk-body"><div class="sub" style="margin:0 0 8px">' + (gapRef ? L('Son bordroda tahmin farklı çıktı; lütfen tekrar kontrol et.', 'Your last payslip differed from the estimate; please check again.') : L('Tahminin doğru çıkması için ayarlarını buradan tek tıkla onaylayabilirsin.', 'Confirm your settings in one tap so your estimate stays accurate.')) + '</div>';
+  h += '<details class="chk-drawer"' + (gapRef ? ' open' : '') + '><summary><span>' + impBadge() + '✅ ' + L('Maaş & Kira Ayar Kontrolü', 'Pay & Rent Settings Check') + ' <small style="color:var(--muted);font-weight:600">(' + doneCnt + '/' + items.length + ' ' + L('doğrulandı', 'confirmed') + ')</small></span><span class="savg-drw-btn">' + L('Kontrol Et', 'Review') + ' <span class="savg-drw-chv">▾</span></span></summary><div class="chk-body"><div class="sub" style="margin:0 0 8px">' + (gapRef ? L('Son bordroda tahmin farklı çıktı; lütfen tekrar kontrol et.', 'Your last payslip differed from the estimate; please check again.') : L('Tahminin doğru çıkması için ayarlarını buradan tek tıkla onaylayabilirsin.', 'Confirm your settings in one tap so your estimate stays accurate.')) + '</div>';
   items.forEach(function(x){
     var ok = chkOk(x, C);
     var tag = x.manual ? ' <small class="bad">(' + L('bordrodan gelmez, elle kontrol et', 'not on payslip, check manually') + ')</small>' : (nSl ? ' <small class="sub">(' + L('bordrodan', 'from payslip') + ')</small>' : '');
@@ -2778,13 +2813,110 @@ function accuracyHtml(ws, slip){
   }
   var n = pdfSlipCount();
   if (n < 3){
-    h += '<div class="callout" style="display:block;margin:0 0 10px">📄 <b>' + L('En iyi sonuç için en az 3 bordro yükle', 'Upload at least 3 payslips for the best result') + '</b> <span class="num">(' + n + '/3)</span><div class="sub" style="margin-top:4px">' + L('Ücret, kira ve sigorta son bordrodan okunur. Tatil ödeneği ve her hafta tekrar eden kalemler ise birkaç bordronun ortalamasıyla hesaplanır; 3 bordro tahmini belirgin şekilde güvenilir yapar.', 'Wage, rent and insurance are read from your latest payslip. Holiday pay and weekly recurring lines are averaged over several payslips, so 3 payslips make the estimate noticeably more reliable.') + '</div><div style="margin-top:8px"><button type="button" class="btn small primary" data-act="slipAdd">+ ' + L('Bordro ekle', 'Add payslip') + '</button></div></div>';
+    h += '<div class="callout" style="display:block;margin:0 0 10px">📄 ' + impBadge() + '<b>' + L('En iyi sonuç için en az 3 bordro yükle', 'Upload at least 3 payslips for the best result') + '</b> <span class="num">(' + n + '/3)</span><div class="sub" style="margin-top:4px">' + L('Ücret, kira ve sigorta son bordrodan okunur. Tatil ödeneği ve her hafta tekrar eden kalemler ise birkaç bordronun ortalamasıyla hesaplanır; 3 bordro tahmini belirgin şekilde güvenilir yapar.', 'Wage, rent and insurance are read from your latest payslip. Holiday pay and weekly recurring lines are averaged over several payslips, so 3 payslips make the estimate noticeably more reliable.') + '</div><div style="margin-top:8px"><button type="button" class="btn small primary" data-act="slipAdd">+ ' + L('Bordro ekle', 'Add payslip') + '</button></div></div>';
   }
   var ref = slip ? ws : Object.keys(state.slips || {}).filter(function(w){ return state.slips[w] && w <= ws; }).sort().pop(), g = ref ? slipGap(ref) : null;
   if (g && g.big){
     h += '<div class="callout" style="display:block;margin:0 0 10px;border-color:var(--bad)">⚠️ <b>' + (slip ? L('Tahmin bu bordrodan ', 'The estimate differs from this payslip by ') : L('Son bordroda tahmin ', 'On your last payslip the estimate was off by ')) + '<span class="num">' + eur(Math.abs(g.d)) + '</span>' + (slip ? L(' farklı çıktı.', '.') : L(' farklıydı; bu haftanın tahmini de sapabilir.', '; this week may be off too.')) + '</b><div class="sub" style="margin-top:4px">' + L('Ayarlarını kontrol et: konut (şirket evi / özel kira), sigorta (şirket / kendin), araç eki ve kira kesinti şekli. Daha fazla bordro eklemek de tahmini düzeltir.', 'Check your settings: housing (company / private), insurance (company / self), driver allowance and how rent is deducted. Adding more payslips also improves the estimate.') + '</div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn small" data-act="settings">⚙ ' + L('Ayarları kontrol et', 'Check settings') + '</button><button type="button" class="btn small" data-act="slipAdd">+ ' + L('Bordro ekle', 'Add payslip') + '</button></div></div>';
   }
   return h;
+}
+
+/* ---------- v75: Açılış sihirbazı (ayar soruları + bordro) ---------- */
+function impBadge(){ return '<span class="imp">' + L('ÖNEMLİ!', 'IMPORTANT!') + '</span>'; }
+var WZ = { on: false, total: 0, waiting: '', skipPay: false, setOk: '' };
+function wzPaySkipped(){ try { var t = +localStorage.getItem(LS + '-wzpay') || 0; return t && (Date.now() - t) < 7 * 86400000; } catch (e) { return false; } }
+function wzSnoozed(){ try { return sessionStorage.getItem(LS + '-wzlater') === '1'; } catch (e) { return false; } }
+function wzSteps(){
+  var st = state.settings || {}, C = st.chk || {}, now = Date.now();
+  if (C.at && now - C.at > 28 * 86400000) C = {};
+  var out = chkItems().filter(function(x){ return !chkOk(x, C); }).map(function(x){ return { k: x.k, tab: x.tab, t: x.t, ask: x.ask, answered: x.answered }; });
+  if (pdfSlipCount() < 3 && !WZ.skipPay && !wzPaySkipped()) out.push({ k: 'pay' });
+  return out;
+}
+var WZ_META = {
+  h: { ic: '🏠', q: function(){ return L('Konut bilgin doğru mu?', 'Is your housing info right?'); }, what: function(){ return L('konut', 'housing'); } },
+  i: { ic: '🩺', q: function(){ return L('Sağlık sigortan doğru mu?', 'Is your health insurance right?'); }, what: function(){ return L('sigorta', 'insurance'); } },
+  d: { ic: '🚗', q: function(){ return L('Şirket aracı kullanıyor musun?', 'Do you use a company car?'); }, what: function(){ return L('araç eki', 'vehicle allowance'); } },
+  r: { ic: '💶', q: function(){ return L('Saatlik ücretin doğru mu?', 'Is your hourly wage right?'); }, what: function(){ return L('saatlik ücret', 'hourly wage'); } },
+  x: { ic: '🧾', q: function(){ return L('Haftalık ek satırların doğru mu?', 'Are your weekly extra lines right?'); }, what: function(){ return L('haftalık satırlar', 'weekly lines'); } }
+};
+function wzBox(){ return $('wzBox'); }
+function wzTop(n){
+  var idx = Math.min(WZ.total, Math.max(1, WZ.total - n + 1));
+  var dots = ''; for (var i = 1; i <= WZ.total; i++) dots += '<i' + (i <= idx ? ' class="on"' : '') + '></i>';
+  return '<div class="wz-grab"></div><div class="wz-top"><span>' + L('Başlamadan önce', 'Before you start') + ' · ' + idx + '/' + WZ.total + '</span><button type="button" data-act="wzLater">' + L('Sonra yaparım', 'Do it later') + ' ✕</button></div><div class="wz-dots">' + dots + '</div>';
+}
+function wzRender(){
+  var box = wzBox(), wz = $('wz'); if (!box || !wz) return;
+  var steps = wzSteps();
+  if (!steps.length){ wzFinish(); return; }
+  var s0 = steps[0], h = wzTop(steps.length);
+  if (s0.k === 'pay'){
+    var n = pdfSlipCount();
+    h += '<div class="wz-ic">📄</div><h2 id="wzTitle">' + L('Tahminin doğru çıksın: 3 bordro ekle', 'Add 3 payslips for an accurate estimate') + '</h2>' +
+      '<p>' + L('Ücret, kira ve sigorta son bordrondan okunur. Tatil ödeneği ve tekrar eden kalemler birkaç bordronun ortalamasıyla hesaplanır.', 'Wage, rent and insurance are read from your latest payslip. Holiday pay and recurring lines are averaged over several payslips.') + ' <b>(' + n + '/3)</b></p>' +
+      '<ol><li>' + L('Maaş bordrolarını PDF olarak seç', 'Pick your payslips as PDF files') + '</li><li>' + L('Uygulama kalemleri kendisi okur', 'The app reads the lines for you') + '</li><li>' + L('Bordroların cihazından çıkmaz', 'Your payslips never leave your device') + '</li></ol>' +
+      '<div class="wz-big"><button type="button" class="wz-yes" data-act="wzSlip">+ ' + L('Bordro ekle', 'Add payslip') + '</button><button type="button" class="wz-no" data-act="wzSkipPay">' + L('Şimdilik geç', 'Skip for now') + '</button></div>';
+  } else {
+    var m = WZ_META[s0.k] || { ic: '✅', q: function(){ return L('Bu doğru mu?', 'Is this right?'); } };
+    var carQ = (s0.k === 'd' && !s0.answered);
+    var dd0 = +(state.settings || {}).driverDay || DEFAULTS.driverDay;
+    h += '<div class="wz-ic">' + m.ic + '</div><h2 id="wzTitle">' + m.q() + '</h2><p>' +
+      (carQ ? L('Günlük ', 'Daily ') + eur(dd0) + L(' araç eki. “Evet” dersen vardiyaları girerken araç kendiliğinden işaretli gelir ve maaş tahminine eklenir.', ' vehicle allowance. If you say “Yes”, the vehicle box is ticked automatically when you add shifts and it is included in your estimate.') : esc(s0.t)) +
+      '</p><div class="wz-big"><button type="button" class="wz-yes" data-act="wzYes">✓ ' + (carQ ? L('Evet, kullanıyorum', 'Yes, I do') : L('Evet, doğru', 'Yes, that’s right')) + '</button><button type="button" class="wz-no" data-act="wzNo">' + (carQ ? L('Hayır, kullanmıyorum', 'No, I don’t') : L('Hayır, güncelle', 'No, update it')) + '</button></div>';
+  }
+  box.innerHTML = h; wz.hidden = false; WZ.on = true;
+}
+function wzFinish(){
+  var box = wzBox(), wz = $('wz'); if (!box || !wz) return;
+  WZ.on = true; WZ.finished = true;
+  box.innerHTML = '<div class="wz-grab"></div><div class="wz-done"><svg class="wz-ok" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="23" fill="none"/><path fill="none" d="M15 27l8 8 15-17"/></svg>' +
+    '<h2 id="wzTitle">' + L('Her şey tamam!', 'All set!') + '</h2><p>' + L('İyi çalışmalar 👋', 'Have a great shift! 👋') + '</p>' +
+    '<div class="wz-big"><button type="button" class="wz-yes" data-act="wzClose">' + L('Başla', 'Let’s go') + '</button></div></div>';
+  wz.hidden = false;
+  clearTimeout(WZ.autoT); WZ.autoT = setTimeout(function(){ if (WZ.finished) wzClose(); }, 3200);
+}
+function wzClose(){ var wz = $('wz'); if (wz) wz.hidden = true; WZ.on = false; WZ.finished = false; WZ.waiting = ''; clearTimeout(WZ.autoT); try { renderAll(); } catch (e) {} }
+function wzOpenSettings(k, tab){
+  var steps = wzSteps(), n = steps.length;
+  WZ.waiting = k; $('wz').hidden = true;
+  window.__SET_SNAP = JSON.parse(JSON.stringify(state.settings || {}));
+  setTabSel = tab || 'pay'; renderSettings();
+  var hint = $('wzHint'), what = (WZ_META[k] && WZ_META[k].what) ? WZ_META[k].what() : '';
+  var whatC = (typeof LANG !== 'undefined' && LANG === 'en') ? what : (what.charAt(0).toLocaleUpperCase('tr') + what.slice(1));
+  if (hint){ hint.innerHTML = '👉 ' + L(whatC + ' ayarını kontrol et, gerekirse değiştir; sonra “✓ Onayla ve devam et”e bas.', 'Check your ' + what + ' setting and change it if needed, then tap “✓ Confirm & continue”.'); hint.hidden = false; }
+  var ok = $('setOkBtn'); if (ok){ WZ.setOk = ok.textContent; ok.textContent = L('✓ Onayla ve devam et', '✓ Confirm & continue'); }
+  $('ov2').hidden = false; var sb = $('setBody'); if (sb) sb.scrollTop = 0;
+  setTimeout(function(){ try { var sel = { d: '#s_driverMode', r: '[data-key="rate"]', i: '#s_insMode', h: '[data-key="housingMode"]' }[k]; var t = sel && document.querySelector('#setBody ' + sel); if (t && t.scrollIntoView) t.scrollIntoView({ block: 'center' }); } catch (e) {} }, 60);
+}
+function wzSettingsDone(){
+  var k = WZ.waiting; WZ.waiting = '';
+  var hint = $('wzHint'); if (hint) hint.hidden = true;
+  var ok = $('setOkBtn'); if (ok && WZ.setOk){ ok.textContent = WZ.setOk; } WZ.setOk = '';
+  if (k) chkMark([k]);
+  try { renderAll(); } catch (e) {}
+  wzRender();
+}
+function wzMaybeOpen(tries){
+  try {
+    if (!STANDALONE || WZ.on || wzSnoozed()) return;
+    var busy = (typeof sync !== 'undefined' && sync.busy);
+    if (busy && (tries || 0) < 6){ setTimeout(function(){ wzMaybeOpen((tries || 0) + 1); }, 1000); return; }
+    var open = false; document.querySelectorAll('.overlay').forEach(function(o){ if (!o.hidden) open = true; });
+    if (open) return;
+    var steps = wzSteps(); if (!steps.length) return;
+    WZ.total = steps.length; WZ.skipPay = false; WZ.finished = false;
+    wzRender();
+  } catch (e) {}
+}
+function wzBoot(){
+  setTimeout(function(){ wzMaybeOpen(0); }, 1600);
+  try {
+    var o2 = $('ov2'), o3 = $('ov3');
+    new MutationObserver(function(){ if (o2.hidden && WZ.waiting) wzSettingsDone(); }).observe(o2, { attributes: true, attributeFilter: ['hidden'] });
+    new MutationObserver(function(){ if (o3.hidden && WZ.waiting === 'pay') { WZ.waiting = ''; $('wz').hidden = false; wzRender(); } }).observe(o3, { attributes: true, attributeFilter: ['hidden'] });
+  } catch (e) {}
 }
 function renderHero(){
   var S = SET(), ws = view.week, mode = state.ui.mode;
@@ -5858,6 +5990,20 @@ document.addEventListener('click', function(ev){
   else if (a === 'setConfirmBack'){
     $('ovSetConfirm').hidden = true;
   }
+  else if (a === 'wzYes'){
+    var w0 = wzSteps()[0]; if (w0){ if (w0.k === 'd' && !w0.answered) drvAnswer('yes'); else chkMark([w0.k]); }
+    wzRender();
+  }
+  else if (a === 'wzNo'){
+    var w1 = wzSteps()[0]; if (w1){ if (w1.k === 'd' && !w1.answered) drvAnswer('no'); wzOpenSettings(w1.k, w1.tab); }
+  }
+  else if (a === 'wzSlip'){
+    WZ.waiting = 'pay'; $('wz').hidden = true;
+    var tb = document.createElement('button'); tb.setAttribute('data-act', 'slipAdd'); tb.style.display = 'none'; document.body.appendChild(tb); tb.click(); tb.remove();
+  }
+  else if (a === 'wzSkipPay'){ WZ.skipPay = true; try { localStorage.setItem(LS + '-wzpay', String(Date.now())); } catch (e) {} wzRender(); }
+  else if (a === 'wzLater'){ try { sessionStorage.setItem(LS + '-wzlater', '1'); } catch (e) {} wzClose(); }
+  else if (a === 'wzClose'){ wzClose(); }
   else if (a === 'drvAns'){ drvAnswer(el.getAttribute('data-v')); renderHero(); }
   else if (a === 'chkYes'){ chkMark([el.getAttribute('data-v')]); renderHero(); }
   else if (a === 'hAskNo'){ state.settings.hAskDone = state.settings.hAsk; commit(); renderHero(); }
@@ -6050,6 +6196,7 @@ if (STANDALONE){
   renderHello();
   renderPwaBanner();
   syncBoot();
+  wzBoot();
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   try { if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js'); } catch (e) {}
   /* Güncelleme kontrolü: sunucudaki sürüm farklıysa (tarayıcı eski dosyayı önbellekten verdiyse) sayfa bir kez yeni sürümle açılır */

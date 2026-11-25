@@ -1,12 +1,16 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-25-shiftpay-v74`
+- **Aktif Sürüm:** `2026-11-25-shiftpay-v75`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v75 Değişiklikleri (Claude Pro)
+- **Açılış sihirbazı (`WZ`, `wzSteps`, `wzRender`, `wzOpenSettings`, `wzSettingsDone`, `wzFinish`, `wzBoot`; HTML `#wz`, `#wzBox`, `#wzHint`):** Uygulama açılınca (≈1,6 sn sonra, başka pencere açık değilse, eşitleme bitince) açık Ayar Kontrolü maddeleri (konut, sigorta, şirket aracı, saatlik ücret, haftalık satırlar) tek tek büyük alt pencerede sorulur; en sonda <3 bordro varsa "3 bordro ekle" adımı. "Hayır" → pencere kapanmadan gizlenir, ilgili Ayarlar sekmesi (ilgili alana kaydırarak) açılır, üstte ipucu ve "✓ Onayla ve devam et" düğmesi çıkar; ayarlar kapanınca (`#ov2` hidden → MutationObserver) madde onaylanır ve sihirbaz kaldığı yerden sürer. Bordro yükleme (`#ov3`) kapanınca da aynı şekilde döner. Bitince animasyonlu tik + "Her şey tamam! İyi çalışmalar" (TR/EN), 3,2 sn sonra kapanır. "Sonra yaparım" o oturumu kapatır (`sessionStorage`), "Şimdilik geç" bordro adımını 7 gün gizler (`-wzpay`).
+- **Kırmızı ÖNEMLİ! / IMPORTANT! etiketi (`impBadge`, `.imp`):** Ayar Kontrolü başlığında ve "3 bordro yükle" uyarısında, yumuşak 2,8 sn soluk-parlak animasyon; `prefers-reduced-motion` ile durur.
 
 ## v74 Değişiklikleri (Claude Pro)
 - **"Ana Ekrana Ekle" her açılışta + her cihazda çalışır (`pwaCanShow`, `pwaEnv`, `pwaHelpHtml`, `renderPwaBanner`, `pwaInstall`):** Uygulama olarak (standalone) değil de web'den açan telefonlarda banner HER açılışta görünür (14 günlük erteleme ve kalıcı 'kurdum' gizlemesi kaldırıldı; "Şimdi değil" sadece o oturumu `sessionStorage` ile kapatır). Düğme: Chrome/Android'de yerel `beforeinstallprompt` penceresini açar; reddedilirse/yoksa (iPhone, Firefox, WhatsApp-Instagram gibi uygulama içi tarayıcılar, Android menü) adım adım rehberi banner içinde açar.

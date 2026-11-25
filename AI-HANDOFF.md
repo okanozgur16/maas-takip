@@ -14,6 +14,12 @@
 
 
 
+## v75 (`2026-11-25-shiftpay-v75`) — **Claude Pro** — Açılış Sihirbazı + ÖNEMLİ! Etiketi
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:** Ayar soruları ve bordro adımı açılışta büyük pencerede sorulur; "Hayır" ilgili ayar sayfasını açar, onaylayınca kaldığı yerden devam eder; sonunda animasyonlu tik. Uyarılara yumuşak yanıp sönen kırmızı ÖNEMLİ! etiketi eklendi.
+
+---
+
 ## v74 (`2026-11-25-shiftpay-v74`) — **Claude Pro** — Ana Ekrana Ekle Her Açılışta + Rehber
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:** Web'den açanlara kurulum bandı her açılışta gösterilir; düğme yerel kurulum penceresi veya platforma özel adım adım rehber açar (iOS Safari, Android, uygulama içi tarayıcı).
