@@ -1,12 +1,18 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-25-shiftpay-v79`
+- **Aktif Sürüm:** `2026-11-25-shiftpay-v80`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v80 Değişiklikleri (Claude Pro)
+- **Elle bordro + park hatası:** `weekResult` elle girilen bordroda (`lines` sadece `extraTravel`) hesaba yatanı 0 sayıyordu (aylık özet/ortalama −park). Artık `slip.payable` kullanılır.
+- **`ugAvgPayInfo` sağlamlaştırıldı:** medyanın 1,35 katı üstü / 0,5 katı altı haftalar (tatil parası, geriye dönük ödeme) ortalamadan çıkarılır; `cnt`, `exclCnt`, `fromW`, `toW` döner ve Net Maaş ipucunda "Son N bordronun ortalaması (Hf X–Y) · otopark hariç" görünür.
+- **Tüyo kartı yeniden yazıldı:** net TR/EN cümleler; süreli gider kaynaklı geçici açıkta tarih = mevcut plan ve düğme gizli (eskiden tutarı kalıcı düşürüp tarihi geciktiriyordu); harçlık uyarısı; kutu açıkken giderler birikimi sıfırlıyorsa ayrı tüyo.
+- Hedef tutarı boşken "✏️ Önce hedef tutarını yaz"; EN tarih biçimi (`ugDateFull`) İngilizce ay adı; "Birikime Ekle" toplam parayı da artırır; EN'de mobil çekmece taşması (`.savg-drw-body` grid `minmax(0,1fr)`) giderildi.
 
 ## v78 Değişiklikleri (Claude Pro)
 - **Birikim: "Gelir ve giderlerimi de hesaba kat" kutusu** (`userGoal.incl`, varsayılan kapalı). Kapalıyken hedef tarih yalnızca yazılan haftalık/aylık tutara göre hesaplanır (ek gelir/gider sadece cebe kalan harçlığı değiştirir). Açıkken `ugRunTrack` boost modunda çalışır: ek gelir birikime eklenir, ek gider düşülür (`ugSimulate` → `planFixed` ve `allCashTrack` `!!ug.incl` ile).

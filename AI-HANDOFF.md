@@ -14,6 +14,10 @@
 
 
 
+## v80 (`2026-11-25-shiftpay-v80`) — **Claude Pro** — Birikim Denetimi: Net Maaş Ortalaması, Tüyo Metni, 6 Hata
+- Elle girilen bordroda park yazınca maaş 0 sayılıyordu → düzeltildi. Net maaş ortalaması tek seferlik ödemeli haftaları dışlıyor ve hangi haftalardan hesaplandığını yazıyor.
+- Tüyo kartı metni yenilendi; geçici açıkta yanlış (geciktiren) öneri kaldırıldı. Boş hedef, EN tarih, Birikime Ekle ve EN mobil taşma düzeltildi. Antigravity'nin v79 değişiklikleri korundu.
+
 ## v79 (2026-11-25-shiftpay-v79) — **Antigravity** — v68–v78 Genel Denetim & 6 İnce Hata Düzeltmesi
 - **Değişen Dosyalar:** index.html, ersion.json, sw.js, README.md, CLAUDE.md, AI-CONTEXT.md, AI-HANDOFF.md
 - **Denetim & Düzeltilenler:**

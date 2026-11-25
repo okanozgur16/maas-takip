@@ -568,6 +568,11 @@ html:not(.ui-classic) .dayhead .d .t-today{background:var(--accent);color:var(--
 .pwa-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .pwa-steps{margin:8px 0 2px;padding-left:20px;font-size:13px;line-height:1.45;color:var(--ink)}
 .pwa-steps li{margin:3px 0}
+/* v80: dar ekranda (EN uzun metin) çekmece taşmasın */
+.savg-drw-body,.savg-cf{grid-template-columns:minmax(0,1fr)}
+.savg-drw-body>*,.savg-cf>*{min-width:0}
+.savg-irow-top{flex-wrap:wrap;row-gap:6px}
+
 /* v78: gelir/gider dahil et + tüyo kartı */
 .savg-incl{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;margin-top:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer}
 .savg-incl input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--accent)}
@@ -577,6 +582,7 @@ html:not(.ui-classic) .dayhead .d .t-today{background:var(--accent);color:var(--
 .savg-tip{display:flex;flex-direction:column;gap:6px;align-items:flex-start;padding:12px 14px;margin:0 0 12px;border-radius:13px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line))}
 .savg-tip-h{font-weight:800;font-size:13.5px;line-height:1.35}
 .savg-tip-b{font-size:13px;line-height:1.45}
+.savg-tip-m{color:var(--muted);font-size:12px}
 
 /* v77: gelir/gider açıklama notu */
 .savg-sc-note{font-size:12px;line-height:1.4;color:var(--muted);padding:2px 0 4px}
@@ -2553,7 +2559,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v79';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v80';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2718,7 +2724,11 @@ function weekResult(ws, mode){
   var est = calcPay(t, S);
   if (!slip) return { t: t, p: est, est: est, slip: null };
   var p = est;
-  if (slip.lines){
+  if (slip.lines && slip.lines.payable === undefined && slip.lines.wN === undefined && slip.lines.netLoon === undefined){
+    /* v80: elle girilen bordro (sadece park satırı var) — hesaba yatan tutar slip.payable'dan gelir */
+    p = Object.assign({}, est, { empty: false, payable: +slip.payable || 0, extraTravel: +slip.lines.extraTravel || 0 });
+    if (slip.gross != null) p.gross = slip.gross;
+  } else if (slip.lines){
     var L = slip.lines, n = function(v){ return +v || 0; };
     p = Object.assign({}, est, {
       empty: false, wN: n(L.wN), wI: n(L.wI), wO: n(L.wO), wages: r2(n(L.wN) + n(L.wI) + n(L.wO)), vacPay: n(L.vacPay), vacGeld: n(L.vacGeld), advPay: n(L.advPay),
@@ -3849,7 +3859,16 @@ function ugAvgPayInfo(){
     pool = normWks.length ? normWks.slice(-8) : list.slice(-8);
     src = pool.length ? 'shifts' : 'settings';
   }
-  var rawWk = 0, parkAvgWk = 0, poolHasRent = false;
+  var rawWk = 0, parkAvgWk = 0, poolHasRent = false, exclCnt = 0;
+  if (pool.length >= 3){
+    /* v80: medyandan çok yüksek (tatil parası, geriye dönük ödeme) veya çok düşük haftalar ortalamayı bozmasın */
+    var vals = pool.map(function(r){ return r.p.payable - parkOf(r.p); }).sort(function(a, b){ return a - b; });
+    var med = vals[Math.floor(vals.length / 2)];
+    if (med > 0){
+      var kept = pool.filter(function(r){ var v = r.p.payable - parkOf(r.p); return v <= med * 1.35 && v >= med * 0.5; });
+      if (kept.length >= 2){ exclCnt = pool.length - kept.length; pool = kept; }
+    }
+  }
   if (pool.length){
     var sum = 0, parkSum = 0;
     pool.forEach(function(r){
@@ -3907,13 +3926,17 @@ function ugAvgPayInfo(){
     netWk: netWk,
     netMo: r2(netWk * 52 / 12),
     src: src,
-    cnt: pool.length
+    cnt: pool.length,
+    exclCnt: exclCnt,
+    fromW: pool.length ? isoWeek(pool[0].w) : 0,
+    toW: pool.length ? isoWeek(pool[pool.length - 1].w) : 0
   };
 }
 function ugDateFull(iso){
   var d = parseISO(iso), daysTr = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'], daysEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-  var mName = MONTHS_L[d.getMonth()], dName = (typeof LANG !== 'undefined' && LANG === 'en') ? daysEn[d.getDay()] : daysTr[d.getDay()];
-  return d.getDate() + ' ' + mName + ' ' + d.getFullYear() + ' ' + dName;
+  var isEn = (typeof LANG !== 'undefined' && LANG === 'en');
+  if (isEn) return daysEn[d.getDay()] + ', ' + d.getDate() + ' ' + CAL_M_EN[d.getMonth()] + ' ' + d.getFullYear();
+  return d.getDate() + ' ' + MONTHS_L[d.getMonth()] + ' ' + d.getFullYear() + ' ' + daysTr[d.getDay()];
 }
 function ugDurTxt(days){
   if (days <= 0) return L('Bugün', 'Today');
@@ -4209,6 +4232,17 @@ function renderSavGoalLive(){
   if ($('ug_pay_box')) $('ug_pay_box').textContent = isMo ? (eur(payInfo.netMo) + ' / ' + L('ay', 'mo')) : (eur(payInfo.netWk) + ' / ' + L('hafta', 'wk'));
   if ($('ug_pay_hint')){
     var hints = [isMo ? ('≈ ' + eur(payInfo.netWk) + '/' + L('hf', 'wk')) : ('≈ ' + eur(payInfo.netMo) + '/' + L('ay', 'mo'))];
+    if (payInfo.src === 'slips' || payInfo.src === 'shifts'){
+      var wkRng = payInfo.fromW === payInfo.toW ? (L('Hf ', 'Wk ') + payInfo.fromW) : (L('Hf ', 'Wk ') + payInfo.fromW + '–' + payInfo.toW);
+      hints.push(payInfo.src === 'slips'
+        ? L('Son ' + payInfo.cnt + ' bordronun ortalaması (' + wkRng + ')', 'Average of your last ' + payInfo.cnt + ' payslips (' + wkRng + ')')
+        : L('Son ' + payInfo.cnt + ' haftanın vardiya tahmini (' + wkRng + ')', 'Shift estimate of your last ' + payInfo.cnt + ' weeks (' + wkRng + ')'));
+      if (payInfo.exclCnt > 0) hints.push(L(payInfo.exclCnt + ' olağan dışı hafta (tatil parası, ek ödeme vb.) hariç', payInfo.exclCnt + ' unusual week(s) (holiday pay, one-off payments) excluded'));
+    } else if (payInfo.src === 'planned'){
+      hints.push(L('Bu haftanın planından tahmin', 'Estimated from this week\'s plan'));
+    } else {
+      hints.push(L('Ayarlarından tahmin (bordro ekleyince netleşir)', 'Estimated from your settings (add payslips for accuracy)'));
+    }
     if (payInfo.parkAvgWk > 0){
       var pkDisp = isMo ? (eur(payInfo.parkAvgMo) + '/' + L('ay', 'mo')) : (eur(payInfo.parkAvgWk) + '/' + L('hf', 'wk'));
       hints.push(L('Otopark (−' + pkDisp + ') hariç', 'Parking (−' + pkDisp + ') excluded'));
@@ -4430,6 +4464,11 @@ function renderSavGoalResult(ug, payInfo, sim){
         ? L('Eklediğin giderler maaşından fazla olduğu için kenara para ayrılamıyor.', 'Added expenses exceed your pay.')
         : L('Kenardaki ana birikimine (<b class="num">' + eur(Math.max(0, sim.regularCash)) + '</b>) hiç dokunmadan, bu hedef için ayırdığın <b class="num">' + eur(ug.saved) + '</b> üzerine maaşından biriktirerek <b>' + ugDurTxt(pf.days) + '</b> sonra hedefe ulaşırsın.', 'Leaving your main savings (<b class="num">' + eur(Math.max(0, sim.regularCash)) + '</b>) untouched, building on your <b class="num">' + eur(ug.saved) + '</b> goal budget from your pay reaches the goal in <b>' + ugDurTxt(pf.days) + '</b>.');
 
+  if (!(ug.targetAmt > 0)){
+    badge2 = '✏️';
+    big2 = '✏️ ' + L('Önce hedef tutarını yaz', 'Enter your goal amount first');
+    sub2 = L('Yukarıdaki "Ne kadar?" alanına hedefini yazınca ne zaman ulaşacağını hesaplarım.', 'Type your goal in the "How much?" field above to see when you will reach it.');
+  }
   h += '<div class="savg-sc plan">' +
     '<div class="savg-sc-top"><span class="savg-sc-eb">🎯 ' + (ug.totalCash > 0 ? L('Ana Birikimine (' + eur(Math.max(0, sim.regularCash)) + ') Dokunmadan', 'Keeping Main Savings (' + eur(Math.max(0, sim.regularCash)) + ') Untouched') : L('Maaştan Düzenli Biriktirerek', 'Saving Regularly From Pay')) + '</span><span class="savg-sc-bg num">' + badge2 + '</span></div>' +
     '<div class="savg-sc-big num">' + big2 + '</div>' +
@@ -4443,28 +4482,42 @@ function renderSavGoalResult(ug, payInfo, sim){
       '<div class="savg-sc-r tot"><span>' + (ug.totalCash > 0 ? L('Korunan Ana Birikimin:', 'Protected Main Savings:') : L('Biriktirilecek Kalan Tutar:', 'Remaining Amount to Save:')) + '</span><b style="color:var(--good)">' + (ug.totalCash > 0 ? eur(Math.max(0, sim.regularCash)) + ' (' + L('Sabit Kalır', 'Stays Intact') + ')' : eur(sim.gapSaved)) + '</b></div>' +
     '</div></div>';
 
-  /* v78: Gerçekçi birikim önerisi (tüyo) */
+  /* v80: Gerçekçi birikim önerisi (tüyo) — net cümleler */
   var tipHtml = '';
   var tBase = ug.weeklySave, tCash = r2(payInfo.netWk + sim.curIncWk - sim.curExpWk);
   var tCap = ug.incl ? payInfo.netWk : tCash;
+  var tPerW = isMo ? L('aylık', 'per month') : L('haftalık', 'per week'), tPerT = isMo ? L('Aylık', 'monthly') : L('Haftalık', 'weekly');
+  var tD = function(v){ return isMo ? r2(v * 52 / 12) : v; };
   if (ug.targetAmt > 0 && sim.gapSaved > 0 && tBase > tCap + 0.5){
-    var tStep = isMo ? 25 : 5, tCapD = isMo ? r2(tCap * 52 / 12) : tCap, tBaseD = isMo ? Math.round(tBase * 52 / 12) : tBase;
+    var tStep = isMo ? 25 : 5, tCapD = tD(tCap), tBaseD = isMo ? Math.round(tBase * 52 / 12) : tBase;
     var tSugD = Math.floor(Math.max(0, tCapD) / tStep) * tStep, tSugWk = isMo ? r2(tSugD * 12 / 52) : tSugD;
-    var tPer = isMo ? L('ay', 'mo') : L('hf', 'wk'), tFree = eur(Math.max(0, tCapD)) + '/' + tPer;
-    var tBody;
-    if (ug.incl) tBody = L('Net maaşın ' + tFree + '; ' + eur(tBaseD) + ' ayırırsan cebinde eksi kalır.', 'Your net pay is ' + tFree + '; setting aside ' + eur(tBaseD) + ' would leave you short.');
-    else tBody = L('Net maaşın + ek gelirlerin − ek giderlerin = ' + tFree + ' kalıyor (' + eur(r2(tBaseD - Math.max(0, tCapD))) + ' eksik).', 'Net pay + extra income − extra expenses leaves ' + tFree + ' (' + eur(r2(tBaseD - Math.max(0, tCapD))) + ' short).');
+    var tShort = eur(r2(tBaseD - Math.max(0, tCapD))), tPay = eur(tD(payInfo.netWk));
+    var tBody = ug.incl
+      ? L('Ortalama net maaşın ' + tPerW + ' ' + tPay + '; ' + eur(tBaseD) + ' ayırırsan cebine harçlık kalmıyor (' + tShort + ' eksik).', 'Your average net pay is ' + tPay + ' ' + tPerW + '; setting aside ' + eur(tBaseD) + ' leaves you no pocket money (' + tShort + ' short).')
+      : L('Ortalama net maaşın ' + tPay + ' + ek gelirlerin ' + eur(tD(sim.curIncWk)) + ' − ek giderlerin ' + eur(tD(sim.curExpWk)) + ' = ' + tPerW + ' <b class="num">' + eur(Math.max(0, tCapD)) + '</b> kalıyor (' + tShort + ' eksik).', 'Average net pay ' + tPay + ' + extra income ' + eur(tD(sim.curIncWk)) + ' − extra expenses ' + eur(tD(sim.curExpWk)) + ' = <b class="num">' + eur(Math.max(0, tCapD)) + '</b> left ' + tPerW + ' (' + tShort + ' short).');
     var tNew = tSugWk > 0 ? ugRunTrack(ug.saved, ug.targetAmt, tSugWk, payInfo.netWk, ug.items, !!ug.incl) : null;
     var tLater = null;
     for (var ti = 1; ti < sim.phases.length; ti++){ if (sim.phases[ti].effSave >= tBase - 0.5){ tLater = sim.phases[ti]; break; } }
-    tipHtml = '<div class="savg-tip"><div class="savg-tip-h">💡 ' + L(eur(tBaseD) + '/' + tPer + ' yazmışsın ama gelir ve giderlerin buna el vermiyor', 'You set ' + eur(tBaseD) + '/' + tPer + ' but your income and expenses do not allow it') + '</div>' +
+    /* Açık geçiciyse (süreli gider bitince tutar yine karşılanıyorsa) uygulama o haftalarda boşta kalanı zaten ayırır: tarih = mevcut plan, düğme yok */
+    var tTemp = !!tLater && !ug.incl && !sim.planFixed.unreachable;
+    if (tTemp) tNew = sim.planFixed;
+    if (tLater && tNew && !tNew.unreachable && tLater.fromIso >= tNew.dateIso){ tLater = null; tTemp = false; }
+    var tPocket = r2(tCapD - tSugD), tPocketWk = isMo ? r2(tPocket * 12 / 52) : tPocket;
+    tipHtml = '<div class="savg-tip"><div class="savg-tip-h">💡 ' + L(tPerT + ' ayıracağın tutarı ' + eur(tBaseD) + ' yazmışsın ama gelir ve gider verilerin buna el vermiyor.', 'You set your ' + tPerT + ' saving to ' + eur(tBaseD) + ', but your income and expenses do not cover it.') + '</div>' +
       '<div class="savg-tip-b">' + tBody + '</div>' +
       (tSugD > 0
-        ? '<div class="savg-tip-b">' + L('Onun yerine <b class="num">' + eur(tSugD) + '/' + tPer + '</b> ayırabilirsin', 'Instead you could set aside <b class="num">' + eur(tSugD) + '/' + tPer + '</b>') + (tNew && !tNew.unreachable ? L(' → hedefe <b>' + ugDateFull(tNew.dateIso) + '</b>.', ' → goal reached by <b>' + ugDateFull(tNew.dateIso) + '</b>.') : '.') + '</div>'
+        ? '<div class="savg-tip-b">' + (tTemp
+            ? L('Onun yerine ' + ugDateFull(tLater.fromIso) + ' gününe kadar ' + tPerW + ' <b class="num">' + eur(tSugD) + '</b> ayırabilirsin', 'Instead you can set aside <b class="num">' + eur(tSugD) + '</b> ' + tPerW + ' until ' + ugDateFull(tLater.fromIso))
+            : L('Onun yerine ' + tPerW + ' <b class="num">' + eur(tSugD) + '</b> ayırabilirsin', 'Instead you can set aside <b class="num">' + eur(tSugD) + '</b> ' + tPerW)) + (tNew && !tNew.unreachable ? L('; hedefine bu şekilde <b>' + ugDateFull(tNew.dateIso) + '</b> günü ulaşırsın.', '; at that pace you reach your goal on <b>' + ugDateFull(tNew.dateIso) + '</b>.') : '.') + '</div>'
         : '<div class="savg-tip-b">' + L('Bu gelir ve giderlerle şu an kenara para ayrılamıyor; giderleri azaltmayı veya ek gelir eklemeyi dene.', 'With these figures nothing can be set aside right now; try cutting expenses or adding income.') + '</div>') +
-      (tLater ? '<div class="savg-tip-b">' + L('📅 ' + ugDateFull(tLater.fromIso) + ' sonrası tekrar ' + eur(tBaseD) + '/' + tPer + ' ayırabilirsin.', '📅 From ' + ugDateFull(tLater.fromIso) + ' you can set aside ' + eur(tBaseD) + '/' + tPer + ' again.') + '</div>' : '') +
-      (tSugD > 0 ? '<button type="button" class="btn small primary" data-act="ugApplyWk" data-v="' + tSugWk + '">' + L(eur(tSugD) + '/' + tPer + ' olarak ayarla', 'Set to ' + eur(tSugD) + '/' + tPer) + '</button>' : '') +
+      (tLater ? '<div class="savg-tip-b">📅 ' + L(ugDateFull(tLater.fromIso) + ' gününden sonra tekrar ' + tPerW + ' ' + eur(tBaseD) + ' ayırabilirsin.', 'After ' + ugDateFull(tLater.fromIso) + ' you can go back to ' + eur(tBaseD) + ' ' + tPerW + '.') + (tTemp ? L(' Yukarıdaki hedef tarih bunu zaten hesaba katıyor.', ' The goal date above already accounts for this.') : '') + '</div>' : '') +
+      (tTemp ? '<div class="savg-tip-b savg-tip-m">' + L(ugDateFull(tLater.fromIso) + ' gününe kadar cebine harçlık kalmıyor; market ve günlük giderler için biraz pay bırakmak istersen ' + tPerW + ' tutarı düşürebilirsin.', 'Until ' + ugDateFull(tLater.fromIso) + ' you have no pocket money left; lower your ' + tPerT + ' saving if you want room for groceries and daily costs.') + '</div>' : '') +
+      (!tTemp && tSugD > 0 && tPocketWk < 50 ? '<div class="savg-tip-b savg-tip-m">' + L('Bu tutarla cebinde ' + tPerW + ' sadece ' + eur(Math.max(0, tPocket)) + ' harçlık kalır; market ve günlük giderleri düşünerek biraz daha az ayırmak isteyebilirsin.', 'That leaves only ' + eur(Math.max(0, tPocket)) + ' ' + tPerW + ' as pocket money; you may want to set aside a bit less for groceries and daily costs.') + '</div>' : '') +
+      (tSugD > 0 && !tTemp ? '<button type="button" class="btn small primary" data-act="ugApplyWk" data-v="' + tSugWk + '">' + L(tPerT + ' ' + eur(tSugD) + ' olarak ayarla', 'Set to ' + eur(tSugD) + ' ' + tPerW) + '</button>' : '') +
     '</div>';
+  } else if (ug.incl && ug.targetAmt > 0 && sim.gapSaved > 0 && sim.planFixed.unreachable && tCash > 0){
+    tipHtml = '<div class="savg-tip"><div class="savg-tip-h">💡 ' + L('Ek giderlerin, ayırdığın tutarı ve ek gelirlerini aşıyor; birikime bir şey kalmıyor.', 'Your extra expenses exceed your saving and extra income, so nothing goes into savings.') + '</div>' +
+      '<div class="savg-tip-b">' + L(tPerT + ' ayıracağın tutarı en az ' + eur(tD(r2(sim.curExpWk - sim.curIncWk + 5))) + ' yaparsan birikimin yeniden artar. Ya da "Gelir ve giderlerimi de hesaba kat" kutusunu kapatırsan giderler sadece harçlığından düşer.', 'Raise your ' + tPerT + ' saving to at least ' + eur(tD(r2(sim.curExpWk - sim.curIncWk + 5))) + ' so your savings grow again, or untick "Include my income & expenses" so expenses only come out of your pocket money.') + '</div></div>';
   }
   h += '</div>' + altRow + tipHtml;
   return h;
@@ -5832,12 +5885,14 @@ document.addEventListener('click', function(ev){
   }
   else if (a === 'ugAdd'){
     var ug0 = userGoalObj();
-    var addStr = window.prompt(L('Mevcut birikimine (' + eur(ug0.saved) + ') kaç € eklensin?:', 'How much (€) do you want to add to your current savings (' + eur(ug0.saved) + ')?:'), '150');
+    var addStr = window.prompt(ug0.totalCash > 0
+      ? L('Bu hedef için kenara koyduğun yeni para (€)? Hedefe dahil tutar (' + eur(ug0.saved) + ') ve toplam paran (' + eur(ug0.totalCash) + ') birlikte artar.', 'New money you put aside for this goal (€)? Both the goal amount (' + eur(ug0.saved) + ') and your total money (' + eur(ug0.totalCash) + ') go up.')
+      : L('Mevcut birikimine (' + eur(ug0.saved) + ') kaç € eklensin?:', 'How much (€) do you want to add to your current savings (' + eur(ug0.saved) + ')?:'), '150');
     if (addStr !== null){
       var delta = parseFloat(String(addStr).replace(',', '.'));
       if (!isNaN(delta)){
         state.settings = state.settings || {};
-        state.settings.userGoal = Object.assign({}, ug0, { saved: Math.max(0, r2(ug0.saved + delta)) });
+        state.settings.userGoal = Object.assign({}, ug0, { saved: Math.max(0, r2(ug0.saved + delta)), totalCash: ug0.totalCash > 0 ? Math.max(0, r2(ug0.totalCash + delta)) : ug0.totalCash });
         commit();
         renderSavGoal(true);
       }
