@@ -1,12 +1,15 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-25-shiftpay-v72`
+- **Aktif Sürüm:** `2026-11-25-shiftpay-v73`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v73 Değişiklikleri (Claude Pro)
+- **Bordro uyarısı eşiği 2 → 3 (`accuracyHtml`):** `pdfSlipCount() < 3` iken "En iyi sonuç için en az 3 bordro yükle (n/3)" gösterilir. Gerekçe: ücret/kira/sigorta son bordrodan okunur (1 yeter), ama `vacPayPct` son ≤6 bordronun ortancasıdır (2 bordroda ortanca = büyük olan, aykırı değere açık) ve tekrar eden kalem tespiti önceki 3 bordroya bakar.
 
 ## v72 Değişiklikleri (Claude Pro)
 - **Şirket aracı sorusu (`chkItems` 'd', `drvAnswer`, `drvYes`, `drvDefault`):** Ayar Kontrolü'nde herkese "Şirket aracı kullanıyor musun? (günlük €5)" sorulur (✓ Evet, kullanıyorum / ✕ Hayır). Cevap `settings.driverAns` ('yes'|'no'). Evet → yeni ve planlı vardiyalarda araç işaretli gelir, planlı vardiyalar işaretlenir; Hayır → `driverMode='off'`, planlı vardiyaların işareti kalkar. Cevap yoksa vardiyalar işaretsiz gelir. Ayarlar'daki anahtar da aynı fonksiyonu kullanır.

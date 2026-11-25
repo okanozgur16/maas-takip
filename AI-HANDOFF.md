@@ -14,6 +14,12 @@
 
 
 
+## v73 (`2026-11-25-shiftpay-v73`) — **Claude Pro** — Bordro Uyarısı 2 → 3
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:** "En az 2 bordro" uyarısı 3'e çıkarıldı, açıklama güncellendi (tatil ödeneği ortancası + tekrar eden kalemler).
+
+---
+
 ## v72 (`2026-11-25-shiftpay-v72`) — **Claude Pro** — Şirket Aracı Sorusu (Evet/Hayır) + Planbition Araç İşareti Düzeltmesi
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:** Ayar Kontrolü'ne herkese sorulan 'Şirket aracı kullanıyor musun?' sorusu; cevaba göre vardiya araç işareti ve planlar. Planbition içe aktarma artık araç işaretini herkese zorla koymuyor.
