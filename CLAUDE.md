@@ -1,6 +1,6 @@
 # CLAUDE.md — ShiftPay %100 Web Tabanlı Geliştirme Rehberi (Claude Pro / Claude Code Web & Antigravity)
 
-> **Aktif Sürüm:** `2026-11-25-shiftpay-v77`  
+> **Aktif Sürüm:** `2026-11-25-shiftpay-v78`  
 > **Canlı PWA (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`  
 > **Canlı API & Push Sunucusu (Cloudflare Worker):** `https://summer-mode-6176.okan-counter.workers.dev`  
 > **Canlı Şifreli Eşitleme Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules` + `firebase.json` + `.firebaserc`)  

@@ -14,6 +14,10 @@
 
 
 
+## v78 (`2026-11-25-shiftpay-v78`) — **Claude Pro** — Birikim: Gelir/Gider Dahil Et + Gerçekçi Öneri
+- Yeni kutu `ug_incl` ("Gelir ve giderlerimi de hesaba kat"): kapalı = sadece yazılan tutara göre tarih; açık = ek gelir/gider birikim hızına eklenir/düşülür. Açıklama metni moda göre değişir.
+- Tutar gelir-giderlerle karşılanamıyorsa `.savg-tip` kartı alternatif tutarı, yeni hedef tarihini ve "olarak ayarla" (`ugApplyWk`) butonunu gösterir. Kalan şey yok; Antigravity sorunsuz devam edebilir.
+
 ## v77 (`2026-11-25-shiftpay-v77`) — **Claude Pro** — Birikim Gelir/Gider Tutar Hatası
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:** Birikim bölümünde ek gelir/gider satırında ad yazdıktan sonra tutar alanına dokunulunca panel yeniden çizilip tutar kayboluyordu (tutar 0 kalıyor, hedef tarih değişmiyor gibi görünüyordu). Düzeltildi; ayrıca ana karta gelir/giderlerin tarihi değil harçlığı değiştirdiğini anlatan kısa not eklendi.

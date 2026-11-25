@@ -568,6 +568,16 @@ html:not(.ui-classic) .dayhead .d .t-today{background:var(--accent);color:var(--
 .pwa-act{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .pwa-steps{margin:8px 0 2px;padding-left:20px;font-size:13px;line-height:1.45;color:var(--ink)}
 .pwa-steps li{margin:3px 0}
+/* v78: gelir/gider dahil et + tüyo kartı */
+.savg-incl{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;margin-top:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface);cursor:pointer}
+.savg-incl input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--accent)}
+.savg-incl-t{display:flex;flex-direction:column;gap:3px;min-width:0}
+.savg-incl-t b{font-size:13.5px}
+.savg-incl-t small{font-size:12px;line-height:1.4;color:var(--muted)}
+.savg-tip{display:flex;flex-direction:column;gap:6px;align-items:flex-start;padding:12px 14px;margin:0 0 12px;border-radius:13px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line))}
+.savg-tip-h{font-weight:800;font-size:13.5px;line-height:1.35}
+.savg-tip-b{font-size:13px;line-height:1.45}
+
 /* v77: gelir/gider açıklama notu */
 .savg-sc-note{font-size:12px;line-height:1.4;color:var(--muted);padding:2px 0 4px}
 
@@ -2542,7 +2552,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v77';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v78';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3813,6 +3823,7 @@ function userGoalObj(){
     targetAmt: Math.max(0, +ug.targetAmt || 0),
     weeklySave: wkS,
     period: ug.period === 'month' ? 'month' : 'week',
+    incl: !!ug.incl,
     items: items
   };
 }
@@ -3985,12 +3996,13 @@ function ugSimulate(ug, payInfo){
     if (v > 0){ if (it.kind === 'in') curIncWk = r2(curIncWk + v); else curExpWk = r2(curExpWk + v); }
   });
 
-  var planFixed = ugRunTrack(saved, target, baseWk, avgWk, ug.items, false);
+  var inclMode = !!ug.incl;
+  var planFixed = ugRunTrack(saved, target, baseWk, avgWk, ug.items, inclMode);
   var planBoost = ugRunTrack(saved, target, baseWk, avgWk, ug.items, true);
-  var allCashTrack = ugRunTrack(effTotal, target, baseWk, avgWk, ug.items, false);
+  var allCashTrack = ugRunTrack(effTotal, target, baseWk, avgWk, ug.items, inclMode);
 
   if (!planFixed.phases.length){
-    var tot0 = r2(avgWk + curIncWk - curExpWk), es0 = Math.min(baseWk, Math.max(0, tot0));
+    var tot0 = r2(avgWk + curIncWk - curExpWk), es0 = inclMode ? Math.max(0, r2(baseWk + curIncWk - curExpWk)) : Math.min(baseWk, Math.max(0, tot0));
     planFixed.phases.push({ sig: '0', fromWk: 1, toWk: 1, fromIso: today, effSave: es0, spendLeft: r2(tot0 - es0), wInc: curIncWk, wExp: curExpWk });
   }
 
@@ -4052,6 +4064,7 @@ function renderSavGoal(force){
     '</div>' +
       '<div class="savg-sl" style="margin:0"><div class="t"><span id="ug_wklbl"></span><span class="num" id="ug_molbl"></span></div>' +
         '<input type="range" id="ug_wk" min="' + slMin + '" max="' + slMax + '" step="' + slStep + '" value="' + slVal + '" aria-label="' + L('Birikim tutarı kaydırıcısı', 'Saving amount slider') + '"></div>' +
+    '<label class="savg-incl" for="ug_incl"><input type="checkbox" id="ug_incl"' + (ug.incl ? ' checked' : '') + '><span class="savg-incl-t"><b>' + L('Gelir ve giderlerimi de hesaba kat', 'Include my income & expenses') + '</b><small id="ug_incl_hint"></small></span></label>' +
   '</div>';
 
   /* v68: 2) Tek sonuç kartı (halka + hedef tarihi) */
@@ -4188,6 +4201,9 @@ function renderSavGoalLive(){
     var tryHint = (FX_STATE.eurTry > 0 && ug.targetAmt > 0) ? (' · ≈ ' + fxFmtTry(r2(ug.targetAmt * FX_STATE.eurTry))) : '';
     $('ug_gap_hint').innerHTML = L('Ayırdığından kalan: ', 'Remaining: ') + '<b>' + eur(sim.gapSaved) + '</b>' + tryHint;
   }
+  if ($('ug_incl_hint')) $('ug_incl_hint').textContent = ug.incl
+    ? L('Açık: Ek gelirler birikimine eklenir, ek giderler birikiminden düşer. Hedef tarih buna göre kayar.', 'On: extra income is added to your saving and extra expenses are taken off it. The goal date shifts accordingly.')
+    : L('Kapalı: Hedef tarih sadece yazdığın tutara göre hesaplanır. Ek gelir ve giderler yalnızca cebine kalan harçlığı değiştirir.', 'Off: the goal date follows only the amount you set. Extra income and expenses only change your pocket allowance.');
   if ($('ug_per_hint')) $('ug_per_hint').textContent = isMo ? ('≈ ' + eur(wkSave) + ' / ' + L('hafta', 'week')) : ('≈ ' + eur(moSave) + ' / ' + L('ay', 'month'));
   if ($('ug_pay_box')) $('ug_pay_box').textContent = isMo ? (eur(payInfo.netMo) + ' / ' + L('ay', 'mo')) : (eur(payInfo.netWk) + ' / ' + L('hafta', 'wk'));
   if ($('ug_pay_hint')){
@@ -4414,7 +4430,7 @@ function renderSavGoalResult(ug, payInfo, sim){
     '<div class="savg-sc-big num">' + big2 + '</div>' +
     '<div class="savg-sc-sub">' + sub2 + '</div>' +
     '<div class="savg-sc-rows num">' +
-      (addedIn + addedOut > 0 ? '<div class="savg-sc-note">ℹ️ ' + L('Hedef tarih, ayırdığın birikim hızına göre hesaplanır. Ek gelir ve giderler cebine kalan harçlığı değiştirir; harçlığın birikim hızının altına düşerse tarih uzar.', 'The goal date follows the saving pace you set. Extra income and expenses change your pocket allowance; if it drops below your saving pace the date moves later.') + '</div>' : '') +
+      (addedIn + addedOut > 0 ? '<div class="savg-sc-note">ℹ️ ' + (ug.incl ? L('Ek gelirler birikim hızına eklendi, ek giderler düşüldü; hedef tarih buna göre hesaplandı.', 'Extra income was added to your saving pace and extra expenses were taken off; the goal date reflects that.') : L('Hedef tarih, ayırdığın birikim hızına göre hesaplanır. Ek gelir ve giderler cebine kalan harçlığı değiştirir; harçlığın birikim hızının altına düşerse tarih uzar.', 'The goal date follows the saving pace you set. Extra income and expenses change your pocket allowance; if it drops below your saving pace the date moves later.')) + '</div>' : '') +
       '<div class="savg-sc-r-col">' +
         '<div class="savg-sc-r-top"><span>👛 ' + L('Maaşından Cebine Kalan Harçlık:', 'Pocket Allowance Left From Pay:') + '</span><b style="color:' + (spendWkNow >= 0 ? 'var(--good)' : 'var(--bad)') + ';font-size:14.5px">' + spendNowTxt + '</b></div>' +
         '<details class="savg-how"><summary>' + L('Nasıl hesaplandı?', 'How is this calculated?') + '</summary><div class="savg-sc-r-sub">' + allowanceDesc + '</div></details>' +
@@ -4422,7 +4438,30 @@ function renderSavGoalResult(ug, payInfo, sim){
       '<div class="savg-sc-r tot"><span>' + (ug.totalCash > 0 ? L('Korunan Ana Birikimin:', 'Protected Main Savings:') : L('Biriktirilecek Kalan Tutar:', 'Remaining Amount to Save:')) + '</span><b style="color:var(--good)">' + (ug.totalCash > 0 ? eur(Math.max(0, sim.regularCash)) + ' (' + L('Sabit Kalır', 'Stays Intact') + ')' : eur(sim.gapSaved)) + '</b></div>' +
     '</div></div>';
 
-  h += '</div>' + altRow;
+  /* v78: Gerçekçi birikim önerisi (tüyo) */
+  var tipHtml = '';
+  var tBase = ug.weeklySave, tCash = r2(payInfo.netWk + sim.curIncWk - sim.curExpWk);
+  var tCap = ug.incl ? payInfo.netWk : tCash;
+  if (ug.targetAmt > 0 && sim.gapSaved > 0 && tBase > tCap + 0.5){
+    var tStep = isMo ? 25 : 5, tCapD = isMo ? r2(tCap * 52 / 12) : tCap, tBaseD = isMo ? Math.round(tBase * 52 / 12) : tBase;
+    var tSugD = Math.floor(Math.max(0, tCapD) / tStep) * tStep, tSugWk = isMo ? r2(tSugD * 12 / 52) : tSugD;
+    var tPer = isMo ? L('ay', 'mo') : L('hf', 'wk'), tFree = eur(Math.max(0, tCapD)) + '/' + tPer;
+    var tBody;
+    if (ug.incl) tBody = L('Net maaşın ' + tFree + '; ' + eur(tBaseD) + ' ayırırsan cebinde eksi kalır.', 'Your net pay is ' + tFree + '; setting aside ' + eur(tBaseD) + ' would leave you short.');
+    else tBody = L('Net maaşın + ek gelirlerin − ek giderlerin = ' + tFree + ' kalıyor (' + eur(r2(tBaseD - Math.max(0, tCapD))) + ' eksik).', 'Net pay + extra income − extra expenses leaves ' + tFree + ' (' + eur(r2(tBaseD - Math.max(0, tCapD))) + ' short).');
+    var tNew = tSugWk > 0 ? ugRunTrack(ug.saved, ug.targetAmt, tSugWk, payInfo.netWk, ug.items, !!ug.incl) : null;
+    var tLater = null;
+    for (var ti = 1; ti < sim.phases.length; ti++){ if (sim.phases[ti].effSave >= tBase - 0.5){ tLater = sim.phases[ti]; break; } }
+    tipHtml = '<div class="savg-tip"><div class="savg-tip-h">💡 ' + L(eur(tBaseD) + '/' + tPer + ' yazmışsın ama gelir ve giderlerin buna el vermiyor', 'You set ' + eur(tBaseD) + '/' + tPer + ' but your income and expenses do not allow it') + '</div>' +
+      '<div class="savg-tip-b">' + tBody + '</div>' +
+      (tSugD > 0
+        ? '<div class="savg-tip-b">' + L('Onun yerine <b class="num">' + eur(tSugD) + '/' + tPer + '</b> ayırabilirsin', 'Instead you could set aside <b class="num">' + eur(tSugD) + '/' + tPer + '</b>') + (tNew && !tNew.unreachable ? L(' → hedefe <b>' + ugDateFull(tNew.dateIso) + '</b>.', ' → goal reached by <b>' + ugDateFull(tNew.dateIso) + '</b>.') : '.') + '</div>'
+        : '<div class="savg-tip-b">' + L('Bu gelir ve giderlerle şu an kenara para ayrılamıyor; giderleri azaltmayı veya ek gelir eklemeyi dene.', 'With these figures nothing can be set aside right now; try cutting expenses or adding income.') + '</div>') +
+      (tLater ? '<div class="savg-tip-b">' + L('📅 ' + ugDateFull(tLater.fromIso) + ' sonrası tekrar ' + eur(tBaseD) + '/' + tPer + ' ayırabilirsin.', '📅 From ' + ugDateFull(tLater.fromIso) + ' you can set aside ' + eur(tBaseD) + '/' + tPer + ' again.') + '</div>' : '') +
+      (tSugD > 0 ? '<button type="button" class="btn small primary" data-act="ugApplyWk" data-v="' + tSugWk + '">' + L(eur(tSugD) + '/' + tPer + ' olarak ayarla', 'Set to ' + eur(tSugD) + '/' + tPer) + '</button>' : '') +
+    '</div>';
+  }
+  h += '</div>' + altRow + tipHtml;
   return h;
 }
 var CAL_OPEN = (function(){ try { return localStorage.getItem(LS + '-calopen') === '1'; } catch (e) { return false; } })();
@@ -5827,6 +5866,13 @@ document.addEventListener('click', function(ev){
   else if (a === 'fxRefresh'){
     fxEnsure(true);
   }
+  else if (a === 'ugApplyWk'){
+    var ugAW = userGoalObj(), vW = Math.max(5, +el.getAttribute('data-v') || 5);
+    ugAW.weeklySave = vW;
+    ugSaveObj(ugAW);
+    commit();
+    renderSavGoal(true);
+  }
   else if (a === 'ugItemAdd'){
     UG_DRAWER_OPEN = true;
     var ik = el.getAttribute('data-k') === 'in' ? 'in' : 'out';
@@ -6162,6 +6208,7 @@ document.addEventListener('change', function(ev){
   else if (t.id === 'pdfIn' || t.id === 'pdfIn2'){ var fl = Array.prototype.slice.call(t.files || []); t.value = ''; if (fl.length) importFiles(fl); }
   else if (t.id === 'sDate'){ fillSlipForm(); }
   else if (t.id === 'wpDate'){ if (t.value){ view.week = weekStart(t.value); $('ov4').hidden = true; renderAll(); window.scrollTo({ top: 0 }); } }
+  else if (t.id === 'ug_incl'){ var ugN = userGoalObj(); ugN.incl = !!t.checked; ugSaveObj(ugN); ugCommitKeep(); renderSavGoalLive(); }
   else if (t.id === 'ug_total' || t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk' || t.id === 'ug_wk_in'){ ugCommitKeep(); renderSavGoalLive(); }
   else if (t.getAttribute && t.getAttribute('data-ugi') !== null){
     var ugiC = +t.getAttribute('data-ugi'), ugFC = t.getAttribute('data-f'), ugLC = userGoalObj(), itUC = ugLC.items[ugiC];
