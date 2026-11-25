@@ -1,12 +1,20 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-26-shiftpay-v82`
+- **Aktif Sürüm:** `2026-11-26-shiftpay-v83`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v83 Değişiklikleri (Antigravity)
+- **Mevcut 3 sekme ve kart düzeni (`LAY_DEF`) korundu**, kalan tüm mantık, hesap ve alan israfı sorunları giderildi:
+  1. **`İzinli`/`İptal` gününe vardiya ekleme & `copyPrevWeek`:** `saveSheet()` içinde vardiya/tatil/elle saat kaydedilen günün `off`/`cancel` kaydı otomatik temizlenir (gizli vardiya birikmesi engellendi); `copyPrevWeek` eski `pbPending`/`pbChanged` bayraklarını ve otomatik `off` kayıtlarını temizler.
+  2. **Çok haftalı tatil düzenleme (`openSheet` → `VACW`):** Mevcut tatil kaydı düzenlenirken haftalık saatler `VACW` içine önceden yüklenir; girilen saatlerin sıfırlanması önlendi.
+  3. **Yıl toplamları (`renderYear`) & Vardiya önizleme (`updatePreview`) & `tSugWk`:** `renderYear` net kazançtan otoparkı ve harici aylık giderleri ayırır, özel kirayı `Kira` kutusuna yansıtır; `updatePreview` seçili günün haftasına göre `SET(ws)` kullanır; `tSugWk` (`ugApplyWk`) 4 ondalık (`1e4`) hassasiyete geçirildi.
+  4. **Haftayı aç (`openWeek` / `goWeek`) & Klavye/`Escape` & Sihirbaz (`#wz`):** Aylık Özet'ten *Haftayı aç* tıklandığında `wk` sekmesine geçip yukarı kaydırır; `Escape` ve `#ov2` arka plan tıklaması `closeSet` değişiklik onayını atlamaz; mevcut verisi olan kullanıcıda sihirbaz *Sonra yaparım* ertelemesi 14 gün `localStorage`'da tutulur.
+  5. **Ekran alanı sadeleştirmesi (`~270px` mobil kazanç):** Mükerrer `#secBanner` gizlendi; `#hello` tek satır kompakt şeride indirildi ve yedek uyarısına *Sonra* (14 gün) ertelemesi eklendi; mobilde `#weekLabel` tıklanabilir hafta seçici oldu (üst bar 2 satır); `#ov2` çift scrollbar ve mükerrer `✕ Kapat` kaldırıldı, Dil/Tema `Yedek ve Diğerleri` sekmesine taşındı; `#qtDept` sarmalama (`flex-wrap`) ve `Bulk Circuit` düzeltildi; `.app-footer` tek satır + açılır detay yapıldı; EN konut tekrarı giderildi; `.nojekyll` silindi ve Actions Node 24 uyarısı kapatıldı.
 
 ## v82 Değişiklikleri (Claude Pro)
 - **Aylık görünüm yuvarlama kayması:** aylık yazılan net maaş / birikim tutarı haftalığa `r2` ile çevrildiği için geri dönüşte €1.800 → €1.799,98 oluyordu. `customNetWk` ve `weeklySave` artık 4 ondalık hassasiyetle saklanır (`Math.round(x*1e4)/1e4`); görüntülemede `r2` kullanılır.

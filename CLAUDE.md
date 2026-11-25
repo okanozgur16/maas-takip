@@ -1,6 +1,6 @@
 # CLAUDE.md — ShiftPay %100 Web Tabanlı Geliştirme Rehberi (Claude Pro / Claude Code Web & Antigravity)
 
-> **Aktif Sürüm:** `2026-11-26-shiftpay-v82`  
+> **Aktif Sürüm:** `2026-11-26-shiftpay-v83`  
 > **Canlı PWA (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`  
 > **Canlı API & Push Sunucusu (Cloudflare Worker):** `https://summer-mode-6176.okan-counter.workers.dev`  
 > **Canlı Şifreli Eşitleme Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules` + `firebase.json` + `.firebaserc`)  
@@ -27,14 +27,15 @@ Bu depo **%100 bulut/web tabanlı** çalışacak şekilde yapılandırılmışt�
      3. **Cloudflare Worker (`summer-mode-6176`)** sunucusunu `server/bildirim-worker.js` dosyasından **otomatik günceller** (`keep_bindings` ile mevcut `OWNER_TOKEN`, `VAPID_*` secret'larını ve `KV` veritabanını %100 korur).
      4. **Firebase Firestore (`maas-takip-sync`)** güvenlik kurallarını `firestore.rules` dosyasından derleyip doğrular (`:test`) ve değişiklik varsa **otomatik canlıya yayınlar** (`FIREBASE_SERVICE_ACCOUNT`).
      4. **Post-Deploy Smoke Test** ile canlı `https://shiftpay-app.pages.dev/version.json` sürümünü doğrular.
-3. **Zorunlu Sürüm Eşitleme (6 Dosya):**
+3. **Zorunlu Sürüm Eşitleme (7 Dosya):**
    - Kod değiştiğinde şu dosyaların sürüm etiketini aynı anda bir artır (`YYYY-MM-DD-shiftpay-vXX`):
      1. `index.html` (`var APP_VER = '...'`)
      2. `version.json` (`{"v": "..."}`)
-     3. `sw.js` (`var CACHE = 'maas-takip-v1-...'`)
+     3. `sw.js` (`const CACHE = 'maas-takip-v1-...'`)
      4. `README.md`
-     5. `AI-CONTEXT.md`
-     6. `AI-HANDOFF.md` (en üste yeni sürüm özeti ekle)
+     5. `CLAUDE.md`
+     6. `AI-CONTEXT.md`
+     7. `AI-HANDOFF.md` (en üste yeni sürüm özeti ekle)
 
 ---
 
