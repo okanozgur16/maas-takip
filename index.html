@@ -1675,6 +1675,10 @@ function normalize(s){
     if (s.settings.driverWeek !== undefined) delete s.settings.driverWeek;
   }
   s.v = 3;
+  try { if (s.settings && !s.settings.driverAns){
+    if (s.settings.driverMode === 'off') s.settings.driverAns = 'no';
+    else if (s.settings.driverMode === 'auto' || Object.keys(s.slips || {}).some(function(w){ var x = s.slips[w]; return x && x.lines && +x.lines.driver > 0; })) s.settings.driverAns = 'yes';
+  } } catch (e) {}
   return s;
 }
 var state;
@@ -2476,7 +2480,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-24-shiftpay-v71';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v72';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -2675,11 +2679,13 @@ function slipGap(w){
 }
 /* v44: Ayar kontrol listesi — mevcut ayarları madde madde gösterir; ✓ Evet doğru / ✗ Hayır, güncelle (ilgili Ayarlar sekmesini açar).
    Tümü onaylanana kadar görünür; 28 günde bir veya büyük tahmin farkı çıkan yeni bir bordroda yeniden sorar. */
+function chkOk(x, C){ return !!C[x.k] && (x.ask !== 'drv' || x.answered); }
 function chkItems(){
   var S = SET(), st = state.settings || {}, hm0 = st.housingMode || 'company', it = [];
   it.push({ k: 'h', tab: 'home', manual: hm0 !== 'company', t: hm0 === 'none' ? L('Kendi evimde / özel kirada kalıyorum', 'I live in my own home / private rent') + ((+st.homeRent || 0) > 0 ? ' (' + eur(+st.homeRent) + L('/ay', '/mo') + ')' : ' — ' + L('kira girilmemiş', 'no rent entered')) : (hm0 === 'monthly' ? L('Kiram ayda bir bordrodan kesiliyor', 'Rent is deducted monthly on my payslip') + ' (' + eur(+st.rentMonthly || 0) + ')' : L('Şirket evinde kalıyorum, kira bordrodan kesiliyor', 'I live in company housing, rent is on my payslip') + ' (' + eur(+S.housingTotal || 0) + L('/hf', '/wk') + ')') });
   it.push({ k: 'i', tab: 'ded', manual: st.insMode === 'self', t: st.insMode === 'self' ? L('Sağlık sigortamı kendim ödüyorum', 'I pay my health insurance myself') : L('Sağlık sigortamı şirket bordrodan kesiyor', 'Health insurance is deducted on my payslip') + ' (' + eur(r2((+S.insurance || 0) + (+S.extraIns || 0))) + L('/hf', '/wk') + ')' });
-  it.push({ k: 'd', tab: 'pay', t: (st.driverMode || 'on') === 'off' ? L('Araç eki almıyorum', 'I do not get a driver allowance') : L('Araç eki alıyorum', 'I get a driver allowance') + ' (' + eur(+S.driverDay || 0) + L('/gün', '/day') + ')' });
+  var da = st.driverAns || '', dd0 = +st.driverDay || DEFAULTS.driverDay;
+  it.push({ k: 'd', tab: 'pay', ask: 'drv', answered: !!da, t: da === 'no' ? L('Şirket aracı kullanmıyorum', 'I do not use a company car') : da === 'yes' ? L('Şirket aracı kullanıyorum', 'I use a company car') + ' (' + eur(dd0) + L('/gün', '/day') + ')' : L('Şirket aracı kullanıyor musun? (günlük ', 'Do you use a company car? (') + eur(dd0) + L(')', ' per day)') });
   it.push({ k: 'r', tab: 'pay', t: L('Saatlik ücretim', 'My hourly wage') + ' ' + eur(+S.rate || 0) });
   var cu = (Array.isArray(st.custom) ? st.custom : []).filter(function(c){ return c && (+c.a || 0) > 0; });
   it.push({ k: 'x', tab: 'ded', t: cu.length ? L('Diğer haftalık satırlar: ', 'Other weekly lines: ') + cu.slice(0, 3).map(function(c){ return c.n + ' ' + (c.kind === 'in' ? '+' : '−') + eur(+c.a); }).join(', ') + (cu.length > 3 ? '…' : '') : L('Bordromda başka her hafta tekrar eden gelir/kesinti yok (örn. yol ücreti)', 'No other recurring income/deduction on my payslip (e.g. travel allowance)') });
@@ -2697,7 +2703,7 @@ function checklistHtml(gapRef){
   var st = state.settings || {}, C = st.chk || {}, now = Date.now();
   if (C.at && now - C.at > 28 * 86400000){ C = {}; }
   if (gapRef && C.ref !== gapRef){ C = { ref: C.ref }; }
-  var items = chkItems(), open = items.filter(function(x){ return !C[x.k]; }), nSl = pdfSlipCount(), h = '';
+  var items = chkItems(), open = items.filter(function(x){ return !chkOk(x, C); }), nSl = pdfSlipCount(), h = '';
   var getBtn = nSl ? '<button type="button" class="btn small" data-act="chkFromSlip">📄 ' + L('Son bordromdan getir', 'Fill from my last payslip') + '</button>' : '';
   var msg = CHK_MSG ? '<div class="sub" style="margin-top:8px">' + CHK_MSG + '</div>' : '';
   /* v45: eksik kurulum — bordrodan gelemeyen ve boş bırakılmış zorunlu ayarlar (düzeltilene kadar görünür) */
@@ -2718,10 +2724,10 @@ function checklistHtml(gapRef){
   var doneCnt = items.length - open.length;
   h += '<details class="chk-drawer"' + (gapRef ? ' open' : '') + '><summary><span>✅ ' + L('Maaş & Kira Ayar Kontrolü', 'Pay & Rent Settings Check') + ' <small style="color:var(--muted);font-weight:600">(' + doneCnt + '/' + items.length + ' ' + L('doğrulandı', 'confirmed') + ')</small></span><span class="savg-drw-btn">' + L('Kontrol Et', 'Review') + ' <span class="savg-drw-chv">▾</span></span></summary><div class="chk-body"><div class="sub" style="margin:0 0 8px">' + (gapRef ? L('Son bordroda tahmin farklı çıktı; lütfen tekrar kontrol et.', 'Your last payslip differed from the estimate; please check again.') : L('Tahminin doğru çıkması için ayarlarını buradan tek tıkla onaylayabilirsin.', 'Confirm your settings in one tap so your estimate stays accurate.')) + '</div>';
   items.forEach(function(x){
-    var ok = !!C[x.k];
+    var ok = chkOk(x, C);
     var tag = x.manual ? ' <small class="bad">(' + L('bordrodan gelmez, elle kontrol et', 'not on payslip, check manually') + ')</small>' : (nSl ? ' <small class="sub">(' + L('bordrodan', 'from payslip') + ')</small>' : '');
     h += '<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--line)"><span>' + (ok ? '✓ ' : '• ') + esc(x.t) + tag + '</span>' +
-      (ok ? '<span class="sub ok">' + L('Onaylandı', 'Confirmed') + '</span>' : '<span style="display:flex;gap:6px"><button type="button" class="btn small primary" data-act="chkYes" data-v="' + x.k + '">✓ ' + L('Evet, doğru', 'Yes, correct') + '</button><button type="button" class="btn small" data-act="chkNo" data-v="' + x.k + '" data-tab="' + x.tab + '">✕ ' + L('Hayır, güncelle', 'No, update') + '</button></span>') + '</div>';
+      (ok ? '<span class="sub ok">' + L('Onaylandı', 'Confirmed') + '</span>' : (x.ask === 'drv' && !x.answered) ? '<span style="display:flex;gap:6px"><button type="button" class="btn small primary" data-act="drvAns" data-v="yes">✓ ' + L('Evet, kullanıyorum', 'Yes, I do') + '</button><button type="button" class="btn small" data-act="drvAns" data-v="no">✕ ' + L('Hayır', 'No') + '</button></span>' : '<span style="display:flex;gap:6px"><button type="button" class="btn small primary" data-act="chkYes" data-v="' + x.k + '">✓ ' + L('Evet, doğru', 'Yes, correct') + '</button><button type="button" class="btn small" data-act="chkNo" data-v="' + x.k + '" data-tab="' + x.tab + '">✕ ' + L('Hayır, güncelle', 'No, update') + '</button></span>') + '</div>';
   });
   h += '<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap">' + (open.length > 1 ? '<button type="button" class="btn small" data-act="chkAll">✓ ' + L('Hepsi doğru', 'All correct') + '</button>' : '') + getBtn + '</div>' + msg + '</div></details>';
   return h;
@@ -2731,7 +2737,7 @@ function chkMark(keys, gapRef){
   if (C.at && now - C.at > 28 * 86400000) C = {};
   delete C[''];
   keys.filter(Boolean).forEach(function(k){ C[k] = 1; });
-  if (chkItems().every(function(x){ return C[x.k]; })){ C.at = now; var ws0 = view.week, rw = Object.keys(state.slips || {}).filter(function(w){ return state.slips[w] && w <= ws0; }).sort().pop(); if (rw) C.ref = rw; }
+  if (chkItems().every(function(x){ return chkOk(x, C); })){ C.at = now; var ws0 = view.week, rw = Object.keys(state.slips || {}).filter(function(w){ return state.slips[w] && w <= ws0; }).sort().pop(); if (rw) C.ref = rw; }
   st.chk = C; st.setupOk = 1; commit();
 }
 function accuracyHtml(ws, slip){
@@ -3057,7 +3063,7 @@ function pbApplyPending(mode){
         end: s.end,
         breakMin: 30,
         planned: d >= today,
-        driver: S0drv(),
+        driver: S0drv() && (oldShift ? !!oldShift.driver : drvYes()),
         dept: dept,
         tag: dept,
         planbition: true,
@@ -3301,7 +3307,7 @@ function renderGoal(){
       };
       fdays.forEach(initDay);
       var compsOf = function(hm2){ var a = { norm: 0, irr: 0, over: 0 }; fdays.forEach(function(x){ var c = x.cls(hm2[x.d] || 0); a.norm += c.norm; a.irr += c.irr; a.over += c.over; }); return a; };
-      var drvN = 0; fdays.forEach(function(x){ if (x.pe ? x.pe.driver === true : (S.driverMode === 'auto' && (+S.driverDay || 0) > 0)) drvN++; });
+      var drvN = 0; fdays.forEach(function(x){ if (x.pe ? x.pe.driver === true : drvYes(S)) drvN++; });
       var netH = function(hm2){ var a = compsOf(hm2); return calcPay(Object.assign({}, t, { norm: t.norm + a.norm, irr: t.irr + a.irr, over: t.over + a.over, driverDays: (t.driverDays || 0) + drvN, any: true }), S).payable; };
       var hmap = {}, baseNet = netH(hmap), reached = baseNet >= g, atBase = reached, planNet = 0, hP = {}, shortS = 0;
       var rowH = function(x, h, ref){
@@ -3369,7 +3375,7 @@ function renderGoal(){
           var esh = cntSh.late > cntSh.morning ? 'late' : cntSh.morning > cntSh.late ? 'morning' : gs;
           var fd0 = fdays, drv0 = drvN, best = null, okBest = null, pick = null;
           var solve = function(days){
-            fdays = days; drvN = 0; days.forEach(function(x){ if (x.pe ? x.pe.driver === true : (S.driverMode === 'auto' && (+S.driverDay || 0) > 0)) drvN++; if (hP[x.d] === undefined) hP[x.d] = 0; });
+            fdays = days; drvN = 0; days.forEach(function(x){ if (x.pe ? x.pe.driver === true : drvYes(S)) drvN++; if (hP[x.d] === undefined) hP[x.d] = 0; });
             if (netH(hP) >= g) return { ok: true, m: hP, days: days, ext: 0 };
             if (netH(mk(3)) < g) return { ok: false, m: mk(3), days: days, ext: 3 };
             var lo8 = 0, hi8 = 3; for (var q8 = 0; q8 < 30; q8++){ var m8 = (lo8 + hi8) / 2; if (netH(mk(m8)) >= g) hi8 = m8; else lo8 = m8; }
@@ -3381,7 +3387,7 @@ function renderGoal(){
             if (rs.ok){ if (!okBest || rs.ext < okBest.ext - 1e-9) okBest = rs; if (rs.ext <= 1.01) pick = rs; }
           }
           var fin = pick || okBest || best;
-          fdays = fin.days; drvN = 0; fdays.forEach(function(x){ if (x.pe ? x.pe.driver === true : (S.driverMode === 'auto' && (+S.driverDay || 0) > 0)) drvN++; });
+          fdays = fin.days; drvN = 0; fdays.forEach(function(x){ if (x.pe ? x.pe.driver === true : drvYes(S)) drvN++; });
           var finN = netH(fin.m), dB = r2(finN - g);
           plan += '<div class="gt-ph" style="margin-top:14px">Tüm günler planlanırsa</div><div class="gt-pt">' + (fin.ok ? 'Boş günlerini de planlarsan iş günlere daha eşit dağılır. “günü planla” yazan günleri henüz planlamadın:' : 'Boş günlerini de planlasan bile hedefe tam ulaşılmıyor. En yakın plan:') + '</div>';
           fin.days.slice().sort(function(a, b){ return a.d < b.d ? -1 : 1; }).forEach(function(x){ plan += rowH(x, fin.m[x.d] || 0, hP[x.d]); });
@@ -4526,7 +4532,17 @@ function setShiftType(v, fillTimes){
 }
 /* Araç eki: kişi kendisi seçer. 'auto' ise sadece çalışılmış (planlı olmayan) vardiyada işaretli gelir */
 function S0drv(){ return SET().driverMode !== 'off'; }
-function drvDefault(S, planned){ return S.driverMode === 'auto' && (+S.driverDay || 0) > 0 && !planned; }
+/* v72: Şirket aracı — kişi 'Evet' dediyse (driverAns==='yes') yeni/planlı vardiyalarda araç işaretli gelir; cevap yoksa veya 'Hayır'sa işaretsiz */
+function drvYes(S){ S = S || SET(); return S.driverMode !== 'off' && (S.driverMode === 'auto' || S.driverAns === 'yes') && (+S.driverDay || 0) > 0; }
+function drvDefault(S, planned){ return drvYes(S); }
+function drvAnswer(v){
+  var st = state.settings, yes = (v === 'yes'), now = Date.now();
+  st.driverAns = yes ? 'yes' : 'no';
+  if (yes){ if (st.driverMode === 'off') st.driverMode = 'on'; if (!(+st.driverDay > 0)) st.driverDay = DEFAULTS.driverDay; }
+  else st.driverMode = 'off';
+  state.entries.forEach(function(e){ if (e.type === 'shift' && isPlanned(e) && !!e.driver !== yes){ e.driver = yes; e.u = now; } });
+  chkMark(['d']);
+}
 /* v47: Tatil aralığı — ofise bildirilen şekilde HER HAFTA için ayrı tatil saati (örn. 1. hafta 25, 2. hafta 30).
    Her hafta tek bir tatil kaydı olarak, aralığın o haftadaki ilk gününe yazılır. */
 var VACW = {}, VACW_SIG = '';
@@ -4968,7 +4984,7 @@ function drvFromSlip(ws){
   var we = addDays(ws, 6), sh = state.entries.filter(function(e){ return e.type === 'shift' && e.date >= ws && e.date <= we; }).sort(function(a, b){ return (a.date + (a.start || '')).localeCompare(b.date + (b.start || '')); });
   var st = state.settings, msg = '';
   if (amt > 0){
-    if ((st.driverMode || 'on') === 'off'){ st.driverMode = 'on'; msg = 'araç eki ayarın açıldı; '; }
+    if ((st.driverMode || 'on') === 'off'){ st.driverMode = 'on'; st.driverAns = 'yes'; msg = 'araç eki ayarın açıldı; '; }
     var per = +SET().driverDay || 0; if (per <= 0){ per = 5; st.driverDay = 5; }
     var n = Math.round(amt / per);
     if (!sh.length) return msg ? 'araç eki ayarın açıldı' : '';
@@ -5261,7 +5277,7 @@ function renderSettings(){
     h += '<div class="subhead">Ek ödemeler</div><div class="two">' + fld('adv', 'ADV zammı (€/saat)', 'number', '0.01', S) + fld('vacPct', 'Tatil parası oranı', 'number', '0.005', S) + '</div>';
     h += '<div class="field"><label for="s_advMode">ADV zammı hangi saatlere uygulanır</label><select id="s_advMode" data-key="advMode"><option value="non185"' + (S.advMode === 'non185' ? ' selected' : '') + '>%185 hariç tüm saatler</option><option value="cap45"' + (S.advMode === 'cap45' ? ' selected' : '') + '>En çok 45 saat</option></select></div>';
     var drvOn = (st.driverMode || 'on') !== 'off';
-    h += '<div class="subhead">Araç eki</div><label class="check insself"><input type="checkbox" data-key="driverMode" id="s_driverMode"' + (drvOn ? ' checked' : '') + '> Araç eki alıyorum</label>';
+    h += '<div class="subhead">Araç eki</div><label class="check insself"><input type="checkbox" data-key="driverMode" id="s_driverMode"' + (drvOn ? ' checked' : '') + '> ' + L('Şirket aracı kullanıyorum (günlük araç eki)', 'I use a company car (daily vehicle allowance)') + '</label>';
     if (drvOn) h += '<div class="two">' + fld('driverDay', 'Araç eki (€/gün)', 'number', '0.5', Object.assign({}, DEFAULTS, st)) + '</div><small class="fh">Vardiya eklerken araç kullandıysan “Araç kullandım” kutusunu işaretle. Bordro yüklediğinde o haftanın araç günleri bordroya göre kendiliğinden düzeltilir.</small>';
     else h += '<small class="fh">Bordronda araç eki görünürse bu ayar kendiliğinden açılır.</small>';
   } else if (setTabSel === 'home'){
@@ -5361,7 +5377,7 @@ function onSettingInput(el){
   var key = el.getAttribute('data-key'); if (!key) return;
   state.settings.lock = state.settings.lock || {}; state.settings.lock[key] = 1;
   if (key === 'myName'){ state.settings.myName = String(el.value).slice(0, 30); commit(); renderHello(); return; }
-  if (key === 'driverMode'){ state.settings.driverMode = el.checked ? 'on' : 'off'; commit(); renderSettings(); return; }
+  if (key === 'driverMode'){ drvAnswer(el.checked ? 'yes' : 'no'); renderSettings(); return; }
   if (key === 'insMode'){ state.settings.insMode = el.checked ? 'self' : 'slip'; commit(); renderSettings(); return; }
   if (key === 'housingMode'){ state.settings.housingMode = el.value; if (el.value === 'none' && !state.settings.lock.utilities) state.settings.utilities = 0; commit(); renderSettings(); return; }
   if (key === 'homeIncMode' || key === 'homeDeductMode'){ state.settings[key] = el.value; commit(); renderSettings(); return; }
@@ -5816,6 +5832,7 @@ document.addEventListener('click', function(ev){
   else if (a === 'setConfirmBack'){
     $('ovSetConfirm').hidden = true;
   }
+  else if (a === 'drvAns'){ drvAnswer(el.getAttribute('data-v')); renderHero(); }
   else if (a === 'chkYes'){ chkMark([el.getAttribute('data-v')]); renderHero(); }
   else if (a === 'hAskNo'){ state.settings.hAskDone = state.settings.hAsk; commit(); renderHero(); }
   else if (a === 'hAskYes'){
@@ -5838,7 +5855,7 @@ document.addEventListener('click', function(ev){
     CHK_MSG = '📄 ' + (chs2.length ? L('Son bordrodan güncellendi: ', 'Updated from your last payslip: ') + esc(chs2.join(', ')) : L('Ayarların son bordronla zaten aynı.', 'Your settings already match your last payslip.')) + '<br>' + L('Bunlar bordrodan gelmez, şimdi kontrol et: ', 'These are not on the payslip, check them now: ') + '<b>' + esc(manualL.join(', ')) + '</b>';
     commit(); renderAll();
   }
-  else if (a === 'chkAll'){ chkMark(chkItems().map(function(x){ return x.k; })); renderHero(); }
+  else if (a === 'chkAll'){ chkMark(chkItems().filter(function(x){ return x.ask !== 'drv' || x.answered; }).map(function(x){ return x.k; })); renderHero(); }
   else if (a === 'chkNo'){
     if (state.settings && state.settings.chk && '' in state.settings.chk){ delete state.settings.chk['']; commit(); }
     window.__SET_SNAP = JSON.parse(JSON.stringify(state.settings || {}));

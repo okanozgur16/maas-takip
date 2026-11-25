@@ -1,12 +1,17 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-24-shiftpay-v71`
+- **Aktif Sürüm:** `2026-11-25-shiftpay-v72`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v72 Değişiklikleri (Claude Pro)
+- **Şirket aracı sorusu (`chkItems` 'd', `drvAnswer`, `drvYes`, `drvDefault`):** Ayar Kontrolü'nde herkese "Şirket aracı kullanıyor musun? (günlük €5)" sorulur (✓ Evet, kullanıyorum / ✕ Hayır). Cevap `settings.driverAns` ('yes'|'no'). Evet → yeni ve planlı vardiyalarda araç işaretli gelir, planlı vardiyalar işaretlenir; Hayır → `driverMode='off'`, planlı vardiyaların işareti kalkar. Cevap yoksa vardiyalar işaretsiz gelir. Ayarlar'daki anahtar da aynı fonksiyonu kullanır.
+- **Planbition içe aktarma:** Yeni planlı vardiyanın araç işareti artık herkese otomatik gelmez; eski kayıt varsa onun işareti korunur, yoksa sadece 'Evet' diyenlerde işaretli olur.
+- `normalize()`: bordrosunda araç eki görünen veya `driverMode='auto'` olanlar için `driverAns='yes'` kendiliğinden çıkarılır; `driverMode='off'` olanlar 'no' sayılır.
 
 ## v71 Değişiklikleri (Claude Pro)
 - **Birikim alan adı:** `ug_saved` etiketi "Toplam parandan dahil etmek istediğin tutar (€)" oldu (örnek: 500), alt çubukta "Hedefe dahil". Alan kimliği ve veri yapısı aynı.

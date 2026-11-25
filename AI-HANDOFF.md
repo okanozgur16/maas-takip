@@ -14,6 +14,12 @@
 
 
 
+## v72 (`2026-11-25-shiftpay-v72`) — **Claude Pro** — Şirket Aracı Sorusu (Evet/Hayır) + Planbition Araç İşareti Düzeltmesi
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Ne Yapıldı:** Ayar Kontrolü'ne herkese sorulan 'Şirket aracı kullanıyor musun?' sorusu; cevaba göre vardiya araç işareti ve planlar. Planbition içe aktarma artık araç işaretini herkese zorla koymuyor.
+
+---
+
 ## v71 (`2026-11-24-shiftpay-v71`) — **Claude Pro** — Birikim: "Toplam parandan dahil etmek istediğin tutar" etiketi
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Ne Yapıldı:** `ug_saved` alanı yeniden adlandırıldı; hesap aynı.
