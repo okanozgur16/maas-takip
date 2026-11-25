@@ -14,18 +14,30 @@
 
 
 
+## v81 (`2026-11-26-shiftpay-v81`) — **Antigravity** — Claude v80 Üzerine Kalan Mantık, Matematik & UX Düzeltmeleri
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Claude'un `v80` düzeltmeleri %100 korundu** (elle bordro+park, medyandan aykırı hafta filtreleme, boş hedef, `Birikime Ekle`, EN tarih/taşma) ve kalan 6 ince mantık/UX açığı kapatıldı:
+  1. **`ugRunTrack` nakit tavanı (`ug.incl = true`):** Gelir/gider dahil kutusu açıkken `baseWk > avgWk` yazılırsa toplam nakit girişinden (`totalCashIn`) fazla hayali birikim ayrılması ve negatif harçlık oluşması engellendi.
+  2. **Tüyo (`.savg-tip`) gerçek `until` tarihi, tam euro önerisi ve net maaş kaynağı:** Süreli gider bitişinde `today + 7*k` yerine doğrudan kullanıcının girdiği bitiş tarihi (`afterUntil`) gösterilir; net maaşın hangi haftaların ortalaması olduğu ve otoparkın hariç tutulduğu doğrudan tüyo metninde yazar; geçici açıkta 3 kez tarih tekrarı giderildi; öneri 5/25 basamak kaybı olmadan tam euroya indirildi.
+  3. **İsteğe bağlı manuel net maaş (`#ug_net_ovr` + `↺ Otomatiğe dön`):** Henüz az bordrosu olan veya farklı bir net maaşla hesap yapmak isteyen kullanıcılar için elle net maaş girme ve tek tıkla otomatiğe dönme eklendi.
+  4. **Özel kira haftalık düşüm (`wkHomeDeduct`) sahte bordro farkı:** `slipCmpHTML` ve PDF yükleme özetinde banka netiyle banka neti (`est.payable + S.wkHomeDeduct`) kıyaslanarak sahte fark uyarısı giderildi.
+  5. **Aylık Özet kısmi ay oranlaması & Takvim `+ Vardiya ekle`:** Henüz tamamlanmamış cari/gelecek aylarda harici aylık ev giderleri hafta sayısına (`m.n / totPd`) oranlanır; Takvim gün detayına doğrudan `+ Vardiya ekle` düğmesi eklendi.
+  6. **Ayarlar değişiklik onayı (`closeSet`):** Eski alan adları (`housing`, `homeElec`, `insSelf` vb.) gerçek `state.settings` anahtarlarıyla (`housingTotal`, `homeExp`, `insMode`, `insMonthly`, `driverMode`, `driverDay` vb.) güncellendi.
+
+---
+
 ## v80 (`2026-11-25-shiftpay-v80`) — **Claude Pro** — Birikim Denetimi: Net Maaş Ortalaması, Tüyo Metni, 6 Hata
 - Elle girilen bordroda park yazınca maaş 0 sayılıyordu → düzeltildi. Net maaş ortalaması tek seferlik ödemeli haftaları dışlıyor ve hangi haftalardan hesaplandığını yazıyor.
 - Tüyo kartı metni yenilendi; geçici açıkta yanlış (geciktiren) öneri kaldırıldı. Boş hedef, EN tarih, Birikime Ekle ve EN mobil taşma düzeltildi. Antigravity'nin v79 değişiklikleri korundu.
 
-## v79 (2026-11-25-shiftpay-v79) — **Antigravity** — v68–v78 Genel Denetim & 6 İnce Hata Düzeltmesi
-- **Değişen Dosyalar:** index.html, ersion.json, sw.js, README.md, CLAUDE.md, AI-CONTEXT.md, AI-HANDOFF.md
+## v79 (`2026-11-25-shiftpay-v79`) — **Antigravity** — v68–v78 Genel Denetim & 6 İnce Hata Düzeltmesi
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Denetim & Düzeltilenler:**
   1. **Birikim Kalan Tutar TL Karşılığı (#ug_gap_hint):** Ayırdığından kalan satırında toplam hedef (ug.targetAmt) yerine gerçekten kalan tutarın (sim.gapSaved) TL karşılığı gösterilecek şekilde düzeltildi.
   2. **Döviz Çevirici Etiketi (#ug_goal_try):** Sağda etiketsiz duran TL tutarına Hedef karşılığı: ≈ ₺... (Goal total: ≈ ₺...) başlığı eklendi.
   3. **Nasıl hesaplandı? (details.savg-how):** Açılır ok (▾) eklendi ve canlı kur/girdi yenilemelerinde açık durumunun (UG_HOW_OPEN) kapanmaması sağlandı.
   4. **Açılış Sihirbazı Şirket Aracı Sorusu (wzNo):** Şirket aracı kullanıyor musun? sorusuna ilk kez Hayır, kullanmıyorum dendiğinde sihirbazdan çıkıp Ayarlar sayfasına atması düzeltildi; doğrudan bir sonraki sihirbaz sorusuna geçer.
-  5. **Şirket Aracı Rozeti & İngilizce (EN) Tam Uyum:** Sabit +€5/gün yerine dinamik S.driverDay bağlandı; İngilizce görünümde kalan 4 Türkçe metin (%150 saatler, her hafta otomatik, 	ahmin, Şirket arabası) temizlendi.
+  5. **Şirket Aracı Rozeti & İngilizce (EN) Tam Uyum:** Sabit +€5/gün yerine dinamik S.driverDay bağlandı; İngilizce görünümde kalan 4 Türkçe metin (%150 saatler, her hafta otomatik, tahmin, Şirket arabası) temizlendi.
 
 ---
 
@@ -284,9 +296,9 @@
 
 ---
 
-## Geri Dönüş: 40 (2026-11-20-shiftpay-v40) — **Antigravity**
-- **Durum:** Kullanıcı tercihiyle 41 (Fintech/Neo-Bank tasarım denemesi) geri alınarak ackup-v40 (4a2add5) sürümüne birebir dönüldü.
-- **Not:** 40 dosyaları (index.html, ersion.json, sw.js, AI-CONTEXT.md) ackup-v40 yedeğinden eksiksiz geri yüklendi; tüm 39/40 Hızlı Hesap özellikleri ve önceki arayüz %100 korunuyor.
+## Geri Dönüş: 40 (2026-11-20-shiftpay-v40) — **Antigravity**
+- **Durum:** Kullanıcı tercihiyle 41 (Fintech/Neo-Bank tasarım denemesi) geri alınarak ackup-v40 (4a2add5) sürümüne birebir dönüldü.
+- **Not:** 40 dosyaları (index.html, version.json, sw.js, AI-CONTEXT.md) ackup-v40 yedeğinden eksiksiz geri yüklendi; tüm 39/40 Hızlı Hesap özellikleri ve önceki arayüz %100 korunuyor.
 
 ---
 

@@ -1,12 +1,19 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-25-shiftpay-v80`
+- **Aktif Sürüm:** `2026-11-26-shiftpay-v81`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v81 Değişiklikleri (Antigravity)
+- **`ugRunTrack` & `ugSimulate` nakit tavan koruması (`ug.incl = true`):** Kutu açıkken `baseWk > avgWk` olduğunda `effSave` toplam nakit girişini (`avgWk + wInc - wExp`) aşabiliyordu ve negatif harçlıkla hayali erken tarih üretiyordu; her iki modda da `Math.max(0, totalCashIn)` ile sınırlandı.
+- **Tüyo (`.savg-tip`) gerçek bitiş tarihi, kaynak etiketi ve tam euro önerisi:** Süreli gider bittiğinde gösterilen tarih artık `today + 7*k` rastgele haftalık adımı yerine doğrudan giderin `until` bitiş tarihini (`afterUntil`) gösterir; ortalama net maaşın hangi haftalardan ve otopark hariç hesaplandığı doğrudan tüyo ve formül satırında açıkça yazar; öneri tutarı 5/25 basamak kaybı olmadan tam euroya (`Math.floor`) yuvarlanır.
+- **İsteğe bağlı manuel net maaş belirleme (`#ug_net_ovr` / `userGoal.customNetWk`):** Birikim çekmecesinde kullanıcı dilerse ortalama net maaşını elle yazabilir ve tek tıkla (`↺ Otomatiğe dön`) bordro ortalamasına dönebilir.
+- **Özel kira haftalık düşüm (`wkHomeDeduct`) bordro farkı düzeltmesi:** `slipCmpHTML` ve `importFiles` içinde banka ödemesiyle karşılaştırma yapılırken `estBank = est.payable + S.wkHomeDeduct` baz alınarak haftalık özel kira düşen kullanıcılarda sahte tutar farkı çıkması önlendi.
+- **Aylık Özet kısmi ay oranlaması, Takvim hızlı vardiya ekleme ve Ayarlar değişiklik algılama:** Henüz tamamlanmamış cari/gelecek aylarda harici aylık giderler (`hxTot`) `m.n / totPd` oranında düşülür; Takvim gün detayına `+ Vardiya ekle` kısayolu eklendi; `closeSet` onay penceresindeki eski alan adları güncel `state.settings` anahtarlarıyla eşleştirildi.
 
 ## v80 Değişiklikleri (Claude Pro)
 - **Elle bordro + park hatası:** `weekResult` elle girilen bordroda (`lines` sadece `extraTravel`) hesaba yatanı 0 sayıyordu (aylık özet/ortalama −park). Artık `slip.payable` kullanılır.

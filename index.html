@@ -2559,7 +2559,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-25-shiftpay-v80';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-26-shiftpay-v81';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3833,6 +3833,7 @@ function userGoalObj(){
     title: String(ug.title !== undefined ? ug.title : 'Hedefim'),
     targetAmt: Math.max(0, +ug.targetAmt || 0),
     weeklySave: wkS,
+    customNetWk: Math.max(0, r2(+ug.customNetWk || 0)),
     period: ug.period === 'month' ? 'month' : 'week',
     incl: !!ug.incl,
     items: items
@@ -3904,7 +3905,12 @@ function ugAvgPayInfo(){
     if (hxParts.indexOf('kira') < 0) hxParts.unshift('kira');
   }
   var hxWk = r2(hxMo * 12 / 52);
-  var netWk = Math.max(0, r2(rawWk - hxWk));
+  var autoNetWk = Math.max(0, r2(rawWk - hxWk));
+  var autoNetMo = r2(autoNetWk * 52 / 12);
+  var ugRaw = (st && st.userGoal) || {};
+  var customNetWk = Math.max(0, r2(+ugRaw.customNetWk || 0));
+  var isCustom = customNetWk > 0;
+  var netWk = isCustom ? customNetWk : autoNetWk;
 
   /* Şeffaf bilgi etiketleri: özel kira/ev gideri (haftalık veya aylık düşülmüş), şirket kirası, otopark hariç tutarı ve sigorta */
   var privHomeMo = hm === 'none' ? homeMonthlyActiveTotal(st) : moRentExtra;
@@ -3923,6 +3929,9 @@ function ugAvgPayInfo(){
     insSelfMo: insSelfMo,
     compRentDed: compRentDed,
     housingMode: hm,
+    autoNetWk: autoNetWk,
+    autoNetMo: autoNetMo,
+    isCustom: isCustom,
     netWk: netWk,
     netMo: r2(netWk * 52 / 12),
     src: src,
@@ -3931,6 +3940,20 @@ function ugAvgPayInfo(){
     fromW: pool.length ? isoWeek(pool[0].w) : 0,
     toW: pool.length ? isoWeek(pool[pool.length - 1].w) : 0
   };
+}
+function ugPaySrcInline(payInfo){
+  if (payInfo.isCustom) return L('senin girdiğin net tutar', 'your custom net pay');
+  if (payInfo.src === 'slips' || payInfo.src === 'shifts'){
+    var wkRng = payInfo.fromW === payInfo.toW ? (L('Hf ', 'Wk ') + payInfo.fromW) : (L('Hf ', 'Wk ') + payInfo.fromW + '–' + payInfo.toW);
+    var base = payInfo.src === 'slips'
+      ? L('son ' + payInfo.cnt + ' bordro ort., ' + wkRng, 'avg. of last ' + payInfo.cnt + ' slips, ' + wkRng)
+      : L('son ' + payInfo.cnt + ' hf vardiya tahmini, ' + wkRng, 'last ' + payInfo.cnt + ' wks shift est., ' + wkRng);
+    var tags = [base, L('otopark hariç', 'excl. parking')];
+    if (payInfo.privHomeMo > 0) tags.push(L('kira düşülmüş', 'rent deducted'));
+    return tags.join(', ');
+  }
+  if (payInfo.src === 'planned') return L('bu haftanın planı, otopark hariç', 'this week\'s plan, excl. parking');
+  return L('ayarlardan tahmin', 'estimated from settings');
 }
 function ugDateFull(iso){
   var d = parseISO(iso), daysTr = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'], daysEn = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -3970,16 +3993,20 @@ function ugRunTrack(startAmt, targetAmt, baseWk, avgWk, items, boostFromCashflow
       if (v > 0){ if (it.kind === 'in') wInc = r2(wInc + v); else wExp = r2(wExp + v); }
     });
     var totalCashIn = r2(avgWk + wInc - wExp);
-    var effSave = baseWk;
-    if (boostFromCashflow){
-      effSave = Math.max(0, r2(baseWk + wInc - wExp));
-    } else if (totalCashIn < baseWk){
-      effSave = Math.max(0, totalCashIn);
-    }
+    var effSave = boostFromCashflow ? Math.max(0, r2(baseWk + wInc - wExp)) : baseWk;
+    if (effSave > Math.max(0, totalCashIn)) effSave = Math.max(0, totalCashIn);
     var spendLeft = r2(totalCashIn - effSave);
     var sig = effSave.toFixed(2) + '|' + spendLeft.toFixed(2) + '|' + wInc.toFixed(2) + '|' + wExp.toFixed(2);
     if (!curP || curP.sig !== sig){
-      curP = { sig: sig, fromWk: wkIdx + 1, toWk: wkIdx + 1, fromIso: wIso, effSave: effSave, spendLeft: spendLeft, wInc: wInc, wExp: wExp };
+      var prevIso = curP ? addDays(today, (curP.fromWk - 1) * 7) : today, endedUntil = '';
+      if (wkIdx > 0){
+        items.forEach(function(it){
+          if (!it || !it.active || !(it.amt > 0)) return;
+          var vu = (it.until && /^20[2-9]\d-\d{2}-\d{2}$/.test(it.until)) ? it.until : '';
+          if (vu && vu >= prevIso && vu < wIso && (!endedUntil || vu > endedUntil)) endedUntil = vu;
+        });
+      }
+      curP = { sig: sig, fromWk: wkIdx + 1, toWk: wkIdx + 1, fromIso: wIso, afterUntil: endedUntil, effSave: effSave, spendLeft: spendLeft, wInc: wInc, wExp: wExp };
       phases.push(curP);
     } else {
       curP.toWk = wkIdx + 1;
@@ -4026,8 +4053,8 @@ function ugSimulate(ug, payInfo){
   var allCashTrack = ugRunTrack(effTotal, target, baseWk, avgWk, ug.items, inclMode);
 
   if (!planFixed.phases.length){
-    var tot0 = r2(avgWk + curIncWk - curExpWk), es0 = inclMode ? Math.max(0, r2(baseWk + curIncWk - curExpWk)) : Math.min(baseWk, Math.max(0, tot0));
-    planFixed.phases.push({ sig: '0', fromWk: 1, toWk: 1, fromIso: today, effSave: es0, spendLeft: r2(tot0 - es0), wInc: curIncWk, wExp: curExpWk });
+    var tot0 = r2(avgWk + curIncWk - curExpWk), es0 = Math.min(inclMode ? Math.max(0, r2(baseWk + curIncWk - curExpWk)) : baseWk, Math.max(0, tot0));
+    planFixed.phases.push({ sig: '0', fromWk: 1, toWk: 1, fromIso: today, afterUntil: '', effSave: es0, spendLeft: r2(tot0 - es0), wInc: curIncWk, wExp: curExpWk });
   }
 
   return {
@@ -4104,8 +4131,13 @@ function renderSavGoal(force){
       '<span class="savg-drw-btn">' + L('Aç', 'Open') + ' <span class="savg-drw-chv">▾</span></span>' +
     '</summary>' +
     '<div class="savg-drw-body">' +
-      '<div class="savg-grid3" style="margin-bottom:0">' +
-        '<div class="field"><label>' + L('Net Maaş Ortalaman', 'Your Avg. Net Pay') + '</label><div style="padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font-weight:700;font-size:15px" class="num" id="ug_pay_box"></div><small class="fh num" id="ug_pay_hint"></small></div>' +
+      '<div class="savg-grid3 savg-core-1" style="margin-bottom:0">' +
+        '<div class="field"><label for="ug_net_ovr" style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>' + (isMo ? L('Net Maaş Ortalaman (€/ay)', 'Your Avg. Net Pay (€/mo)') : L('Net Maaş Ortalaman (€/hf)', 'Your Avg. Net Pay (€/wk)')) + '</span><span id="ug_pay_mode_badge" style="font-size:11px;font-weight:700;color:var(--accent)"></span></label>' +
+          '<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">' +
+            '<input id="ug_net_ovr" type="text" inputmode="decimal" style="flex:1;min-width:150px" value="' + (ug.customNetWk > 0 ? esc(String(isMo ? r2(ug.customNetWk * 52 / 12) : ug.customNetWk).replace('.', ',')) : '') + '" placeholder="' + esc(L('Otomatik: ', 'Auto: ') + (isMo ? eur(payInfo.autoNetMo) + '/' + L('ay', 'mo') : eur(payInfo.autoNetWk) + '/' + L('hf', 'wk')) + L(' (farklıysa buraya yaz)', ' (type to override)')) + '">' +
+            '<button type="button" class="btn small" id="ug_net_rst" data-act="ugAutoPay"' + (ug.customNetWk > 0 ? '' : ' hidden') + '>↺ ' + L('Otomatiğe dön', 'Use auto') + '</button>' +
+          '</div>' +
+          '<small class="fh num" id="ug_pay_hint"></small></div>' +
       '</div>' +
       '<div class="savg-cf" style="margin:0">' +
         '<div class="savg-cf-top">' +
@@ -4229,10 +4261,18 @@ function renderSavGoalLive(){
     ? L('Açık: Ek gelirler birikimine eklenir, ek giderler birikiminden düşer. Hedef tarih buna göre kayar.', 'On: extra income is added to your saving and extra expenses are taken off it. The goal date shifts accordingly.')
     : L('Kapalı: Hedef tarih sadece yazdığın tutara göre hesaplanır. Ek gelir ve giderler yalnızca cebine kalan harçlığı değiştirir.', 'Off: the goal date follows only the amount you set. Extra income and expenses only change your pocket allowance.');
   if ($('ug_per_hint')) $('ug_per_hint').textContent = isMo ? ('≈ ' + eur(wkSave) + ' / ' + L('hafta', 'week')) : ('≈ ' + eur(moSave) + ' / ' + L('ay', 'month'));
-  if ($('ug_pay_box')) $('ug_pay_box').textContent = isMo ? (eur(payInfo.netMo) + ' / ' + L('ay', 'mo')) : (eur(payInfo.netWk) + ' / ' + L('hafta', 'wk'));
+  if ($('ug_pay_mode_badge')){
+    $('ug_pay_mode_badge').textContent = payInfo.isCustom ? ('✏️ ' + L('Senin girdiğin tutar', 'Custom amount')) : ('✓ ' + L('Otomatik hesaplanan', 'Auto-calculated'));
+  }
+  if ($('ug_net_rst')) $('ug_net_rst').hidden = !payInfo.isCustom;
+  if ($('ug_net_ovr') && document.activeElement !== $('ug_net_ovr')){
+    $('ug_net_ovr').placeholder = L('Otomatik: ', 'Auto: ') + (isMo ? eur(payInfo.autoNetMo) + '/' + L('ay', 'mo') : eur(payInfo.autoNetWk) + '/' + L('hf', 'wk')) + L(' (farklıysa buraya yaz)', ' (type to override)');
+  }
   if ($('ug_pay_hint')){
     var hints = [isMo ? ('≈ ' + eur(payInfo.netWk) + '/' + L('hf', 'wk')) : ('≈ ' + eur(payInfo.netMo) + '/' + L('ay', 'mo'))];
-    if (payInfo.src === 'slips' || payInfo.src === 'shifts'){
+    if (payInfo.isCustom){
+      hints.push(L('Elle belirledin (bordro ortalaması: ' + (isMo ? eur(payInfo.autoNetMo) + '/ay' : eur(payInfo.autoNetWk) + '/hf') + ')', 'Set manually (payslip avg.: ' + (isMo ? eur(payInfo.autoNetMo) + '/mo' : eur(payInfo.autoNetWk) + '/wk') + ')'));
+    } else if (payInfo.src === 'slips' || payInfo.src === 'shifts'){
       var wkRng = payInfo.fromW === payInfo.toW ? (L('Hf ', 'Wk ') + payInfo.fromW) : (L('Hf ', 'Wk ') + payInfo.fromW + '–' + payInfo.toW);
       hints.push(payInfo.src === 'slips'
         ? L('Son ' + payInfo.cnt + ' bordronun ortalaması (' + wkRng + ')', 'Average of your last ' + payInfo.cnt + ' payslips (' + wkRng + ')')
@@ -4243,19 +4283,21 @@ function renderSavGoalLive(){
     } else {
       hints.push(L('Ayarlarından tahmin (bordro ekleyince netleşir)', 'Estimated from your settings (add payslips for accuracy)'));
     }
-    if (payInfo.parkAvgWk > 0){
-      var pkDisp = isMo ? (eur(payInfo.parkAvgMo) + '/' + L('ay', 'mo')) : (eur(payInfo.parkAvgWk) + '/' + L('hf', 'wk'));
-      hints.push(L('Otopark (−' + pkDisp + ') hariç', 'Parking (−' + pkDisp + ') excluded'));
-    } else {
-      hints.push(L('Otopark hariç', 'Parking excluded'));
-    }
-    if (payInfo.privHomeMo > 0){
-      hints.push(L('Kira & ev gideri (−' + eur(payInfo.privHomeMo) + '/ay) düşülmüş', 'Rent & bills (−' + eur(payInfo.privHomeMo) + '/mo) deducted'));
-    } else if (payInfo.compRentDed){
-      hints.push(L('Şirket kirası düşülmüş', 'Company rent deducted'));
-    }
-    if (payInfo.insSelfMo > 0){
-      hints.push(L('Sigorta (−' + eur(payInfo.insSelfMo) + '/ay) düşülmüş', 'Insurance (−' + eur(payInfo.insSelfMo) + '/mo) deducted'));
+    if (!payInfo.isCustom){
+      if (payInfo.parkAvgWk > 0){
+        var pkDisp = isMo ? (eur(payInfo.parkAvgMo) + '/' + L('ay', 'mo')) : (eur(payInfo.parkAvgWk) + '/' + L('hf', 'wk'));
+        hints.push(L('Otopark (−' + pkDisp + ') hariç', 'Parking (−' + pkDisp + ') excluded'));
+      } else {
+        hints.push(L('Otopark hariç', 'Parking excluded'));
+      }
+      if (payInfo.privHomeMo > 0){
+        hints.push(L('Kira & ev gideri (−' + eur(payInfo.privHomeMo) + '/ay) düşülmüş', 'Rent & bills (−' + eur(payInfo.privHomeMo) + '/mo) deducted'));
+      } else if (payInfo.compRentDed){
+        hints.push(L('Şirket kirası düşülmüş', 'Company rent deducted'));
+      }
+      if (payInfo.insSelfMo > 0){
+        hints.push(L('Sigorta (−' + eur(payInfo.insSelfMo) + '/ay) düşülmüş', 'Insurance (−' + eur(payInfo.insSelfMo) + '/mo) deducted'));
+      }
     }
     $('ug_pay_hint').textContent = hints.join(' · ');
   }
@@ -4269,7 +4311,8 @@ function renderSavGoalLive(){
       pList.forEach(function(p){
         var pSaveTxt = isMo ? (eur(r2(p.effSave * 52 / 12)) + '/' + L('ay', 'mo')) : (eur(p.effSave) + '/' + L('hf', 'wk'));
         var pSpendTxt = isMo ? (eur(r2(p.spendLeft * 52 / 12)) + '/' + L('ay', 'mo')) : (eur(p.spendLeft) + '/' + L('hf', 'wk'));
-        tl += '<div class="savg-tl-r num"><span><b>' + dlabel(p.fromIso) + ' ' + L('itibarıyla', 'onwards') + '</b> (' + p.fromWk + '.–' + p.toWk + '. ' + L('hf', 'wk') + ')</span>' +
+        var lblIso = p.afterUntil ? addDays(p.afterUntil, 1) : p.fromIso;
+        tl += '<div class="savg-tl-r num"><span><b>' + dlabel(lblIso) + ' ' + L('itibarıyla', 'onwards') + '</b> (' + p.fromWk + '.–' + p.toWk + '. ' + L('hf', 'wk') + ')</span>' +
           '<span>' + L('Birikime:', 'Saved:') + ' <b style="color:var(--good)">' + pSaveTxt + '</b> · ' + L('Harcamaya kalan:', 'Left to spend:') + ' <b style="color:' + (p.spendLeft >= 0 ? 'var(--ink)' : 'var(--bad)') + '">' + pSpendTxt + '</b></span></div>';
       });
       tl += '</div>';
@@ -4394,10 +4437,7 @@ function renderSavGoalResult(ug, payInfo, sim){
   var expCutVal  = isMo ? r2(pFirst.wExp * 52 / 12) : pFirst.wExp;
   var perShort   = isMo ? L('aylık', 'monthly') : L('haftalık', 'weekly');
 
-  var payTags = [];
-  if (payInfo.privHomeMo > 0) payTags.push(L('kira düşülmüş', 'rent deducted'));
-  if (payInfo.parkAvgWk > 0) payTags.push(L('otopark hariç', 'excl. parking'));
-  var payTagStr = payTags.length ? (' (' + payTags.join(', ') + ')') : '';
+  var payTagStr = ' (' + ugPaySrcInline(payInfo) + ')';
   var formulaParts = [L('Net maaşın', 'Net pay') + payTagStr + ' ' + eur(payBaseVal)];
   var addedIn = 0, addedOut = 0;
   ug.items.forEach(function(it){
@@ -4482,36 +4522,44 @@ function renderSavGoalResult(ug, payInfo, sim){
       '<div class="savg-sc-r tot"><span>' + (ug.totalCash > 0 ? L('Korunan Ana Birikimin:', 'Protected Main Savings:') : L('Biriktirilecek Kalan Tutar:', 'Remaining Amount to Save:')) + '</span><b style="color:var(--good)">' + (ug.totalCash > 0 ? eur(Math.max(0, sim.regularCash)) + ' (' + L('Sabit Kalır', 'Stays Intact') + ')' : eur(sim.gapSaved)) + '</b></div>' +
     '</div></div>';
 
-  /* v80: Gerçekçi birikim önerisi (tüyo) — net cümleler */
+  /* v81: Gerçekçi birikim önerisi (tüyo) — kaynak bilgisi açık, tam euro önerisi ve gerçek bitiş tarihi */
   var tipHtml = '';
   var tBase = ug.weeklySave, tCash = r2(payInfo.netWk + sim.curIncWk - sim.curExpWk);
   var tCap = ug.incl ? payInfo.netWk : tCash;
   var tPerW = isMo ? L('aylık', 'per month') : L('haftalık', 'per week'), tPerT = isMo ? L('Aylık', 'monthly') : L('Haftalık', 'weekly');
   var tD = function(v){ return isMo ? r2(v * 52 / 12) : v; };
   if (ug.targetAmt > 0 && sim.gapSaved > 0 && tBase > tCap + 0.5){
-    var tStep = isMo ? 25 : 5, tCapD = tD(tCap), tBaseD = isMo ? Math.round(tBase * 52 / 12) : tBase;
-    var tSugD = Math.floor(Math.max(0, tCapD) / tStep) * tStep, tSugWk = isMo ? r2(tSugD * 12 / 52) : tSugD;
-    var tShort = eur(r2(tBaseD - Math.max(0, tCapD))), tPay = eur(tD(payInfo.netWk));
+    var tCapD = tD(tCap), tBaseD = isMo ? r2(tBase * 52 / 12) : tBase;
+    var tSugD = Math.floor(Math.max(0, tCapD)), tSugWk = isMo ? r2(tSugD * 12 / 52) : tSugD;
+    if (tSugWk < 5){ tSugD = 0; tSugWk = 0; }
+    var tShort = eur(r2(tBaseD - Math.max(0, tCapD))), tPay = eur(tD(payInfo.netWk)), tPaySrc = ugPaySrcInline(payInfo);
     var tBody = ug.incl
-      ? L('Ortalama net maaşın ' + tPerW + ' ' + tPay + '; ' + eur(tBaseD) + ' ayırırsan cebine harçlık kalmıyor (' + tShort + ' eksik).', 'Your average net pay is ' + tPay + ' ' + tPerW + '; setting aside ' + eur(tBaseD) + ' leaves you no pocket money (' + tShort + ' short).')
-      : L('Ortalama net maaşın ' + tPay + ' + ek gelirlerin ' + eur(tD(sim.curIncWk)) + ' − ek giderlerin ' + eur(tD(sim.curExpWk)) + ' = ' + tPerW + ' <b class="num">' + eur(Math.max(0, tCapD)) + '</b> kalıyor (' + tShort + ' eksik).', 'Average net pay ' + tPay + ' + extra income ' + eur(tD(sim.curIncWk)) + ' − extra expenses ' + eur(tD(sim.curExpWk)) + ' = <b class="num">' + eur(Math.max(0, tCapD)) + '</b> left ' + tPerW + ' (' + tShort + ' short).');
-    var tNew = tSugWk > 0 ? ugRunTrack(ug.saved, ug.targetAmt, tSugWk, payInfo.netWk, ug.items, !!ug.incl) : null;
+      ? L('Ortalama net maaşın (' + tPaySrc + ') ' + tPerW + ' ' + tPay + '; ' + eur(tBaseD) + ' ayırırsan cebine harçlık kalmıyor (' + tShort + ' eksik).', 'Your average net pay (' + tPaySrc + ') is ' + tPay + ' ' + tPerW + '; setting aside ' + eur(tBaseD) + ' leaves you no pocket money (' + tShort + ' short).')
+      : L('Ortalama net maaşın (' + tPaySrc + ') ' + tPay + ' + ek gelirlerin ' + eur(tD(sim.curIncWk)) + ' − ek giderlerin ' + eur(tD(sim.curExpWk)) + ' = ' + tPerW + ' <b class="num">' + eur(Math.max(0, tCapD)) + '</b> kalıyor (' + tShort + ' eksik).', 'Average net pay (' + tPaySrc + ') ' + tPay + ' + extra income ' + eur(tD(sim.curIncWk)) + ' − extra expenses ' + eur(tD(sim.curExpWk)) + ' = <b class="num">' + eur(Math.max(0, tCapD)) + '</b> left ' + tPerW + ' (' + tShort + ' short).');
+    var tNew = tSugWk >= 5 ? ugRunTrack(ug.saved, ug.targetAmt, tSugWk, payInfo.netWk, ug.items, !!ug.incl) : null;
     var tLater = null;
     for (var ti = 1; ti < sim.phases.length; ti++){ if (sim.phases[ti].effSave >= tBase - 0.5){ tLater = sim.phases[ti]; break; } }
     /* Açık geçiciyse (süreli gider bitince tutar yine karşılanıyorsa) uygulama o haftalarda boşta kalanı zaten ayırır: tarih = mevcut plan, düğme yok */
     var tTemp = !!tLater && !ug.incl && !sim.planFixed.unreachable;
     if (tTemp) tNew = sim.planFixed;
-    if (tLater && tNew && !tNew.unreachable && tLater.fromIso >= tNew.dateIso){ tLater = null; tTemp = false; }
+    var tEndIso = tLater ? (tLater.afterUntil || addDays(tLater.fromIso, -1)) : '';
+    if (tLater && tNew && !tNew.unreachable && (tLater.fromIso >= tNew.dateIso || (tEndIso && tEndIso >= tNew.dateIso))){ tLater = null; tTemp = false; tEndIso = ''; }
     var tPocket = r2(tCapD - tSugD), tPocketWk = isMo ? r2(tPocket * 12 / 52) : tPocket;
+    var tMainLine = '';
+    if (tTemp && Math.max(0, tCapD) > 0){
+      tMainLine = '<div class="savg-tip-b">' + L('Onun yerine şu an ' + tPerW + ' <b class="num">' + eur(Math.max(0, tCapD)) + '</b> ayırabilirsin; hedefine bu şekilde <b>' + ugDateFull(tNew.dateIso) + '</b> günü ulaşırsın.', 'Instead, you can set aside <b class="num">' + eur(Math.max(0, tCapD)) + '</b> ' + tPerW + ' for now; this way you reach your goal on <b>' + ugDateFull(tNew.dateIso) + '</b>.') + '</div>';
+    } else if (tSugD > 0){
+      tMainLine = '<div class="savg-tip-b">' + L('Onun yerine ' + tPerW + ' <b class="num">' + eur(tSugD) + '</b> ayırabilirsin', 'Instead, you can set aside <b class="num">' + eur(tSugD) + '</b> ' + tPerW) + (tNew && !tNew.unreachable ? L('; hedefine bu şekilde <b>' + ugDateFull(tNew.dateIso) + '</b> günü ulaşırsın.', '; this way you reach your goal on <b>' + ugDateFull(tNew.dateIso) + '</b>.') : '.') + '</div>';
+    } else {
+      tMainLine = '<div class="savg-tip-b">' + (Math.max(0, tCapD) > 0
+        ? L('Geriye ' + tPerW + ' yalnızca ' + eur(Math.max(0, tCapD)) + ' kaldığı için düzenli birikim ayrılamıyor; giderleri azaltmayı veya ek gelir eklemeyi dene.', 'Only ' + eur(Math.max(0, tCapD)) + ' ' + tPerW + ' remains, which is too low for regular savings; try lowering expenses or adding income.')
+        : L('Bu gelir ve giderlerle şu an kenara para ayrılamıyor; giderleri azaltmayı veya ek gelir eklemeyi dene.', 'With these figures nothing can be set aside right now; try cutting expenses or adding income.')) + '</div>';
+    }
     tipHtml = '<div class="savg-tip"><div class="savg-tip-h">💡 ' + L(tPerT + ' ayıracağın tutarı ' + eur(tBaseD) + ' yazmışsın ama gelir ve gider verilerin buna el vermiyor.', 'You set your ' + tPerT + ' saving to ' + eur(tBaseD) + ', but your income and expenses do not cover it.') + '</div>' +
       '<div class="savg-tip-b">' + tBody + '</div>' +
-      (tSugD > 0
-        ? '<div class="savg-tip-b">' + (tTemp
-            ? L('Onun yerine ' + ugDateFull(tLater.fromIso) + ' gününe kadar ' + tPerW + ' <b class="num">' + eur(tSugD) + '</b> ayırabilirsin', 'Instead you can set aside <b class="num">' + eur(tSugD) + '</b> ' + tPerW + ' until ' + ugDateFull(tLater.fromIso))
-            : L('Onun yerine ' + tPerW + ' <b class="num">' + eur(tSugD) + '</b> ayırabilirsin', 'Instead you can set aside <b class="num">' + eur(tSugD) + '</b> ' + tPerW)) + (tNew && !tNew.unreachable ? L('; hedefine bu şekilde <b>' + ugDateFull(tNew.dateIso) + '</b> günü ulaşırsın.', '; at that pace you reach your goal on <b>' + ugDateFull(tNew.dateIso) + '</b>.') : '.') + '</div>'
-        : '<div class="savg-tip-b">' + L('Bu gelir ve giderlerle şu an kenara para ayrılamıyor; giderleri azaltmayı veya ek gelir eklemeyi dene.', 'With these figures nothing can be set aside right now; try cutting expenses or adding income.') + '</div>') +
-      (tLater ? '<div class="savg-tip-b">📅 ' + L(ugDateFull(tLater.fromIso) + ' gününden sonra tekrar ' + tPerW + ' ' + eur(tBaseD) + ' ayırabilirsin.', 'After ' + ugDateFull(tLater.fromIso) + ' you can go back to ' + eur(tBaseD) + ' ' + tPerW + '.') + (tTemp ? L(' Yukarıdaki hedef tarih bunu zaten hesaba katıyor.', ' The goal date above already accounts for this.') : '') + '</div>' : '') +
-      (tTemp ? '<div class="savg-tip-b savg-tip-m">' + L(ugDateFull(tLater.fromIso) + ' gününe kadar cebine harçlık kalmıyor; market ve günlük giderler için biraz pay bırakmak istersen ' + tPerW + ' tutarı düşürebilirsin.', 'Until ' + ugDateFull(tLater.fromIso) + ' you have no pocket money left; lower your ' + tPerT + ' saving if you want room for groceries and daily costs.') + '</div>' : '') +
+      tMainLine +
+      (tLater ? '<div class="savg-tip-b">📅 ' + L(ugDateFull(tEndIso) + ' gününden sonra tekrar ' + tPerW + ' ' + eur(tBaseD) + ' ayırabilirsin.', 'After ' + ugDateFull(tEndIso) + ' you can go back to ' + eur(tBaseD) + ' ' + tPerW + '.') + (tTemp ? L(' (Yukarıdaki hedef tarih bunu zaten hesaba katıyor.)', ' (The goal date above already accounts for this.)') : '') + '</div>' : '') +
+      (tTemp ? '<div class="savg-tip-b savg-tip-m">' + L('Bu süreçte cebine harçlık kalmıyor; market ve günlük giderler için pay bırakmak istersen yukarıdan ' + tPerW + ' tutarı biraz düşürebilirsin.', 'During this period you have no pocket money left; lower your ' + tPerT + ' saving above if you want room for groceries and daily costs.') + '</div>' : '') +
       (!tTemp && tSugD > 0 && tPocketWk < 50 ? '<div class="savg-tip-b savg-tip-m">' + L('Bu tutarla cebinde ' + tPerW + ' sadece ' + eur(Math.max(0, tPocket)) + ' harçlık kalır; market ve günlük giderleri düşünerek biraz daha az ayırmak isteyebilirsin.', 'That leaves only ' + eur(Math.max(0, tPocket)) + ' ' + tPerW + ' as pocket money; you may want to set aside a bit less for groceries and daily costs.') + '</div>' : '') +
       (tSugD > 0 && !tTemp ? '<button type="button" class="btn small primary" data-act="ugApplyWk" data-v="' + tSugWk + '">' + L(tPerT + ' ' + eur(tSugD) + ' olarak ayarla', 'Set to ' + eur(tSugD) + ' ' + tPerW) + '</button>' : '') +
     '</div>';
@@ -4586,7 +4634,7 @@ function calDayDetailHTML(d, byD, S){
     }
   });
   if (!rows) rows = '<div class="cal-dr"><span class="cal-dk k-none"></span><span>' + L('Bu gün için kayıt yok', 'Nothing logged for this day') + '</span></div>';
-  return '<div class="cal-det" id="calDet" aria-live="polite"><div class="cal-det-h"><b>' + dayTxt + '</b><button type="button" class="btn small" data-act="calWeek" data-d="' + d + '">' + L('Haftayı aç', 'Open week') + ' ›</button></div>' + rows + '</div>';
+  return '<div class="cal-det" id="calDet" aria-live="polite"><div class="cal-det-h"><b>' + dayTxt + '</b><div style="display:flex;gap:6px;flex-wrap:wrap"><button type="button" class="btn small primary" data-act="add" data-date="' + d + '">+ ' + L('Vardiya ekle', 'Add shift') + '</button><button type="button" class="btn small" data-act="calWeek" data-d="' + d + '">' + L('Haftayı aç', 'Open week') + ' ›</button></div></div>' + rows + '</div>';
 }
 /* v67: Bordro kontrolü kartı — son haftalarda girilen vardiyalar ile bordrolar; bordro gelmemiş haftalar da listelenir. Hiç veri yoksa kart gizlenir. */
 function renderSlipChk(){
@@ -4630,8 +4678,9 @@ function slipCmpHTML(ws, cur, S, head){
     rows.push(euRow(L('Gelir vergisi', 'Income tax'), est.tax, p.tax));
     rows.push(euRow(L('Net maaş', 'Net pay'), est.netLoon, p.netLoon));
   }
-  var realPay = r2((p.bankPayable !== undefined ? p.bankPayable : p.payable) - parkOf(p)), dPay = r2(realPay - est.payable);
-  rows.push(euRow(L('Hesaba yatan (park hariç)', 'Paid out (excl. parking)'), est.payable, realPay));
+  var estBank = r2(est.payable + (+S.wkHomeDeduct || 0));
+  var realPay = r2((p.bankPayable !== undefined ? p.bankPayable : p.payable) - parkOf(p)), dPay = r2(realPay - estBank);
+  rows.push(euRow(L('Hesaba yatan (park hariç)', 'Paid out (excl. parking)'), estBank, realPay));
   var tm = mine.norm + mine.irr + mine.over, ts = sh ? (+sh.norm || 0) + (+sh.irr || 0) + (+sh.over || 0) : null, cls, tag, msg;
   if (ts !== null && tm - ts >= 0.25){ cls = 'bad'; tag = L('Saat eksik', 'Hours missing'); msg = L('Bordroda, girdiğin vardiyalardan <b>' + hm(tm - ts) + ' saat eksik</b> görünüyor. Girdiğin saatler doğruysa bordroyu veren ajansa sor.', 'The payslip shows <b>' + hm(tm - ts) + ' hours fewer</b> than your logged shifts. If your hours are right, ask the agency that issued the payslip.'); }
   else if (ts !== null && ts - tm >= 0.25){ cls = 'warn'; tag = L('Saat fazla', 'Extra hours'); msg = L('Bordroda, girdiğinden <b>' + hm(ts - tm) + ' saat fazla</b> var. Bir vardiyayı girmeyi unutmuş olabilirsin.', 'The payslip has <b>' + hm(ts - tm) + ' more hours</b> than you logged. You may have forgotten to enter a shift.'); }
@@ -4682,11 +4731,15 @@ function renderMonth(){
   });
   keys.sort(function(a, b){ return b - a; });
   /* Her ayın 'Net Sana Kalan' tutarı: park hariç netten varsa aylık harici ev/kira/sigorta giderleri (hxTot) de düşülmüş net tutar */
+  var curPayDt = parseISO(addDays(weekStart(today), 10)), curMonthKey = curPayDt.getFullYear() * 100 + curPayDt.getMonth();
   keys.forEach(function(k){
-    var m = ms[k];
-    /* Eğer o ay sadece 1 tahmin haftası varsa ve henüz tamamlanmamışsa aylık harici gideri o haftایه göre oranla veya tam ay ise tam düş */
-    m.finalNet = r2(m.netNoPark - hxTot);
-    m.totalRentAndExp = r2(m.slipExp + hxTot);
+    var m = ms[k], totPdM = paydaysInMonth(m.y, m.m);
+    /* İçinde bulunulan veya gelecekteki henüz tamamlanmamış aylarda aylık harici gideri o ayki hafta sayısına göre oranla */
+    var isPartialM = (totPdM > 0 && m.n < totPdM && k >= curMonthKey);
+    m.hxApplied = isPartialM ? r2(hxTot * m.n / totPdM) : hxTot;
+    m.hxPartial = isPartialM;
+    m.finalNet = r2(m.netNoPark - m.hxApplied);
+    m.totalRentAndExp = r2(m.slipExp + m.hxApplied);
   });
   var mx = Math.max(1, Math.max.apply(null, keys.map(function(k){ return Math.max(0, ms[k].finalNet); })));
   var h = '<h2>📊 Aylık Özet</h2><div class="subhead">' + L('Maaşın yattığı aya göre · Park ödeneği hariç ve tüm giderler düşülmüş net sana kalan', 'By pay month · Net left to you excluding parking and after all expenses') + '</div>';
@@ -4710,7 +4763,7 @@ function renderMonth(){
     if (m.utilTot > 0) expRows += '<div class="mexp-r"><span>' + L('Su ve elektrik', 'Utilities') + '</span><b>−' + eur(m.utilTot) + '</b></div>';
     if (m.insTot > 0)  expRows += '<div class="mexp-r"><span>' + L('Sağlık sigortası', 'Health insurance') + '</span><b>−' + eur(m.insTot) + '</b></div>';
     if (m.wkHomeTot > 0) expRows += '<div class="mexp-r"><span>' + L('Özel kira & ev gideri payı', 'Weekly home bills share') + '</span><b>−' + eur(m.wkHomeTot) + '</b></div>';
-    if (hxTot > 0) expRows += '<div class="mexp-r"><span>' + L('Aylık ev giderleri', 'Monthly home bills') + (hxParts.length ? ' (' + esc(hxParts.join(', ')) + ')' : '') + '</span><b>−' + eur(hxTot) + '</b></div>';
+    if (m.hxApplied > 0) expRows += '<div class="mexp-r"><span>' + L('Aylık ev giderleri', 'Monthly home bills') + (hxParts.length ? ' (' + esc(hxParts.join(', ')) + ')' : '') + (m.hxPartial ? ' · ' + m.n + '/' + totPd + ' ' + L('hf payı', 'wk share') : '') + '</span><b>−' + eur(m.hxApplied) + '</b></div>';
     if (!expRows) expRows = '<div class="mexp-r"><span>' + L('Kesinti yok', 'No deductions') + '</span><b>€0,00</b></div>';
     else expRows += '<div class="mexp-r tot"><span>' + L('Toplam Gider', 'Total Expenses') + '</span><b>−' + eur(m.totalRentAndExp) + '</b></div>';
 
@@ -5273,8 +5326,8 @@ async function importFiles(files){
   if (drvMsg.length) h += '<div class="sl okn"><b>Araç günleri bordroya göre düzeltildi:</b> ' + esc(drvMsg.join('; ')) + '.</div>';
   res.forEach(function(x){
     if (x.err){ h += '<div class="sl err"><b>' + esc(x.name) + '</b><br>' + esc(x.err) + '</div>'; return; }
-    var r = x.r, est = weekResult(r.ws, 'done').est, pk = r2(+((r.slip.lines || {}).extraTravel) || 0), d = r2(est.payable - (r.slip.payable - pk));
-    h += '<div class="sl"><b>Hafta ' + r.slip.week + '</b> · hesaba yatan <b>' + eur(r.slip.payable) + '</b>' + (pk > 0 ? ' <span class="pkc">(' + eur(pk) + ' park dahil)</span>' : '') + '<div class="w num">' + hm(r.slip.hours.norm + r.slip.hours.irr + r.slip.hours.over) + ' saat · ' + (pk > 0 ? 'park hariç ' : '') + 'uygulama tahmini ' + eur(est.payable) + ' <span class="nowr">(' + sgn(d) + ')</span>' + (r.warn.length ? '<br>' + esc(r.warn.join(' ')) : '') + '</div></div>';
+    var r = x.r, wRes = weekResult(r.ws, 'done'), est = wRes.est, estBank = r2(est.payable + (+(SET(r.ws).wkHomeDeduct) || 0)), pk = r2(+((r.slip.lines || {}).extraTravel) || 0), d = r2(estBank - (r.slip.payable - pk));
+    h += '<div class="sl"><b>Hafta ' + r.slip.week + '</b> · hesaba yatan <b>' + eur(r.slip.payable) + '</b>' + (pk > 0 ? ' <span class="pkc">(' + eur(pk) + ' park dahil)</span>' : '') + '<div class="w num">' + hm(r.slip.hours.norm + r.slip.hours.irr + r.slip.hours.over) + ' saat · ' + (pk > 0 ? 'park hariç ' : '') + 'uygulama tahmini ' + eur(estBank) + ' <span class="nowr">(' + sgn(d) + ')</span>' + (r.warn.length ? '<br>' + esc(r.warn.join(' ')) : '') + '</div></div>';
   });
   out.innerHTML = h;
 }
@@ -5926,6 +5979,14 @@ document.addEventListener('click', function(ev){
   else if (a === 'fxRefresh'){
     fxEnsure(true);
   }
+  else if (a === 'ugAutoPay'){
+    UG_DRAWER_OPEN = true;
+    var ugAP = userGoalObj();
+    ugAP.customNetWk = 0;
+    ugSaveObj(ugAP);
+    commit();
+    renderSavGoal(true);
+  }
   else if (a === 'ugApplyWk'){
     var ugAW = userGoalObj(), vW = Math.max(5, +el.getAttribute('data-v') || 5);
     ugAW.weeklySave = vW;
@@ -6019,9 +6080,11 @@ document.addEventListener('click', function(ev){
         if (typeof v === 'number') return String(v).replace('.', ',');
         return String(v);
       };
-      var hModeLbl = function(v){ return (v || 'company') === 'none' ? L('Kendi evimde kirada', 'Private rent') : L('Şirket evi', 'Company housing'); };
+      var hModeLbl = function(v){ var m = v || 'company'; return m === 'none' ? L('Kendi evimde kirada', 'Private rent') : m === 'monthly' ? L('Aylık bordro kirası', 'Monthly payslip rent') : L('Şirket evi', 'Company housing'); };
       var hIncLbl = function(v){ return (v || 'all') === 'extra' ? L('Kira + ek faturalar', 'Rent + extra bills') : L('Hepsi kiraya dahil', 'All-inclusive rent'); };
       var hDedLbl = function(v){ return (v || 'monthly') === 'weekly' ? L('Haftalık maaştan düş', 'Deduct weekly') : L('Aylık özette düş', 'Deduct monthly'); };
+      var insModeLbl = function(v){ return v === 'self' ? L('Kendim ödüyorum', 'Self-paid') : L('Bordrodan kesiliyor', 'On payslip'); };
+      var drvModeLbl = function(v){ return (v || 'on') === 'off' ? L('Kapalı', 'Off') : L('Açık', 'On'); };
       var advLbl = function(v){ return v === 'cap45' ? L('En çok 45 saat', 'Max 45 hrs') : L('%185 hariç tüm saatler', 'All except 185%'); };
       var fields = [
         ['housingMode', L('Konut tipi', 'Housing type'), hModeLbl],
@@ -6035,18 +6098,20 @@ document.addEventListener('click', function(ev){
         ['adv', L('ADV zammı (€/saat)', 'ADV allowance (€/hr)')],
         ['vacPct', L('Tatil parası oranı', 'Holiday pay rate')],
         ['advMode', L('ADV uygulama kuralı', 'ADV mode'), advLbl],
-        ['housing', L('Şirket evi kirası (€/hf)', 'Company rent (€/wk)')],
+        ['driverMode', L('Şirket aracı eki', 'Company car allowance'), drvModeLbl],
+        ['driverDay', L('Araç eki (€/gün)', 'Car allowance (€/day)')],
+        ['housingTotal', L('Şirket evi kirası (€/hf)', 'Company rent (€/wk)')],
+        ['housingGross', L('Kiranın brüt kısmı (€/hf)', 'Gross rent part (€/wk)')],
+        ['rentMonthly', L('Aylık bordro kirası (€/ay)', 'Monthly payslip rent (€/mo)')],
+        ['rentDay', L('Kira kesim günü', 'Rent deduction day')],
         ['utilities', L('Su ve elektrik (€/hf)', 'Utilities (€/wk)')],
         ['homeRent', L('Kendi ev kirası (€/ay)', 'Private rent (€/mo)')],
         ['homeIncMode', L('Kira gider kapsamı', 'Rent coverage'), hIncLbl],
         ['homeDeductMode', L('Kira düşüm şekli', 'Rent deduction mode'), hDedLbl],
-        ['homeElec', L('Elektrik (€/ay)', 'Electricity (€/mo)')],
-        ['homeWater', L('Su (€/ay)', 'Water (€/mo)')],
-        ['homeNet', L('İnternet (€/ay)', 'Internet (€/mo)')],
-        ['homeGas', L('Doğalgaz (€/ay)', 'Gas (€/mo)')],
-        ['homeMuni', L('Belediye vergisi (€/ay)', 'Municipal tax (€/mo)')],
+        ['insMode', L('Sigorta şekli', 'Insurance mode'), insModeLbl],
         ['insurance', L('Sağlık sigortası (€/hf)', 'Health insurance (€/wk)')],
-        ['insSelf', L('Sigorta şekli', 'Insurance mode')],
+        ['extraIns', L('Ek sigorta (€/hf)', 'Extra insurance (€/wk)')],
+        ['insMonthly', L('Aylık sigorta (€/ay)', 'Monthly insurance (€/mo)')],
         ['goalNet', L('Haftalık net hedef (€)', 'Weekly net target (€)')],
         ['myName', L('Adın', 'Your name')]
       ];
@@ -6066,8 +6131,8 @@ document.addEventListener('click', function(ev){
       if (JSON.stringify(oldS.custom || []) !== JSON.stringify(newS.custom || [])){
         out.push({ lbl: L('Özel kesinti / ek ödemeler', 'Custom deductions/extras'), from: (oldS.custom || []).length + ' ' + L('satır', 'items'), to: (newS.custom || []).length + ' ' + L('satır', 'items') });
       }
-      if (JSON.stringify(oldS.homeExtra || []) !== JSON.stringify(newS.homeExtra || [])){
-        out.push({ lbl: L('Konut ek giderleri', 'Extra housing bills'), from: (oldS.homeExtra || []).length + ' ' + L('satır', 'items'), to: (newS.homeExtra || []).length + ' ' + L('satır', 'items') });
+      if (JSON.stringify(oldS.homeExp || []) !== JSON.stringify(newS.homeExp || [])){
+        out.push({ lbl: L('Konut ek faturaları', 'Extra housing bills'), from: (oldS.homeExp || []).length + ' ' + L('satır', 'items'), to: (newS.homeExp || []).length + ' ' + L('satır', 'items') });
       }
       return out;
     })(window.__SET_SNAP, state.settings);
@@ -6227,12 +6292,16 @@ document.addEventListener('input', function(ev){
     renderSavGoalLive();
     return;
   }
-  if (t.id === 'ug_total' || t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk_in'){
+  if (t.id === 'ug_total' || t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk_in' || t.id === 'ug_net_ovr'){
     var ugI = userGoalObj();
     if (t.id === 'ug_total') ugI.totalCash = Math.max(0, num(t.value));
     else if (t.id === 'ug_saved') ugI.saved = Math.max(0, num(t.value));
     else if (t.id === 'ug_title') ugI.title = t.value.slice(0, 45);
     else if (t.id === 'ug_target') ugI.targetAmt = Math.max(0, num(t.value));
+    else if (t.id === 'ug_net_ovr'){
+      var vNet = Math.max(0, num(t.value));
+      ugI.customNetWk = vNet > 0 ? (ugI.period === 'month' ? r2(vNet * 12 / 52) : r2(vNet)) : 0;
+    }
     else if (t.id === 'ug_wk_in'){
       var vIn = Math.max(5, num(t.value) || 5);
       ugI.weeklySave = ugI.period === 'month' ? Math.max(5, r2(vIn * 12 / 52)) : vIn;
@@ -6273,7 +6342,7 @@ document.addEventListener('change', function(ev){
   else if (t.id === 'sDate'){ fillSlipForm(); }
   else if (t.id === 'wpDate'){ if (t.value){ view.week = weekStart(t.value); $('ov4').hidden = true; renderAll(); window.scrollTo({ top: 0 }); } }
   else if (t.id === 'ug_incl'){ var ugN = userGoalObj(); ugN.incl = !!t.checked; ugSaveObj(ugN); ugCommitKeep(); renderSavGoalLive(); }
-  else if (t.id === 'ug_total' || t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk' || t.id === 'ug_wk_in'){ ugCommitKeep(); renderSavGoalLive(); }
+  else if (t.id === 'ug_total' || t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk' || t.id === 'ug_wk_in' || t.id === 'ug_net_ovr'){ ugCommitKeep(); renderSavGoalLive(); }
   else if (t.getAttribute && t.getAttribute('data-ugi') !== null){
     var ugiC = +t.getAttribute('data-ugi'), ugFC = t.getAttribute('data-f'), ugLC = userGoalObj(), itUC = ugLC.items[ugiC];
     if (itUC){
