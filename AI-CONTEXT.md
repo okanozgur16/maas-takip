@@ -1,12 +1,17 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-26-shiftpay-v84`
+- **Aktif Sürüm:** `2026-11-26-shiftpay-v85`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v85 Değişiklikleri (Antigravity)
+- **Telefonda Instagram Tarzı Sabit Alt Navigasyon Barı (`<= 959px`):** Üstteki sekme çubuğu telefonlarda ekranın en altına sabit cam efektli (`backdrop-filter: blur(16px)`, `safe-area-inset-bottom` uyumlu) alt bar olarak taşındı; 3 sekme ikon + kısa isimlerle (`🎯 Plan` · `🧾 Döküm` · `📅 Özet & Birikim` / EN: `Plan` · `Breakdown` · `Summary & Savings`) çalışır, her sekmenin en başında da açıklamalı `#secBanner` başlık kutusu yer alır.
+- **Masaüstü (`>= 960px`) Klasik Görünüm Birebir Korundu:** Bilgisayarda geniş `Merhaba` kartı, soldaki `❖ MENÜ` (`🎯 Haftalık Plan`, `🧾 Haftalık Döküm`, `📅 Takvim, Aylık & Birikim`) ve sağ üstteki açıklamalı `#secBanner` başlık kutusu birebir korundu. Claude'un `v84` düzeltmeleri eksiksiz korundu.
+- **Erteleme Süresi 7 Gün (1 Hafta):** Açılış sihirbazında *"Sonra yaparım ✕"* (`wzSnoozed`) ve yedek hatırlatmasında *"Sonra"* (`bkSnoozed`) erteleme süresi 14 günden **7 güne (1 hafta)** indirildi.
 
 ## v84 Değişiklikleri (Claude Pro)
 - **İzinli/İptal artık vardiyayı silmez:** `toggleOff/toggleCancel` günün kayıtlarını `tomb` etmiyor, sadece gizliyor (weekEntries zaten off günlerini dışlıyor); geri alınınca vardiya aynen döner. İzinli güne `saveSheet` ile yeni kayıt girilirse o günün gizli eski kayıtları da kaldırılır (çift vardiya olmaz).

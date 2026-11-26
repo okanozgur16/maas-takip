@@ -6,6 +6,16 @@
 
 ---
 
+## v85 (`2026-11-26-shiftpay-v85`) — **Antigravity** — Telefonda Instagram Tarzı Sabit Alt Bar + Masaüstü Tasarımı + 7 Gün Erteleme
+- **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Claude'un `v84` düzeltmeleri %100 korundu** (geri alınabilir İzinli/İptal, `#ov2` `blur()`, gizli vardiya filtresi).
+- **Ne Yapıldı:**
+  1. **Telefonda (`<= 959px`) Instagram Tarzı Sabit Alt Menü (`#maasSubBar`):** Sekmeler en alta cam efektli sabit bar olarak alındı; kısa isimlerle (`🎯 Plan` · `🧾 Döküm` · `📅 Özet & Birikim`) tek dokunuşla geçiş sağlar, her sekmenin en başında da açıklamalı `#secBanner` başlık kutusu yer alır.
+  2. **Bilgisayarda (`>= 960px`) Tasarım Birebir Korundu:** Geniş `Merhaba` kartı, soldaki `❖ MENÜ` ve sağ üstteki `#secBanner` açıklamalı başlık kutusu tam korundu.
+  3. **1 Hafta (7 Gün) Erteleme:** `Sonra yaparım ✕` (`wzSnoozed`) ve yedek `Sonra` (`bkSnoozed`) süresi 14 günden **7 güne (1 hafta)** çekildi.
+
+---
+
 ## v84 (`2026-11-26-shiftpay-v84`) — **Claude Pro** — v83 Doğrulama + 3 Hata
 - v83 kullanıcı gibi test edildi (izinli güne vardiya, Haftayı aç, hafta etiketi seçici, yıl toplamları, ayar onayı).
 - Bulunan/düzeltilen: (1) İzinli yapıp geri alınca o günün vardiyası kalıcı siliniyordu; (2) ayarlarda yazarken Esc/arka plan onayı atlayıp değişikliği sessizce kaydediyordu; (3) izinli günlerdeki gizli vardiyalar bildirim planına ve kopyalamaya girmesin diye filtre eklendi.
