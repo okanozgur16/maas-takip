@@ -543,7 +543,7 @@ jobs:
               console.error("[ERROR] Screenshot capture/upload error:", err);
               process.exit(1);
             });
-            EOF
+          EOF
             node /tmp/capture_and_upload.js
             rm -f /tmp/capture_and_upload.js
           fi
