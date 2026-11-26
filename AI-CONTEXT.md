@@ -1,12 +1,16 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-26-shiftpay-v85`
+- **Aktif Sürüm:** `2026-11-26-shiftpay-v86`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v86 Değişiklikleri (Claude Pro)
+- **Son tarihe göre ters hesap:** Hedef bölümüne `#ug_deadline` ("Ne zamana kadar? (isteğe bağlı)", `userGoal.deadline`) eklendi. `ugDeadlineCalc()` `ugRunTrack` üzerinde ikili arama ile son tarihe yetişmek için gereken en düşük haftalık tutarı bulur (süreli gelir/giderler ve `incl` modu dahil); `ugDeadlineHTML()` sonuç kartının altında `.savg-dl` kartı gösterir: mevcut planla kaç gün erken/geç, gereken tutar + en düşük harçlık, maaşla yetişilemiyorsa en erken tarih, ana birikim de kullanılırsa yeten tutar ve `ugApplyWk` düğmesi. Geçmiş tarih uyarısı ve kalan süre ipucu (`#ug_dl_hint`) var.
+- v85 alt çubuk test edildi: açılır pencereler çubuğun üstünde, sayfa sonu çubuğun altında kalmıyor; sekme geçişinde yumuşak kaydırma ile en üste dönülüyor.
 
 ## v85 Değişiklikleri (Antigravity)
 - **Telefonda Instagram Tarzı Sabit Alt Navigasyon Barı (`<= 959px`):** Üstteki sekme çubuğu telefonlarda ekranın en altına sabit cam efektli (`backdrop-filter: blur(16px)`, `safe-area-inset-bottom` uyumlu) alt bar olarak taşındı; 3 sekme ikon + kısa isimlerle (`🎯 Plan` · `🧾 Döküm` · `📅 Özet & Birikim` / EN: `Plan` · `Breakdown` · `Summary & Savings`) çalışır, her sekmenin en başında da açıklamalı `#secBanner` başlık kutusu yer alır.

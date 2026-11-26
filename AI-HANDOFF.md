@@ -6,6 +6,10 @@
 
 ---
 
+## v86 (`2026-11-26-shiftpay-v86`) — **Claude Pro** — Birikim: Son Tarihe Göre Ters Hesap
+- "Ne zamana kadar?" tarih alanı + `.savg-dl` kartı (gereken haftalık/aylık tutar, mevcut planla erken/geç gün, yetişilemezse en erken tarih, ana birikimle alternatif, tek dokunuşla uygula). TR/EN, haftalık/aylık, borçlu senaryo, geçmiş tarih ve kalıcılık test edildi.
+- v85 alt çubukta hata bulunmadı; modernizasyon önerileri kullanıcıya sunuldu, onay bekleniyor (henüz uygulanmadı).
+
 ## v85 (`2026-11-26-shiftpay-v85`) — **Antigravity** — Telefonda Instagram Tarzı Sabit Alt Bar + Masaüstü Tasarımı + 7 Gün Erteleme
 - **Değişen Dosyalar:** `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Claude'un `v84` düzeltmeleri %100 korundu** (geri alınabilir İzinli/İptal, `#ov2` `blur()`, gizli vardiya filtresi).

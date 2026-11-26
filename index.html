@@ -581,6 +581,11 @@ html:not(.ui-classic) .dayhead .d .t-today{background:var(--accent);color:var(--
 .savg-incl-t{display:flex;flex-direction:column;gap:3px;min-width:0}
 .savg-incl-t b{font-size:13.5px}
 .savg-incl-t small{font-size:12px;line-height:1.4;color:var(--muted)}
+.savg-dl{display:flex;flex-direction:column;gap:6px;align-items:flex-start;padding:12px 14px;margin:0 0 12px;border-radius:13px;background:var(--surface2);border:1px solid var(--line)}
+.savg-dl.ok{background:var(--good-soft);border-color:color-mix(in srgb,var(--good) 35%,var(--line))}
+.savg-dl.bad{background:var(--bad-soft);border-color:color-mix(in srgb,var(--bad) 35%,var(--line))}
+.savg-dl-f{grid-column:1/-1}
+.savg-dl-f input[type=date]{min-height:40px}
 .savg-tip{display:flex;flex-direction:column;gap:6px;align-items:flex-start;padding:12px 14px;margin:0 0 12px;border-radius:13px;background:var(--accent-soft);border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line))}
 .savg-tip-h{font-weight:800;font-size:13.5px;line-height:1.35}
 .savg-tip-b{font-size:13px;line-height:1.45}
@@ -2655,7 +2660,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-26-shiftpay-v85';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-26-shiftpay-v86';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -3940,6 +3945,7 @@ function userGoalObj(){
     customNetWk: Math.max(0, Math.round((+ug.customNetWk || 0) * 1e4) / 1e4),
     period: ug.period === 'month' ? 'month' : 'week',
     incl: !!ug.incl,
+    deadline: (typeof ug.deadline === 'string' && /^20[2-9]\d-\d{2}-\d{2}$/.test(ug.deadline)) ? ug.deadline : '',
     items: items
   };
 }
@@ -4064,6 +4070,59 @@ function ugDateFull(iso){
   var isEn = (typeof LANG !== 'undefined' && LANG === 'en');
   if (isEn) return daysEn[d.getDay()] + ', ' + d.getDate() + ' ' + CAL_M_EN[d.getMonth()] + ' ' + d.getFullYear();
   return d.getDate() + ' ' + MONTHS_L[d.getMonth()] + ' ' + d.getFullYear() + ' ' + daysTr[d.getDay()];
+}
+/* v86: Son tarihe göre ters hesap — o tarihe yetişmek için gereken en düşük haftalık birikim (ikili arama, süreli gider/gelir ve mod dahil) */
+function ugDeadlineCalc(ug, payInfo, sim){
+  if (!ug.deadline || !(ug.targetAmt > 0) || sim.gapSaved <= 0) return null;
+  var days = Math.round((parseISO(ug.deadline) - parseISO(today)) / 86400000);
+  if (days <= 0) return { past: true };
+  var run = function(start, S){ return ugRunTrack(start, ug.targetAmt, S, payInfo.netWk, ug.items, !!ug.incl); };
+  var need = function(start){
+    var gap = Math.max(0, r2(ug.targetAmt - start));
+    if (gap <= 0) return { ready: true };
+    var ok = function(S){ var r = run(start, S); return !r.unreachable && r.dateIso <= ug.deadline; };
+    var hi = Math.max(5, gap + 1);
+    if (!ok(hi)) return { impossible: true, best: run(start, hi) };
+    var lo = 0;
+    for (var it = 0; it < 30 && hi - lo > 0.5; it++){ var mid = (lo + hi) / 2; if (ok(mid)) hi = mid; else lo = mid; }
+    var S = Math.max(5, Math.ceil(hi)), tr = run(start, S), minPocket = Infinity;
+    tr.phases.forEach(function(p){ if (p.spendLeft < minPocket) minPocket = p.spendLeft; });
+    return { S: S, track: tr, minPocket: minPocket === Infinity ? 0 : minPocket };
+  };
+  return { days: days, own: need(ug.saved), all: sim.regularCash > 0 ? need(sim.effTotal) : null };
+}
+function ugDeadlineHTML(ug, payInfo, sim){
+  var dc = ugDeadlineCalc(ug, payInfo, sim); if (!dc) return '';
+  var isMo = ug.period === 'month', per = isMo ? L('aylık', 'per month') : L('haftalık', 'per week'), perT = isMo ? L('Aylık', 'Monthly') : L('Haftalık', 'Weekly');
+  var dsp = function(wk){ return isMo ? Math.ceil(wk * 52 / 12) : Math.ceil(wk); };
+  var dl = ugDateFull(ug.deadline);
+  if (dc.past) return '<div class="savg-dl bad"><div class="savg-tip-h">⏰ ' + L('Son tarih (' + dl + ') geçmiş.', 'The deadline (' + dl + ') has passed.') + '</div><div class="savg-tip-b">' + L('Yukarıdan yeni bir tarih seç ya da alanı temizle.', 'Pick a new date above or clear the field.') + '</div></div>';
+  var pf = sim.planFixed, curD = isMo ? Math.round(ug.weeklySave * 52 / 12) : r2(ug.weeklySave);
+  var onTime = !pf.unreachable && pf.dateIso <= ug.deadline;
+  var diffD = pf.unreachable ? 0 : Math.round(Math.abs(parseISO(ug.deadline) - parseISO(pf.dateIso)) / 86400000);
+  var own = dc.own, h = '<div class="savg-dl' + (own.impossible ? ' bad' : (onTime ? ' ok' : '')) + '">';
+  h += '<div class="savg-tip-h">⏰ ' + L(dl + ' tarihine yetişmek', 'Reaching it by ' + dl) + '</div>';
+  if (pf.unreachable) h += '<div class="savg-tip-b">' + L('Mevcut planla hedefe ulaşılamıyor.', 'Your current plan never reaches the goal.') + '</div>';
+  else if (onTime) h += '<div class="savg-tip-b">✅ ' + L('Mevcut planınla (' + per + ' ' + eur(curD) + ') hedefe <b>' + ugDateFull(pf.dateIso) + '</b> ulaşıyorsun' + (diffD > 0 ? '; son tarihten ' + diffD + ' gün önce.' : ', tam son tarihte.'), 'With your current plan (' + eur(curD) + ' ' + per + ') you reach it on <b>' + ugDateFull(pf.dateIso) + '</b>' + (diffD > 0 ? ', ' + diffD + ' days early.' : ', right on the deadline.')) + '</div>';
+  else h += '<div class="savg-tip-b">⚠️ ' + L('Mevcut planınla (' + per + ' ' + eur(curD) + ') hedefe ' + ugDateFull(pf.dateIso) + ' ulaşıyorsun; son tarihi <b>' + diffD + ' gün</b> kaçırıyorsun.', 'With your current plan (' + eur(curD) + ' ' + per + ') you reach it on ' + ugDateFull(pf.dateIso) + ', <b>' + diffD + ' days</b> late.') + '</div>';
+  if (own.impossible){
+    var bst = own.best;
+    h += '<div class="savg-tip-b">❌ ' + L('Gelir ve giderlerinle bu tarihe yetişmek mümkün değil; maaşından ayırabileceğin her şeyi ayırsan bile en erken ' + (bst.unreachable ? '—' : '<b>' + ugDateFull(bst.dateIso) + '</b>') + ' ulaşırsın.', 'With your income and expenses this date is not reachable; even saving everything you can, the earliest is ' + (bst.unreachable ? '—' : '<b>' + ugDateFull(bst.dateIso) + '</b>') + '.') + '</div>';
+  } else {
+    var needD = dsp(own.S), pk = isMo ? r2(own.minPocket * 52 / 12) : r2(own.minPocket);
+    h += '<div class="savg-tip-b">' + L('Bu tarihe yetişmek için ' + per + ' en az <b class="num">' + eur(needD) + '</b> ayırman gerekiyor', 'To make it you need to set aside at least <b class="num">' + eur(needD) + '</b> ' + per) + (pk >= 0 ? L('; cebinde ' + per + ' en az ' + eur(Math.max(0, pk)) + ' harçlık kalır.', '; that leaves you at least ' + eur(Math.max(0, pk)) + ' ' + per + ' as pocket money.') : '.') + '</div>';
+    if (pk >= 0 && pk < (isMo ? 200 : 50)) h += '<div class="savg-tip-b savg-tip-m">' + L('Harçlığın çok az kalıyor; market ve günlük giderler için yetmeyebilir.', 'That leaves very little for groceries and daily costs.') + '</div>';
+  }
+  if (dc.all && !own.ready && (own.impossible || !onTime)){
+    var al = dc.all;
+    if (al.ready) h += '<div class="savg-tip-b">💳 ' + L('Kenardaki ana birikimini de kullanırsan hedefin bugün hazır.', 'If you also use your main savings, the goal is ready today.') + '</div>';
+    else if (!al.impossible) h += '<div class="savg-tip-b">💳 ' + L('Kenardaki ana birikimini de kullanırsan ' + per + ' <b class="num">' + eur(dsp(al.S)) + '</b> yeterli.', 'If you also use your main savings, <b class="num">' + eur(dsp(al.S)) + '</b> ' + per + ' is enough.') + '</div>';
+  }
+  if (!own.impossible && own.S && Math.abs(dsp(own.S) - curD) >= 1 && !onTime){
+    var applyWk = isMo ? Math.round(dsp(own.S) * 12 / 52 * 1e4) / 1e4 : dsp(own.S);
+    h += '<button type="button" class="btn small primary" data-act="ugApplyWk" data-v="' + applyWk + '">' + L(perT + ' ' + eur(dsp(own.S)) + ' olarak ayarla', 'Set to ' + eur(dsp(own.S)) + ' ' + per) + '</button>';
+  }
+  return h + '</div>';
 }
 function ugDurTxt(days){
   if (days <= 0) return L('Bugün', 'Today');
@@ -4207,6 +4266,7 @@ function renderSavGoal(force){
     '<div class="savg-grid3 savg-core-g">' +
       '<div class="field"><label for="ug_title">' + L('Ne için?', 'What for?') + '</label><input id="ug_title" type="text" maxlength="45" value="' + esc(ug.title) + '" placeholder="' + L('Örn. Tatil, Araba…', 'e.g. Holiday, Car…') + '"><small class="fh">' + L('Hedef adı', 'Goal title') + '</small></div>' +
       '<div class="field"><label for="ug_target">' + L('Ne kadar? (€)', 'How much? (€)') + '</label><input id="ug_target" type="text" inputmode="decimal" value="' + (ug.targetAmt > 0 ? esc(String(ug.targetAmt).replace('.', ',')) : '') + '" placeholder="' + L('Örneğin 1500 Euro', 'e.g. 1500 Euro') + '"><small class="fh num" id="ug_gap_hint"></small></div>' +
+      '<div class="field savg-dl-f"><label for="ug_deadline">' + L('Ne zamana kadar? (isteğe bağlı)', 'By when? (optional)') + '</label><input id="ug_deadline" type="date" min="' + addDays(today, 1) + '" value="' + esc(ug.deadline || '') + '"><small class="fh num" id="ug_dl_hint"></small></div>' +
     '</div>' +
     '<div class="savg-core-h">💶 ' + L('Param', 'My money') + '</div>' +
     '<div class="savg-grid3 savg-core-g">' +
@@ -4365,6 +4425,13 @@ function renderSavGoalLive(){
   if ($('ug_incl_hint')) $('ug_incl_hint').textContent = ug.incl
     ? L('Açık: Ek gelirler birikimine eklenir, ek giderler birikiminden düşer. Hedef tarih buna göre kayar.', 'On: extra income is added to your saving and extra expenses are taken off it. The goal date shifts accordingly.')
     : L('Kapalı: Hedef tarih sadece yazdığın tutara göre hesaplanır. Ek gelir ve giderler yalnızca cebine kalan harçlığı değiştirir.', 'Off: the goal date follows only the amount you set. Extra income and expenses only change your pocket allowance.');
+  if ($('ug_dl_hint')){
+    if (!ug.deadline) $('ug_dl_hint').textContent = L('Bir tarih seçersen o güne yetişmek için ne kadar ayırman gerektiğini hesaplarım.', 'Pick a date and I will work out how much you need to set aside to make it.');
+    else {
+      var dlD = Math.round((parseISO(ug.deadline) - parseISO(today)) / 86400000);
+      $('ug_dl_hint').textContent = dlD > 0 ? (L('Kalan süre: ', 'Time left: ') + ugDurTxt(dlD).replace(L(' sonra', ''), '')) : L('Bu tarih geçmiş; yeni bir tarih seç.', 'This date has passed; pick a new one.');
+    }
+  }
   if ($('ug_per_hint')) $('ug_per_hint').textContent = isMo ? ('≈ ' + eur(wkSave) + ' / ' + L('hafta', 'week')) : ('≈ ' + eur(moSave) + ' / ' + L('ay', 'month'));
   if ($('ug_pay_mode_badge')){
     $('ug_pay_mode_badge').textContent = payInfo.isCustom ? ('✏️ ' + L('Senin girdiğin tutar', 'Custom amount')) : ('✓ ' + L('Otomatik hesaplanan', 'Auto-calculated'));
@@ -4672,7 +4739,7 @@ function renderSavGoalResult(ug, payInfo, sim){
     tipHtml = '<div class="savg-tip"><div class="savg-tip-h">💡 ' + L('Ek giderlerin, ayırdığın tutarı ve ek gelirlerini aşıyor; birikime bir şey kalmıyor.', 'Your extra expenses exceed your saving and extra income, so nothing goes into savings.') + '</div>' +
       '<div class="savg-tip-b">' + L(tPerT + ' ayıracağın tutarı en az ' + eur(tD(r2(sim.curExpWk - sim.curIncWk + 5))) + ' yaparsan birikimin yeniden artar. Ya da "Gelir ve giderlerimi de hesaba kat" kutusunu kapatırsan giderler sadece harçlığından düşer.', 'Raise your ' + tPerT + ' saving to at least ' + eur(tD(r2(sim.curExpWk - sim.curIncWk + 5))) + ' so your savings grow again, or untick "Include my income & expenses" so expenses only come out of your pocket money.') + '</div></div>';
   }
-  h += '</div>' + altRow + tipHtml;
+  h += '</div>' + altRow + ugDeadlineHTML(ug, payInfo, sim) + tipHtml;
   return h;
 }
 var CAL_OPEN = (function(){ try { return localStorage.getItem(LS + '-calopen') === '1'; } catch (e) { return false; } })();
@@ -6438,8 +6505,9 @@ document.addEventListener('input', function(ev){
     renderSavGoalLive();
     return;
   }
-  if (t.id === 'ug_total' || t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk_in' || t.id === 'ug_net_ovr'){
+  if (t.id === 'ug_total' || t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk_in' || t.id === 'ug_net_ovr' || t.id === 'ug_deadline'){
     var ugI = userGoalObj();
+    if (t.id === 'ug_deadline') ugI.deadline = /^20[2-9]\d-\d{2}-\d{2}$/.test(t.value) ? t.value : '';
     if (t.id === 'ug_total') ugI.totalCash = Math.max(0, num(t.value));
     else if (t.id === 'ug_saved') ugI.saved = Math.max(0, num(t.value));
     else if (t.id === 'ug_title') ugI.title = t.value.slice(0, 45);
@@ -6488,7 +6556,7 @@ document.addEventListener('change', function(ev){
   else if (t.id === 'sDate'){ fillSlipForm(); }
   else if (t.id === 'wpDate'){ if (t.value){ view.week = weekStart(t.value); $('ov4').hidden = true; renderAll(); window.scrollTo({ top: 0 }); } }
   else if (t.id === 'ug_incl'){ var ugN = userGoalObj(); ugN.incl = !!t.checked; ugSaveObj(ugN); ugCommitKeep(); renderSavGoalLive(); }
-  else if (t.id === 'ug_total' || t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk' || t.id === 'ug_wk_in' || t.id === 'ug_net_ovr'){ ugCommitKeep(); renderSavGoalLive(); }
+  else if (t.id === 'ug_total' || t.id === 'ug_saved' || t.id === 'ug_title' || t.id === 'ug_target' || t.id === 'ug_wk' || t.id === 'ug_wk_in' || t.id === 'ug_net_ovr' || t.id === 'ug_deadline'){ if (t.id === 'ug_deadline'){ var ugDl = userGoalObj(); ugDl.deadline = /^20[2-9]\d-\d{2}-\d{2}$/.test(t.value) ? t.value : ''; ugSaveObj(ugDl); } ugCommitKeep(); renderSavGoalLive(); }
   else if (t.getAttribute && t.getAttribute('data-ugi') !== null){
     var ugiC = +t.getAttribute('data-ugi'), ugFC = t.getAttribute('data-f'), ugLC = userGoalObj(), itUC = ugLC.items[ugiC];
     if (itUC){
