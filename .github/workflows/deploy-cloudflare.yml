@@ -330,18 +330,27 @@ jobs:
             export TARGET_URL="https://shiftpay-app.pages.dev/?v=${EXPECTED}&_shot=$(date +%s)"
             export EXPECTED_VER="$EXPECTED"
             cat << 'EOF' > /tmp/capture_and_upload.js
+            const fs = require("fs");
             const { spawn } = require("child_process");
 
             (async () => {
+              fs.mkdirSync("/tmp/chrome-cdp-profile", { recursive: true });
+              let chromeErr = "";
               const chrome = spawn("google-chrome", [
                 "--headless=new",
                 "--no-sandbox",
                 "--disable-gpu",
+                "--disable-dev-shm-usage",
+                "--no-first-run",
+                "--no-default-browser-check",
                 "--hide-scrollbars",
+                "--user-data-dir=/tmp/chrome-cdp-profile",
+                "--remote-allow-origins=*",
                 "--window-size=1280,820",
                 "--remote-debugging-port=9222",
                 "about:blank"
-              ], { stdio: "ignore" });
+              ], { stdio: ["ignore", "ignore", "pipe"] });
+              chrome.stderr.on("data", d => { chromeErr += d.toString(); });
 
               const cleanup = (code = 0) => {
                 try { chrome.kill("SIGKILL"); } catch (_) {}
@@ -350,7 +359,7 @@ jobs:
               setTimeout(() => { console.error("[WARN] Screenshot script timeout"); cleanup(0); }, 55000);
 
               let list = null;
-              for (let i = 0; i < 20; i++) {
+              for (let i = 0; i < 25; i++) {
                 await new Promise(r => setTimeout(r, 300));
                 try {
                   const res = await fetch("http://127.0.0.1:9222/json");
@@ -358,8 +367,8 @@ jobs:
                 } catch (_) {}
               }
               if (!list || !list.length) {
-                console.error("[WARN] Could not connect to Chrome DevTools");
-                return cleanup(0);
+                console.error("[ERROR] Could not connect to Chrome DevTools:", chromeErr.slice(0, 600));
+                return cleanup(1);
               }
 
               const ws = new WebSocket(list[0].webSocketDebuggerUrl);
