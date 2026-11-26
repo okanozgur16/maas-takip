@@ -128,7 +128,7 @@ jobs:
           set -e
           rm -rf dist && mkdir -p dist
           # Required web assets (fail build if any missing)
-          for f in index.html version.json sw.js manifest.webmanifest icon-192.png icon-512.png apple-touch-icon.png; do
+          for f in index.html version.json sw.js manifest.webmanifest robots.txt icon-192.png icon-512.png apple-touch-icon.png; do
             cp "$f" dist/
           done
           cp -r fonts lib dist/
@@ -199,7 +199,7 @@ jobs:
           meta = {
               "main_module": "shiftpay-mcp-worker.js",
               "compatibility_date": "2024-11-01",
-              "keep_bindings": ["secret_text"],
+              "keep_bindings": ["secret_text", "kv_namespace"],
               "bindings": bindings
           }
           open("/tmp/mcp_meta.json", "w", encoding="utf-8").write(json.dumps(meta))
@@ -301,13 +301,15 @@ jobs:
               print(f'[OK] Published new Firebase Firestore ruleset to maas-takip-sync: {new_rs_name}')
           EOF
 
-      - name: Post-Deploy Live Smoke Test & Real Chrome Screenshot Capture (Desktop + Mobile -> KV)
+      - name: Post-Deploy Live Smoke Test & Real Chrome Screenshot Capture (Desktop + Mobile, Dark + Light, All Tabs -> Native MCP KV)
         env:
           CF_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          MCP_SEC: ${{ secrets.MCP_PATH_SECRET }}
         run: |
+          set -e
           EXPECTED=$(python3 -c "import json; print(json.load(open('version.json'))['v'])")
           echo "Expected live version: $EXPECTED"
-          for i in 1 2 3 4 5; do
+          for i in 1 2 3 4 5 6; do
             sleep 5
             LIVE=$(curl -fsSL "https://shiftpay-app.pages.dev/version.json?t=$(date +%s)" | python3 -c "import sys,json; print(json.load(sys.stdin).get('v',''))" || true)
             echo "Attempt $i -> Live: $LIVE"
@@ -316,48 +318,232 @@ jobs:
               break
             fi
           done
-          # Capture real Google Chrome headless PNG screenshots (Desktop 1280x820 & Mobile 390x844) for Claude's live_site_visual_check eyes!
-          if command -v google-chrome >/dev/null 2>&1; then
-            export TARGET_URL="https://shiftpay-app.pages.dev/?v=${EXPECTED}&_shot=$(date +%s)"
-            google-chrome --headless=new --no-sandbox --disable-gpu --hide-scrollbars --force-device-scale-factor=1 --virtual-time-budget=2500 --window-size=1280,820 --screenshot=/tmp/shot_desktop.png "$TARGET_URL" || true
-            node -e '
-              const { spawn } = require("child_process");
-              const net = require("net");
-              const fs = require("fs");
-              // Use CDP Emulation.setDeviceMetricsOverride(390x844, mobile:true) for exact 390px mobile CSS media queries!
-              const p = spawn("google-chrome", ["--headless=new","--no-sandbox","--disable-gpu","--remote-debugging-port=9222","about:blank"], { stdio: "ignore" });
-              setTimeout(async () => {
-                try {
-                  const list = await (await fetch("http://127.0.0.1:9222/json")).json();
-                  const wsUrl = list[0].webSocketDebuggerUrl;
-                  const ws = new WebSocket(wsUrl);
-                  let id = 1;
-                  const send = (method, params={}) => new Promise(res => {
-                    const cid = id++;
-                    const fn = (ev) => { const m = JSON.parse(ev.data); if (m.id === cid) { ws.removeEventListener("message", fn); res(m.result); } };
-                    ws.addEventListener("message", fn);
-                    ws.send(JSON.stringify({ id: cid, method, params }));
-                  });
-                  ws.addEventListener("open", async () => {
-                    await send("Emulation.setDeviceMetricsOverride", { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
-                    await send("Page.enable");
-                    await send("Page.navigate", { url: process.env.TARGET_URL });
-                    await new Promise(r => setTimeout(r, 2500));
-                    const shot = await send("Page.captureScreenshot", { format: "png" });
-                    fs.writeFileSync("/tmp/shot_mobile.png", Buffer.from(shot.data, "base64"));
-                    p.kill(); process.exit(0);
-                  });
-                } catch (e) { console.error(e); p.kill(); process.exit(0); }
-              }, 1200);
-            ' || true
-            if [ -s /tmp/shot_desktop.png ] && [ -s /tmp/shot_mobile.png ]; then
-              curl -sS -X PUT "https://api.cloudflare.com/client/v4/accounts/3bf7fc774af3ec087fc3d01b6856c0bd/storage/kv/namespaces/9f5663780da9445ebbfc175d3d0fa1dd/values/live_shot_desktop" \
-                -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @/tmp/shot_desktop.png > /dev/null
-              curl -sS -X PUT "https://api.cloudflare.com/client/v4/accounts/3bf7fc774af3ec087fc3d01b6856c0bd/storage/kv/namespaces/9f5663780da9445ebbfc175d3d0fa1dd/values/live_shot_mobile" \
-                -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: application/octet-stream" --data-binary @/tmp/shot_mobile.png > /dev/null
-              curl -sS -X PUT "https://api.cloudflare.com/client/v4/accounts/3bf7fc774af3ec087fc3d01b6856c0bd/storage/kv/namespaces/9f5663780da9445ebbfc175d3d0fa1dd/values/live_shot_meta" \
-                -H "Authorization: Bearer $CF_TOKEN" -H "Content-Type: text/plain" --data "version=$EXPECTED | captured=$(date -u +%Y-%m-%dT%H:%M:%SZ)" > /dev/null
-              echo "[OK] Real Chrome Desktop & Mobile screenshots stored in KV for Claude visual inspection!"
-            fi
+          ROBOTS_OUT=$(curl -fsSL "https://shiftpay-app.pages.dev/robots.txt?t=$(date +%s)" || true)
+          echo "Live robots.txt: $ROBOTS_OUT"
+          if echo "$ROBOTS_OUT" | grep -q "Allow: /"; then
+            echo "[OK] Live robots.txt serves clean text/plain rules (Claude web_fetch unblocked)"
+          else
+            echo "[WARN] robots.txt not propagated yet"
           fi
-          exit 0
+          # Capture real Google Chrome headless PNG screenshots across Desktop+Mobile, Dark+Light, and all tabs, then upload via native MCP Worker KV!
+          if command -v google-chrome >/dev/null 2>&1 && [ -n "$MCP_SEC" ]; then
+            export TARGET_URL="https://shiftpay-app.pages.dev/?v=${EXPECTED}&_shot=$(date +%s)"
+            export EXPECTED_VER="$EXPECTED"
+            cat << 'EOF' > /tmp/capture_and_upload.js
+            const { spawn } = require("child_process");
+
+            (async () => {
+              const chrome = spawn("google-chrome", [
+                "--headless=new",
+                "--no-sandbox",
+                "--disable-gpu",
+                "--hide-scrollbars",
+                "--window-size=1280,820",
+                "--remote-debugging-port=9222",
+                "about:blank"
+              ], { stdio: "ignore" });
+
+              const cleanup = (code = 0) => {
+                try { chrome.kill("SIGKILL"); } catch (_) {}
+                process.exit(code);
+              };
+              setTimeout(() => { console.error("[WARN] Screenshot script timeout"); cleanup(0); }, 55000);
+
+              let list = null;
+              for (let i = 0; i < 20; i++) {
+                await new Promise(r => setTimeout(r, 300));
+                try {
+                  const res = await fetch("http://127.0.0.1:9222/json");
+                  if (res.ok) { list = await res.json(); if (list && list.length) break; }
+                } catch (_) {}
+              }
+              if (!list || !list.length) {
+                console.error("[WARN] Could not connect to Chrome DevTools");
+                return cleanup(0);
+              }
+
+              const ws = new WebSocket(list[0].webSocketDebuggerUrl);
+              await new Promise((resolve, reject) => {
+                ws.addEventListener("open", resolve, { once: true });
+                ws.addEventListener("error", reject, { once: true });
+              });
+
+              let msgId = 1;
+              const cdp = (method, params = {}) => new Promise((resolve, reject) => {
+                const cid = msgId++;
+                const timer = setTimeout(() => { ws.removeEventListener("message", onMsg); reject(new Error("CDP timeout: " + method)); }, 15000);
+                function onMsg(ev) {
+                  const m = JSON.parse(ev.data);
+                  if (m.id === cid) {
+                    clearTimeout(timer);
+                    ws.removeEventListener("message", onMsg);
+                    if (m.error) reject(new Error(JSON.stringify(m.error)));
+                    else resolve(m.result);
+                  }
+                }
+                ws.addEventListener("message", onMsg);
+                ws.send(JSON.stringify({ id: cid, method, params }));
+              });
+
+              await cdp("Page.enable");
+              await cdp("Runtime.enable");
+              await cdp("Emulation.setDeviceMetricsOverride", { width: 1280, height: 820, deviceScaleFactor: 1, mobile: false });
+              await cdp("Page.navigate", { url: process.env.TARGET_URL });
+              await new Promise(r => setTimeout(r, 2400));
+
+              const shots = new Map();
+              const devices = [
+                { key: "desktop", width: 1280, height: 820, mobile: false },
+                { key: "mobile", width: 390, height: 844, mobile: true }
+              ];
+              const schemes = ["dark", "light"];
+              const tabs = ["wk", "brk", "yr", "cal", "settings"];
+
+              for (const dev of devices) {
+                await cdp("Emulation.setDeviceMetricsOverride", {
+                  width: dev.width,
+                  height: dev.height,
+                  deviceScaleFactor: 1,
+                  mobile: dev.mobile
+                });
+                for (const scheme of schemes) {
+                  await cdp("Emulation.setEmulatedMedia", {
+                    features: [{ name: "prefers-color-scheme", value: scheme }]
+                  });
+                  for (const tab of tabs) {
+                    await cdp("Runtime.evaluate", {
+                      expression: `(function(){
+                        try { sessionStorage.setItem('maas-takip-v1-wzlater', '1'); } catch (e) {}
+                        if (typeof wzClose === 'function') wzClose();
+                        if (typeof setTheme === 'function') setTheme(${JSON.stringify(scheme)});
+                        var ov2 = document.getElementById('ov2');
+                        if (ov2) ov2.hidden = true;
+                        window.__SET_SNAP = null;
+                        window.dispatchEvent(new Event('resize'));
+                        if (${JSON.stringify(tab)} === 'settings') {
+                          if (typeof setMaasSub === 'function') setMaasSub('wk');
+                          var sb = document.querySelector('[data-act="settings"]');
+                          if (sb) sb.click();
+                        } else if (${JSON.stringify(tab)} === 'cal') {
+                          if (typeof setMaasSub === 'function') setMaasSub('yr');
+                          var el = document.getElementById('month') || document.getElementById('cal');
+                          if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
+                        } else {
+                          if (typeof setMaasSub === 'function') setMaasSub(${JSON.stringify(tab)});
+                          window.scrollTo(0, 0);
+                        }
+                        if (typeof barShow === 'function') barShow();
+                        return true;
+                      })()`
+                    });
+                    await new Promise(r => setTimeout(r, 160));
+                    const shot = await cdp("Page.captureScreenshot", { format: "png" });
+                    shots.set(`live_shot_${dev.key}_${scheme}_${tab}`, Buffer.from(shot.data, "base64"));
+                  }
+                }
+              }
+
+              // Also capture populated demo_wk & demo_yr (in-memory only, zero network sync) so filled cards/tips/deadline UI can be visually inspected!
+              await cdp("Runtime.evaluate", {
+                expression: `(function(){
+                  try {
+                    var ov2 = document.getElementById('ov2');
+                    if (ov2) ov2.hidden = true;
+                    window.__SET_SNAP = null;
+                    if (typeof state === 'object' && state) {
+                      state.settings = Object.assign({}, state.settings, { myName: 'Okan', goalNet: 500, driverAns: 'yes' });
+                      var ws = (typeof view === 'object' && view.weekStart) ? view.weekStart : '2026-11-23';
+                      var addD = function(iso, n){ var d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0,10); };
+                      state.entries = [
+                        { id: 'd1', date: addD(ws, 0), type: 'shift', shift: 'morning', start: '06:00', end: '14:30', dept: 'Overstappelen · 1. PO', driver: true },
+                        { id: 'd2', date: addD(ws, 1), type: 'shift', shift: 'morning', start: '06:00', end: '15:00', dept: 'Picken HB · 1. PO', driver: true },
+                        { id: 'd3', date: addD(ws, 2), type: 'shift', shift: 'late', start: '15:00', end: '23:30', dept: 'Picken VB · 2. PO', driver: true },
+                        { id: 'd4', date: addD(ws, 3), type: 'shift', shift: 'morning', start: '06:00', end: '14:30', dept: 'Bulk Circuit', driver: true, planned: true }
+                      ];
+                      state.userGoal = Object.assign({}, state.userGoal || {}, {
+                        title: 'Araba Hedefi',
+                        target: 5000,
+                        saved: 1450,
+                        weeklySave: 295,
+                        customNetWk: 465,
+                        incl: false,
+                        deadline: '2027-02-28',
+                        items: [{ id: 'x1', kind: 'exp', name: 'Ek Gider', amount: 180, freq: 'wk', until: '2027-01-27' }]
+                      });
+                      if (typeof renderAll === 'function') renderAll();
+                    }
+                  } catch (e) {}
+                  return true;
+                })()`
+              });
+
+              for (const dev of devices) {
+                await cdp("Emulation.setDeviceMetricsOverride", {
+                  width: dev.width,
+                  height: dev.height,
+                  deviceScaleFactor: 1,
+                  mobile: dev.mobile
+                });
+                for (const scheme of schemes) {
+                  await cdp("Emulation.setEmulatedMedia", {
+                    features: [{ name: "prefers-color-scheme", value: scheme }]
+                  });
+                  for (const dTab of ["wk", "yr"]) {
+                    await cdp("Runtime.evaluate", {
+                      expression: `(function(){
+                        if (typeof setTheme === 'function') setTheme(${JSON.stringify(scheme)});
+                        window.dispatchEvent(new Event('resize'));
+                        if (typeof setMaasSub === 'function') setMaasSub(${JSON.stringify(dTab)});
+                        window.scrollTo(0, 0);
+                        if (typeof barShow === 'function') barShow();
+                        return true;
+                      })()`
+                    });
+                    await new Promise(r => setTimeout(r, 160));
+                    const shot = await cdp("Page.captureScreenshot", { format: "png" });
+                    shots.set(`live_shot_${dev.key}_${scheme}_demo_${dTab}`, Buffer.from(shot.data, "base64"));
+                  }
+                }
+              }
+
+              // Default aliases
+              shots.set("live_shot_desktop", shots.get("live_shot_desktop_dark_wk"));
+              shots.set("live_shot_mobile", shots.get("live_shot_mobile_dark_wk"));
+
+              const baseUpload = `https://shiftpay-mcp.okan-counter.workers.dev/mcp/${process.env.MCP_SEC}/kv-upload`;
+              const entries = Array.from(shots.entries());
+              let okCount = 0;
+              const pool = 6;
+              for (let i = 0; i < entries.length; i += pool) {
+                const batch = entries.slice(i, i + pool);
+                await Promise.all(batch.map(async ([key, buf]) => {
+                  const res = await fetch(`${baseUpload}/${encodeURIComponent(key)}`, {
+                    method: "PUT",
+                    headers: { "Content-Type": "application/octet-stream" },
+                    body: buf
+                  });
+                  if (!res.ok) {
+                    throw new Error(`Upload ${key} failed (${res.status}): ${await res.text()}`);
+                  }
+                  okCount++;
+                }));
+              }
+
+              const metaText = `version=${process.env.EXPECTED_VER} | captured=${new Date().toISOString()} | shots=${okCount} (desktop+mobile, dark+light, wk/brk/yr/cal/settings/demo_wk/demo_yr)`;
+              const mRes = await fetch(`${baseUpload}/live_shot_meta`, {
+                method: "PUT",
+                headers: { "Content-Type": "text/plain; charset=utf-8" },
+                body: metaText
+              });
+              if (!mRes.ok) throw new Error(`Meta upload failed: ${mRes.status}`);
+
+              console.log(`[OK] Uploaded ${okCount} real Chrome PNG screenshots + live_shot_meta to Cloudflare KV via shiftpay-mcp!`);
+              cleanup(0);
+            })().catch(err => {
+              console.error("[ERROR] Screenshot capture/upload error:", err);
+              process.exit(1);
+            });
+            EOF
+            node /tmp/capture_and_upload.js
+            rm -f /tmp/capture_and_upload.js
+          fi

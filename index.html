@@ -2687,7 +2687,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-26-shiftpay-v87';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-26-shiftpay-v88';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);

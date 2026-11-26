@@ -1,9 +1,9 @@
 /**
  * ShiftPay Full-Access Remote MCP Server (Cloudflare Worker)
- * Gives Claude Pro (Mobile & Web Chat, 24/7 with PC OFF) complete autonomous control over:
- * 1. Live Visual Inspection (Desktop 1280x820 & Mobile 390x844 real Chromium PNG screenshots -> ImageContent)
- * 2. GitHub Repository (read slices, grep/search, atomic multi-file edit & push to main, CI status/logs, secrets list)
- * 3. Cloudflare Worker & KV & Secrets & Cron Triggers (OWNER_TOKEN, VAPID_*, schedules, KV read/write/delete)
+ * Gives Claude Pro (Mobile & Web Chat + Claude Code Web, 24/7 with PC OFF) complete autonomous control over:
+ * 1. Live Visual Inspection (Desktop 1280x820 & Mobile 390x844 real Chromium PNG screenshots across dark/light & all tabs -> ImageContent, plus live HTML/DOM/robots.txt summary & real-time Google PageSpeed Chrome fallback)
+ * 2. GitHub Repository (read slices with >1MB blob fallback, grep/search, atomic multi-file edit & push to main, CI status/logs, secrets list)
+ * 3. Cloudflare Worker & KV & Pages & Secrets & Cron Triggers (native env.KV read/write/list/delete with zero 401s, OWNER_TOKEN, VAPID_*, schedules, Pages deployments, prod Worker health)
  * 4. Firebase Admin (maas-takip-sync: test/publish firestore.rules + read/list/delete Firestore documents)
  *
  * Protected by 256-bit constant-time capability secret in URL path (/mcp/<MCP_PATH_SECRET>).
@@ -17,6 +17,7 @@ const CF_MCP_WORKER = "shiftpay-mcp";
 const CF_KV_NS = "9f5663780da9445ebbfc175d3d0fa1dd";
 const FB_PROJECT = "maas-takip-sync";
 const LIVE_URL = "https://shiftpay-app.pages.dev/";
+const PROD_WORKER_URL = "https://summer-mode-6176.okan-counter.workers.dev";
 
 function timingSafeEq(a, b) {
   if (typeof a !== "string" || typeof b !== "string") return false;
@@ -44,14 +45,6 @@ function b64urlFromBytes(bytes) {
 
 function b64urlFromStr(str) {
   return b64urlFromBytes(new TextEncoder().encode(str));
-}
-
-function utf8FromB64(b64) {
-  const clean = b64.replace(/\s+/g, "");
-  const bin = atob(clean);
-  const bytes = new Uint8Array(bin.length);
-  for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-  return new TextDecoder("utf-8").decode(bytes);
 }
 
 function b64FromUtf8(str) {
@@ -109,7 +102,7 @@ async function ghReq(env, path, opts = {}) {
       "Authorization": `Bearer ${env.GITHUB_PAT}`,
       "Accept": "application/vnd.github+json",
       "X-GitHub-Api-Version": "2022-11-28",
-      "User-Agent": "ShiftPay-MCP-Worker/1.0",
+      "User-Agent": "ShiftPay-MCP-Worker/2.0",
       ...(opts.body ? { "Content-Type": "application/json" } : {}),
       ...(opts.headers || {})
     },
@@ -149,7 +142,7 @@ async function cfReq(env, path, opts = {}) {
 const TOOLS = [
   {
     name: "live_site_visual_check",
-    description: "Canlı ShiftPay web sayfasını (https://shiftpay-app.pages.dev/) gerçek Chromium tarayıcıda açıp ekran görüntüsünü (PNG görsel olarak!) ve canlı version.json bilgisini döndürür. Hem masaüstü (1280x820) hem telefon (390x844) görünümünü kendi gözünle incelemek için kullan.",
+    description: "Canlı ShiftPay web sayfasını (https://shiftpay-app.pages.dev/) gerçek Google Chrome'da açıp ekran görüntüsünü (PNG/JPEG görsel olarak!) ve canlı version.json + HTTP/DOM bilgisini döndürür. Masaüstü (1280x820) ve telefon (390x844), koyu (dark) ve açık (light) tema, ve tüm sekmeler (wk, brk, yr, cal, settings, demo_wk, demo_yr) desteklenir.",
     inputSchema: {
       type: "object",
       properties: {
@@ -158,14 +151,27 @@ const TOOLS = [
           enum: ["desktop", "mobile"],
           description: "desktop (1280x820) veya mobile (390x844)"
         },
+        color_scheme: {
+          type: "string",
+          enum: ["dark", "light"],
+          description: "Tarayıcı renk teması: dark (varsayılan) veya light"
+        },
+        tab: {
+          type: "string",
+          enum: ["wk", "brk", "yr", "cal", "settings", "demo_wk", "demo_yr"],
+          description: "İncelenecek görünüm: wk (Haftalık Plan, varsayılan), brk (Haftalık Döküm), yr (Birikim & Hedef), cal (Takvim & Aylık Özet), settings (Ayarlar penceresi), demo_wk (örnek vardiyalı dolu Plan), demo_yr (örnek hedefli dolu Birikim)"
+        },
         url: {
           type: "string",
           description: "İsteğe bağlı özel URL (varsayılan: https://shiftpay-app.pages.dev/)"
         },
-        color_scheme: {
-          type: "string",
-          enum: ["dark", "light"],
-          description: "Tarayıcı renk şeması (varsayılan: dark)"
+        fresh: {
+          type: "boolean",
+          description: "True verilirse KV önbelleği yerine anlık dış tarayıcı (Google PageSpeed Chrome / mShots / Microlink) üzerinden yeni çekim yapar"
+        },
+        include_dom_summary: {
+          type: "boolean",
+          description: "True verilirse canlı HTML başlıklarını, APP_VER değerini, robots.txt durumunu ve sayfa boyutunu da metin özetine ekler"
         }
       }
     }
@@ -200,11 +206,11 @@ const TOOLS = [
   },
   {
     name: "github_edit_and_push",
-    description: "okanozgur16/maas-takip main dalındaki bir veya birden fazla dosyayı tek atomik commit ile düzenler/yazar ve doğrudan yayınlar. Commit atıldığı anda GitHub Actions otomatik olarak Cloudflare Pages + Cloudflare Worker + Firebase Firestore Rules yayınını ~30 saniyede gerçekleştirir.",
+    description: "okanozgur16/maas-takip main dalındaki bir veya birden fazla dosyayı tek atomik commit ile düzenler/yazar ve doğrudan yayınlar. Commit atıldığı anda GitHub Actions otomatik olarak Cloudflare Pages + Cloudflare Worker + Firebase Firestore Rules + tüm Chrome ekran görüntülerini ~40 saniyede günceller.",
     inputSchema: {
       type: "object",
       properties: {
-        commit_message: { type: "string", description: "Commit mesajı (örn: 'feat: ShiftPay v68 - ...')" },
+        commit_message: { type: "string", description: "Commit mesajı (örn: 'v89: ...')" },
         edits: {
           type: "array",
           description: "Mevcut dosyalarda birebir metin değiştirme listesi (index.html gibi büyük dosyalar için idealdir; birden fazla dosyada veya aynı dosyada birden fazla değişiklik verebilirsin)",
@@ -237,7 +243,7 @@ const TOOLS = [
   },
   {
     name: "github_ci_status",
-    description: "GitHub Actions (Deploy ShiftPay to Cloudflare Pages / Worker / Firebase) son çalışma durumunu ve adım adım sonuçlarını döndürür. Ayrıca GitHub Actions secret isimlerini listeleyebilir.",
+    description: "GitHub Actions (Deploy ShiftPay to Cloudflare Pages / Worker / Firebase / Chrome KV Shots) son çalışma durumunu ve adım adım sonuçlarını döndürür. Ayrıca GitHub Actions secret isimlerini listeleyebilir.",
     inputSchema: {
       type: "object",
       properties: {
@@ -247,7 +253,7 @@ const TOOLS = [
   },
   {
     name: "cloudflare_manage",
-    description: "Cloudflare Worker (summer-mode-6176 veya shiftpay-mcp) gizli anahtarlarını (OWNER_TOKEN, VAPID_PUBLIC, VAPID_PRIVATE, VAPID_SUBJECT vb.), Cron zamanlayıcısını (schedules) ve KV veritabanını okur veya günceller.",
+    description: "Cloudflare Worker (summer-mode-6176 veya shiftpay-mcp) gizli anahtarlarını (OWNER_TOKEN, VAPID_PUBLIC, VAPID_PRIVATE, VAPID_SUBJECT vb.), Cron zamanlayıcısını (schedules), KV veritabanını (yerel env.KV bağlantısı ile tam okuma/yazma/listeleme/silme), Cloudflare Pages son yayınlarını ve canlı Worker sağlığını yönetir.",
     inputSchema: {
       type: "object",
       properties: {
@@ -262,7 +268,9 @@ const TOOLS = [
             "kv_list",
             "kv_get",
             "kv_put",
-            "kv_delete"
+            "kv_delete",
+            "pages_deployments",
+            "prod_worker_health"
           ]
         },
         worker_name: { type: "string", description: "Varsayılan: summer-mode-6176 (veya shiftpay-mcp)" },
@@ -273,7 +281,7 @@ const TOOLS = [
         },
         secret_name: { type: "string", description: "put_secret / delete_secret için secret adı (örn: OWNER_TOKEN)" },
         secret_value: { type: "string", description: "put_secret için yeni gizli değer" },
-        kv_prefix: { type: "string", description: "kv_list için isteğe bağlı önek" },
+        kv_prefix: { type: "string", description: "kv_list için isteğe bağlı önek (örn: 'live_shot_')" },
         kv_key: { type: "string", description: "kv_get / kv_put / kv_delete için anahtar" },
         kv_value: { type: "string", description: "kv_put için değer" }
       },
@@ -301,22 +309,146 @@ const TOOLS = [
 ];
 
 async function readRawGitHubFile(env, filePath, ref = "main") {
+  const cleanPath = filePath.replace(/^\/+/, "");
+  const hdrs = {
+    "Authorization": `Bearer ${env.GITHUB_PAT}`,
+    "Accept": "application/vnd.github.raw+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    "User-Agent": "ShiftPay-MCP-Worker/2.0"
+  };
   const res = await fetch(
-    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${encodeURIComponent(filePath).replace(/%2F/g, "/")}?ref=${encodeURIComponent(ref)}`,
-    {
-      headers: {
-        "Authorization": `Bearer ${env.GITHUB_PAT}`,
-        "Accept": "application/vnd.github.raw+json",
-        "X-GitHub-Api-Version": "2022-11-28",
-        "User-Agent": "ShiftPay-MCP-Worker/1.0"
+    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${encodeURIComponent(cleanPath).replace(/%2F/g, "/")}?ref=${encodeURIComponent(ref)}`,
+    { headers: hdrs }
+  );
+  if (res.ok) {
+    return await res.text();
+  }
+  // Automatic Git Blob fallback for files > 1 MB
+  if (res.status === 403 || res.status === 422) {
+    const tree = await ghReq(env, `/git/trees/${encodeURIComponent(ref)}?recursive=1`);
+    const entry = (tree.tree || []).find(t => t.path === cleanPath && t.type === "blob");
+    if (entry?.sha) {
+      const bRes = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/git/blobs/${entry.sha}`, { headers: hdrs });
+      if (bRes.ok) return await bRes.text();
+    }
+  }
+  const errTxt = await res.text();
+  throw new Error(`Dosya okunamadı (${cleanPath} @ ${ref}) -> ${res.status}: ${errTxt.slice(0, 400)}`);
+}
+
+async function buildLiveDomSummary(targetUrl) {
+  const lines = [];
+  try {
+    const hRes = await fetch(targetUrl, { cf: { cacheTtl: 0 } });
+    const html = await hRes.text();
+    const mTitle = html.match(/<title[^>]*>([^<]*)<\/title>/i);
+    const mVer = html.match(/APP_VER\s*=\s*'([^']+)'/);
+    lines.push(`• Canlı HTML HTTP: ${hRes.status} (${html.length} karakter, title="${mTitle ? mTitle[1].trim() : "?"}", APP_VER="${mVer ? mVer[1] : "?"}")`);
+  } catch (e) {
+    lines.push(`• Canlı HTML kontrol hatası: ${e.message}`);
+  }
+  try {
+    const rRes = await fetch(`${LIVE_URL}robots.txt?t=${Date.now()}`, { cf: { cacheTtl: 0 } });
+    const rTxt = (await rRes.text()).trim().replace(/\s+/g, " ");
+    lines.push(`• robots.txt: ${rRes.status} (${rRes.headers.get("content-type") || "?"}) -> ${rTxt.slice(0, 80)}`);
+  } catch (_) {}
+  return lines.join("\n");
+}
+
+async function captureRealtimeExternal(targetUrl, isMobile, width, height, scheme) {
+  // 1. Primary real-time engine: Google PageSpeed Insights v5 (runs real headless Chrome on Google infrastructure, free, 0 auth)
+  try {
+    const psiUrl = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(targetUrl)}&strategy=${isMobile ? "mobile" : "desktop"}&category=performance`;
+    const pRes = await fetch(psiUrl);
+    if (pRes.ok) {
+      const pJson = await pRes.json();
+      const dataUri =
+        pJson?.lighthouseResult?.audits?.["final-screenshot"]?.details?.data ||
+        pJson?.lighthouseResult?.fullPageScreenshot?.screenshot?.data;
+      if (typeof dataUri === "string") {
+        const m = dataUri.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.+)$/);
+        if (m) {
+          return {
+            b64: m[2],
+            mimeType: m[1],
+            byteApprox: Math.floor((m[2].length * 3) / 4),
+            engine: "Google PageSpeed Gerçek Chrome"
+          };
+        }
       }
     }
-  );
-  if (!res.ok) {
-    const errTxt = await res.text();
-    throw new Error(`Dosya okunamadı (${filePath} @ ${ref}) -> ${res.status}: ${errTxt.slice(0, 400)}`);
-  }
-  return await res.text();
+  } catch (_) {}
+
+  // 2. Secondary real-time engine: WordPress mShots Chromium service
+  try {
+    const msUrl = `https://s0.wp.com/mshots/v1/${encodeURIComponent(targetUrl)}?w=${width}&h=${height}`;
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const mRes = await fetch(msUrl, { redirect: "follow" });
+      const ct = (mRes.headers.get("content-type") || "").toLowerCase();
+      if (mRes.ok && ct.startsWith("image/") && !ct.includes("gif")) {
+        const u8 = new Uint8Array(await mRes.arrayBuffer());
+        if (u8.byteLength > 4500) {
+          return {
+            b64: b64FromBytes(u8),
+            mimeType: ct.split(";")[0].trim(),
+            byteApprox: u8.byteLength,
+            engine: "WordPress mShots Chromium"
+          };
+        }
+      }
+      if (attempt === 0) await new Promise(r => setTimeout(r, 1500));
+    }
+  } catch (_) {}
+
+  // 3. Tertiary engine: Microlink API
+  try {
+    const mlParams = new URLSearchParams({
+      url: targetUrl,
+      screenshot: "true",
+      "viewport.width": String(width),
+      "viewport.height": String(height),
+      "viewport.deviceScaleFactor": "1",
+      "viewport.isMobile": isMobile ? "true" : "false",
+      colorScheme: scheme
+    });
+    const mlRes = await fetch(`https://api.microlink.io/?${mlParams.toString()}`);
+    if (mlRes.ok) {
+      const mlJson = await mlRes.json();
+      if (mlJson?.data?.screenshot?.url) {
+        const r = await fetch(mlJson.data.screenshot.url);
+        if (r.ok) {
+          const u8 = new Uint8Array(await r.arrayBuffer());
+          if (u8.byteLength > 2000) {
+            return {
+              b64: b64FromBytes(u8),
+              mimeType: (r.headers.get("content-type") || "image/png").split(";")[0].trim(),
+              byteApprox: u8.byteLength,
+              engine: "Microlink Chromium"
+            };
+          }
+        }
+      }
+    }
+  } catch (_) {}
+
+  // 4. Quaternary engine: Thum.io
+  try {
+    const thumUrl = `https://image.thum.io/get/png/viewportWidth/${width}/width/${width}/crop/${height}/noanimate/${targetUrl}`;
+    const tRes = await fetch(thumUrl);
+    if (tRes.ok && (tRes.headers.get("content-type") || "").includes("image")) {
+      const u8 = new Uint8Array(await tRes.arrayBuffer());
+      if (u8.byteLength > 2000) {
+        return {
+          b64: b64FromBytes(u8),
+          mimeType: "image/png",
+          byteApprox: u8.byteLength,
+          engine: "Thum.io Chromium"
+        };
+      }
+    }
+  } catch (_) {}
+
+  return null;
 }
 
 async function runTool(name, args, env) {
@@ -324,13 +456,16 @@ async function runTool(name, args, env) {
 
   if (name === "live_site_visual_check") {
     const isMobile = args.device === "mobile";
+    const devKey = isMobile ? "mobile" : "desktop";
+    const scheme = args.color_scheme === "light" ? "light" : "dark";
+    const validTabs = ["wk", "brk", "yr", "cal", "settings", "demo_wk", "demo_yr"];
+    const tab = validTabs.includes(args.tab) ? args.tab : "wk";
     const width = isMobile ? 390 : 1280;
     const height = isMobile ? 844 : 820;
-    const kvKey = isMobile ? "live_shot_mobile" : "live_shot_desktop";
     const baseTarget = args.url || LIVE_URL;
     const isDefaultUrl = !args.url || args.url === LIVE_URL || args.url === "https://shiftpay-app.pages.dev";
 
-    // 1. Live version.json & HTTP check directly from edge
+    // 1. Live version.json & optional DOM/robots summary directly from edge
     let verInfo = "bilinmiyor";
     try {
       const vRes = await fetch(`${LIVE_URL}version.json?t=${Date.now()}`, { cf: { cacheTtl: 0 } });
@@ -338,18 +473,37 @@ async function runTool(name, args, env) {
     } catch (e) {
       verInfo = `hata: ${e.message}`;
     }
+    const domExtra = args.include_dom_summary ? `\n${await buildLiveDomSummary(baseTarget)}` : "";
 
-    // 2. Primary: Read real Google Chrome headless PNG captured by Post-Deploy CI in Cloudflare KV (0 rate limit, instant!)
-    if (isDefaultUrl && env.KV && (!args.color_scheme || args.color_scheme === "dark")) {
-      const buf = await env.KV.get(kvKey, "arrayBuffer");
-      const metaRaw = await env.KV.get("live_shot_meta", "text");
-      if (buf && buf.byteLength > 1000) {
+    // 2. Primary: Read real Google Chrome headless PNG captured by Post-Deploy CI in native Cloudflare KV (0 rate limit, instant, supports dark+light & all tabs!)
+    if (isDefaultUrl && env.KV && !args.fresh) {
+      const candidateKeys = [
+        `live_shot_${devKey}_${scheme}_${tab}`,
+        `live_shot_${devKey}_dark_${tab}`,
+        `live_shot_${devKey}_${scheme}_wk`,
+        `live_shot_${devKey}`
+      ];
+      let matchedKey = null;
+      let buf = null;
+      for (const k of candidateKeys) {
+        const b = await env.KV.get(k, "arrayBuffer");
+        if (b && b.byteLength > 1000) {
+          matchedKey = k;
+          buf = b;
+          break;
+        }
+      }
+      if (buf) {
+        const metaRaw = await env.KV.get("live_shot_meta", "text");
         const u8 = new Uint8Array(buf);
+        const exactNote = matchedKey === `live_shot_${devKey}_${scheme}_${tab}`
+          ? `${devKey} · ${scheme} · ${tab}`
+          : `${matchedKey} (en yakın eşleşme)`;
         return {
           content: [
             {
               type: "text",
-              text: `✅ Canlı Site Görsel Kontrolü (${isMobile ? "Telefon 390x844" : "Masaüstü 1280x820"} — Google Chrome Gerçek Render PNG)\n• URL: ${LIVE_URL}\n• Canlı version.json: ${verInfo}\n• Çekim Bilgisi: ${metaRaw || "son yayın"}\n• Görsel Boyutu: ${u8.byteLength} bayt`
+              text: `✅ Canlı Site Görsel Kontrolü (${isMobile ? "Telefon 390x844" : "Masaüstü 1280x820"} — Google Chrome Gerçek Render PNG)\n• Görünüm: ${exactNote}\n• URL: ${LIVE_URL}\n• Canlı version.json: ${verInfo}\n• Çekim Bilgisi: ${metaRaw || "son yayın"}\n• Görsel Boyutu: ${u8.byteLength} bayt${domExtra}`
             },
             {
               type: "image",
@@ -361,57 +515,32 @@ async function runTool(name, args, env) {
       }
     }
 
-    // 3. Fallback for custom URLs or light-theme ad-hoc checks: Microlink -> Thum.io Chromium fallback
+    // 3. Real-time external browser fallback (for fresh=true, custom URLs, or empty KV)
     const sep = baseTarget.includes("?") ? "&" : "?";
     const targetUrl = `${baseTarget}${sep}_cb=${Date.now()}`;
-    let imgBuf = null;
-    try {
-      const mlParams = new URLSearchParams({
-        url: targetUrl,
-        screenshot: "true",
-        "viewport.width": String(width),
-        "viewport.height": String(height),
-        "viewport.deviceScaleFactor": "1",
-        "viewport.isMobile": isMobile ? "true" : "false",
-        colorScheme: args.color_scheme === "light" ? "light" : "dark"
-      });
-      const mlRes = await fetch(`https://api.microlink.io/?${mlParams.toString()}`);
-      const mlJson = await mlRes.json();
-      if (mlJson?.data?.screenshot?.url) {
-        const r = await fetch(mlJson.data.screenshot.url);
-        if (r.ok) imgBuf = new Uint8Array(await r.arrayBuffer());
-      }
-    } catch (_) {}
-
-    if (!imgBuf) {
-      const thumUrl = `https://image.thum.io/get/png/viewportWidth/${width}/width/${width}/crop/${height}/noanimate/${targetUrl}`;
-      const tRes = await fetch(thumUrl);
-      if (tRes.ok && (tRes.headers.get("content-type") || "").includes("image")) {
-        imgBuf = new Uint8Array(await tRes.arrayBuffer());
-      }
-    }
-
-    if (!imgBuf) {
+    const ext = await captureRealtimeExternal(targetUrl, isMobile, width, height, scheme);
+    if (ext) {
       return {
-        content: [{
-          type: "text",
-          text: `Canlı version.json: ${verInfo}\nAnlık ekran görüntüsü alınamadı; son CI yayını tamamlandığında KV üzerinden otomatik hazır olur.`
-        }]
+        content: [
+          {
+            type: "text",
+            text: `✅ Canlı Site Anlık Görsel Kontrolü (${isMobile ? "Telefon 390x844" : "Masaüstü 1280x820"} — ${ext.engine})\n• URL: ${targetUrl}\n• Canlı version.json: ${verInfo}\n• Görsel Boyutu: ~${ext.byteApprox} bayt${domExtra}`
+          },
+          {
+            type: "image",
+            data: ext.b64,
+            mimeType: ext.mimeType
+          }
+        ]
       };
     }
 
+    const fallbackDom = domExtra || `\n${await buildLiveDomSummary(baseTarget)}`;
     return {
-      content: [
-        {
-          type: "text",
-          text: `✅ Canlı Site Anlık Görsel Kontrolü (${isMobile ? "Telefon 390x844" : "Masaüstü 1280x820"})\n• URL: ${targetUrl}\n• Canlı version.json: ${verInfo}\n• Görsel Boyutu: ${imgBuf.byteLength} bayt`
-        },
-        {
-          type: "image",
-          data: b64FromBytes(imgBuf),
-          mimeType: "image/png"
-        }
-      ]
+      content: [{
+        type: "text",
+        text: `Canlı version.json: ${verInfo}${fallbackDom}\nAnlık ekran görüntüsü alınamadı; son CI yayını tamamlandığında KV üzerinden otomatik hazır olur.`
+      }]
     };
   }
 
@@ -423,7 +552,6 @@ async function runTool(name, args, env) {
       const list = Array.isArray(items) ? items.map(x => `${x.type === "dir" ? "📁" : "📄"} ${x.path} (${x.size || 0} B)`).join("\n") : JSON.stringify(items);
       return { content: [{ type: "text", text: list }] };
     }
-    // Check if directory first when no extension
     if (!p.includes(".") || p.endsWith("/")) {
       const meta = await ghReq(env, `/contents/${p.replace(/\/+$/, "")}?ref=${encodeURIComponent(ref)}`);
       if (Array.isArray(meta)) {
@@ -488,13 +616,11 @@ async function runTool(name, args, env) {
       throw new Error("En az bir 'edits' veya 'files' öğesi verilmelidir.");
     }
 
-    // 1. Get latest branch commit & base tree
     const refData = await ghReq(env, `/git/ref/heads/${branch}`);
     const latestCommitSha = refData.object.sha;
     const commitData = await ghReq(env, `/git/commits/${latestCommitSha}`);
     const baseTreeSha = commitData.tree.sha;
 
-    // 2. Build final contents map per touched path
     const fileMap = new Map();
     for (const f of fullFiles) {
       fileMap.set(f.path.replace(/^\/+/, ""), f.content);
@@ -511,7 +637,6 @@ async function runTool(name, args, env) {
       fileMap.set(p, cur.replace(ed.old_text, () => ed.new_text));
     }
 
-    // 3. Create Git blobs for each modified file (handles arbitrary size like 530KB index.html cleanly!)
     const treeItems = [];
     for (const [p, content] of fileMap.entries()) {
       const blob = await ghReq(env, `/git/blobs`, {
@@ -521,7 +646,6 @@ async function runTool(name, args, env) {
       treeItems.push({ path: p, mode: "100644", type: "blob", sha: blob.sha });
     }
 
-    // 4. Create tree, commit, and update branch ref
     const newTree = await ghReq(env, `/git/trees`, {
       method: "POST",
       body: { base_tree: baseTreeSha, tree: treeItems }
@@ -542,7 +666,7 @@ async function runTool(name, args, env) {
     return {
       content: [{
         type: "text",
-        text: `✅ GitHub '${branch}' dalına commit atıldı!\n• Commit SHA: ${newCommit.sha.slice(0, 7)} (${newCommit.sha})\n• Değişen Dosyalar (${fileMap.size}): ${Array.from(fileMap.keys()).join(", ")}\n• GitHub Actions 4'lü otomatik yayın hattı (Pages + Worker + Firebase Rules) tetiklendi (~30 sn içinde tamamlanır; 'github_ci_status' ile kontrol edebilirsin).`
+        text: `✅ GitHub '${branch}' dalına commit atıldı!\n• Commit SHA: ${newCommit.sha.slice(0, 7)} (${newCommit.sha})\n• Değişen Dosyalar (${fileMap.size}): ${Array.from(fileMap.keys()).join(", ")}\n• GitHub Actions otomatik yayın hattı (Pages + Worker + Firebase Rules + Gerçek Chrome Ekran Görüntüleri) tetiklendi (~40 sn içinde tamamlanır; 'github_ci_status' ile kontrol edebilirsin).`
       }]
     };
   }
@@ -599,26 +723,70 @@ async function runTool(name, args, env) {
       await cfReq(env, `/accounts/${CF_ACCOUNT}/workers/scripts/${worker}/secrets/${encodeURIComponent(args.secret_name)}`, { method: "DELETE" });
       return { content: [{ type: "text", text: `🗑️ Worker '${worker}' üzerinden '${args.secret_name}' silindi.` }] };
     }
+    // Native env.KV operations — runs directly on Cloudflare Edge without REST token scope limits (0 401s!)
     if (act === "kv_list") {
-      const q = args.kv_prefix ? `?prefix=${encodeURIComponent(args.kv_prefix)}` : "";
-      const r = await cfReq(env, `/accounts/${CF_ACCOUNT}/storage/kv/namespaces/${CF_KV_NS}/keys${q}`);
-      return { content: [{ type: "text", text: `📦 KV Anahtarları (${(r.result || []).length}):\n${JSON.stringify(r.result, null, 2)}` }] };
+      if (!env.KV) throw new Error("KV binding tanımlı değil.");
+      const opts = {};
+      if (args.kv_prefix) opts.prefix = String(args.kv_prefix);
+      const list = await env.KV.list(opts);
+      return {
+        content: [{
+          type: "text",
+          text: `📦 KV Anahtarları (${(list.keys || []).length}, list_complete=${list.list_complete}):\n${JSON.stringify(list.keys, null, 2)}`
+        }]
+      };
     }
     if (act === "kv_get") {
-      const val = await cfReq(env, `/accounts/${CF_ACCOUNT}/storage/kv/namespaces/${CF_KV_NS}/values/${encodeURIComponent(args.kv_key)}`);
-      return { content: [{ type: "text", text: typeof val === "string" ? val : JSON.stringify(val, null, 2) }] };
+      if (!env.KV) throw new Error("KV binding tanımlı değil.");
+      if (!args.kv_key) throw new Error("kv_key zorunludur.");
+      if (args.kv_key.startsWith("live_shot_") && args.kv_key !== "live_shot_meta") {
+        const buf = await env.KV.get(args.kv_key, "arrayBuffer");
+        if (!buf) return { content: [{ type: "text", text: `KV anahtarı bulunamadı: ${args.kv_key}` }] };
+        const u8 = new Uint8Array(buf);
+        return {
+          content: [
+            { type: "text", text: `🖼️ KV Görsel Anahtarı '${args.kv_key}' (${u8.byteLength} bayt PNG):` },
+            { type: "image", data: b64FromBytes(u8), mimeType: "image/png" }
+          ]
+        };
+      }
+      const val = await env.KV.get(args.kv_key, "text");
+      return { content: [{ type: "text", text: val === null ? `(KV anahtarı bulunamadı: ${args.kv_key})` : val }] };
     }
     if (act === "kv_put") {
-      await cfReq(env, `/accounts/${CF_ACCOUNT}/storage/kv/namespaces/${CF_KV_NS}/values/${encodeURIComponent(args.kv_key)}`, {
-        method: "PUT",
-        headers: { "Content-Type": "text/plain" },
-        body: String(args.kv_value ?? "")
-      });
-      return { content: [{ type: "text", text: `✅ KV '${args.kv_key}' kaydedildi.` }] };
+      if (!env.KV) throw new Error("KV binding tanımlı değil.");
+      if (!args.kv_key) throw new Error("kv_key zorunludur.");
+      await env.KV.put(args.kv_key, String(args.kv_value ?? ""));
+      return { content: [{ type: "text", text: `✅ KV '${args.kv_key}' yerel bağlantı (env.KV) üzerinden kaydedildi.` }] };
     }
     if (act === "kv_delete") {
-      await cfReq(env, `/accounts/${CF_ACCOUNT}/storage/kv/namespaces/${CF_KV_NS}/values/${encodeURIComponent(args.kv_key)}`, { method: "DELETE" });
-      return { content: [{ type: "text", text: `🗑️ KV '${args.kv_key}' silindi.` }] };
+      if (!env.KV) throw new Error("KV binding tanımlı değil.");
+      if (!args.kv_key) throw new Error("kv_key zorunludur.");
+      await env.KV.delete(args.kv_key);
+      return { content: [{ type: "text", text: `🗑️ KV '${args.kv_key}' yerel bağlantı (env.KV) üzerinden silindi.` }] };
+    }
+    if (act === "pages_deployments") {
+      const r = await cfReq(env, `/accounts/${CF_ACCOUNT}/pages/projects/shiftpay-app/deployments?per_page=5`);
+      const items = (r.result || []).map(d =>
+        `• ${d.id?.slice(0, 8)} | ${d.created_on} | env=${d.environment} | stage=${d.latest_stage?.name}:${d.latest_stage?.status} | url=${d.url}`
+      );
+      return { content: [{ type: "text", text: `🚀 Cloudflare Pages (shiftpay-app) Son Yayınlar:\n${items.join("\n") || "(yok)"}` }] };
+    }
+    if (act === "prod_worker_health") {
+      const out = [];
+      try {
+        const r1 = await fetch(`${PROD_WORKER_URL}/api/vapid`);
+        out.push(`• GET /api/vapid -> ${r1.status}: ${(await r1.text()).slice(0, 200)}`);
+      } catch (e) {
+        out.push(`• GET /api/vapid hata: ${e.message}`);
+      }
+      try {
+        const r2 = await fetch(`${LIVE_URL}version.json?t=${Date.now()}`, { cf: { cacheTtl: 0 } });
+        out.push(`• GET Pages /version.json -> ${r2.status}: ${(await r2.text()).trim()}`);
+      } catch (e) {
+        out.push(`• GET Pages /version.json hata: ${e.message}`);
+      }
+      return { content: [{ type: "text", text: `🩺 Canlı Servis Sağlık Kontrolü:\n${out.join("\n")}` }] };
     }
   }
 
@@ -694,7 +862,7 @@ async function runTool(name, args, env) {
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
+  "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, Accept, Mcp-Session-Id, MCP-Protocol-Version",
   "Access-Control-Expose-Headers": "Mcp-Session-Id"
 };
@@ -704,8 +872,7 @@ async function handleJsonRpcMessage(msg, env) {
     return { jsonrpc: "2.0", id: null, error: { code: -32600, message: "Invalid Request" } };
   }
   const { id, method, params } = msg;
-  // JSON-RPC notifications have no id
-  if (id === undefined || id === null && typeof method === "string" && method.startsWith("notifications/")) {
+  if (id === undefined || (id === null && typeof method === "string" && method.startsWith("notifications/"))) {
     return null;
   }
   if (method === "initialize") {
@@ -717,8 +884,8 @@ async function handleJsonRpcMessage(msg, env) {
       result: {
         protocolVersion: negotiated,
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: "shiftpay-tam-yetki", version: "1.0.0" },
-        instructions: "ShiftPay 7/24 Tam Yetkili Bulut MCP Sunucusu: GitHub okuma/arama/push, Cloudflare Worker secret & cron & KV yönetimi, Firebase Firestore kural & belge yönetimi ve canlı site gerçek ekran görüntüsü (masaüstü & mobil PNG)."
+        serverInfo: { name: "shiftpay-tam-yetki", version: "2.0.0" },
+        instructions: "ShiftPay 7/24 Tam Yetkili Bulut MCP Sunucusu: GitHub okuma/arama/push, Cloudflare Worker secret & cron & yerel KV yönetimi, Firebase Firestore kural & belge yönetimi ve canlı site gerçek Google Chrome ekran görüntüsü (masaüstü & mobil, koyu & açık tema, tüm sekmeler)."
       }
     };
   }
@@ -756,16 +923,70 @@ export default {
     if (!url.pathname.startsWith(prefix)) {
       return new Response("Not Found", { status: 404 });
     }
-    const token = url.pathname.slice(prefix.length).replace(/\/+$/, "");
+    const rest = url.pathname.slice(prefix.length);
+    const slashIdx = rest.indexOf("/");
+    const token = slashIdx === -1 ? rest : rest.slice(0, slashIdx);
+    const subPath = slashIdx === -1 ? "" : rest.slice(slashIdx + 1).replace(/\/+$/, "");
+
     if (!env.MCP_PATH_SECRET || !timingSafeEq(token, env.MCP_PATH_SECRET)) {
       return new Response("Not Found", { status: 404 });
+    }
+
+    // Authenticated CI binary/text KV upload route: PUT /mcp/<MCP_PATH_SECRET>/kv-upload/<key>
+    if (subPath.startsWith("kv-upload/") && request.method === "PUT") {
+      const key = decodeURIComponent(subPath.slice("kv-upload/".length));
+      if (!key || !env.KV) {
+        return new Response(JSON.stringify({ ok: false, error: "Missing key or KV binding" }), {
+          status: 400,
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+      const ct = (request.headers.get("content-type") || "").toLowerCase();
+      if (ct.startsWith("text/")) {
+        const txt = await request.text();
+        await env.KV.put(key, txt);
+        return new Response(JSON.stringify({ ok: true, key, bytes: txt.length, type: "text" }), {
+          status: 200,
+          headers: { ...CORS, "Content-Type": "application/json" }
+        });
+      }
+      const buf = await request.arrayBuffer();
+      await env.KV.put(key, buf);
+      return new Response(JSON.stringify({ ok: true, key, bytes: buf.byteLength, type: "binary" }), {
+        status: 200,
+        headers: { ...CORS, "Content-Type": "application/json" }
+      });
+    }
+
+    // Authenticated live screenshot download route: GET /mcp/<MCP_PATH_SECRET>/kv-shot/<key>
+    if (subPath.startsWith("kv-shot/") && request.method === "GET") {
+      const key = decodeURIComponent(subPath.slice("kv-shot/".length));
+      if (!key.startsWith("live_shot_") || !env.KV) {
+        return new Response("Not Found", { status: 404, headers: CORS });
+      }
+      if (key === "live_shot_meta") {
+        const meta = await env.KV.get(key, "text");
+        return new Response(meta || "", {
+          status: meta ? 200 : 404,
+          headers: { ...CORS, "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" }
+        });
+      }
+      const buf = await env.KV.get(key, "arrayBuffer");
+      if (!buf) return new Response("Not Found", { status: 404, headers: CORS });
+      return new Response(buf, {
+        status: 200,
+        headers: { ...CORS, "Content-Type": "image/png", "Cache-Control": "no-store" }
+      });
+    }
+
+    if (subPath !== "") {
+      return new Response("Not Found", { status: 404, headers: CORS });
     }
 
     if (request.method === "DELETE") {
       return new Response(null, { status: 200, headers: CORS });
     }
     if (request.method === "GET") {
-      // Streamable HTTP spec: 405 signals client to use POST JSON-RPC directly
       return new Response("Method Not Allowed", { status: 405, headers: { ...CORS, "Allow": "POST, DELETE, OPTIONS" } });
     }
     if (request.method !== "POST") {

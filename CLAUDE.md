@@ -1,6 +1,6 @@
 # CLAUDE.md — ShiftPay %100 Web Tabanlı Geliştirme Rehberi (Claude Pro / Claude Code Web & Antigravity)
 
-> **Aktif Sürüm:** `2026-11-26-shiftpay-v87`  
+> **Aktif Sürüm:** `2026-11-26-shiftpay-v88`  
 > **Canlı PWA (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`  
 > **Canlı API & Push Sunucusu (Cloudflare Worker):** `https://summer-mode-6176.okan-counter.workers.dev`  
 > **Canlı Şifreli Eşitleme Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules` + `firebase.json` + `.firebaserc`)  
@@ -15,7 +15,7 @@ Bu depo **%100 bulut/web tabanlı** çalışacak şekilde yapılandırılmışt�
 0. **ALTIN KURAL — ONAY BEKLEME, DOĞRUDAN YAYINLA:** Kullanıcı (özellikle işteyken telefonundan) bir özellik, tasarım, düzeltme veya ayar istediğinde **"Yayınlayayım mı?" diye sorma!** Tıpkı Antigravity gibi doğrudan kodu düzenle, 6 dosyada sürümü artır, `main` dalına gönder (`github_edit_and_push` veya `git push`), ~30 saniye bekleyip `github_ci_status` ile yayını doğrula ve `live_site_visual_check` (`desktop` + `mobile`) ile canlı sayfayı **kendi gözünle** kontrol edip bitmiş sonucu raporla.
 1. **7/24 Aktif Bulut Araçların (`ShiftPay Tam Yetki` Uzak MCP Bağlayıcısı):**
    - Bilgisayar kapalıyken bile telefondaki normal sohbetten şu araçlara tam yetkin vardır:
-     - `live_site_visual_check`: Canlı `https://shiftpay-app.pages.dev/` sitesini gerçek Chromium'da açıp masaüstü (`1280x820`) ve telefon (`390x844`) PNG ekran görüntüsünü doğrudan gözünün önüne getirir.
+     - `live_site_visual_check`: Canlı `https://shiftpay-app.pages.dev/` sitesini gerçek Google Chrome'da açıp masaüstü (`1280x820`) ve telefon (`390x844`), koyu (`dark`) ve açık (`light`) tema, ve tüm görünümler (`tab`: `wk`, `brk`, `yr`, `cal`, `settings`, `demo_wk`, `demo_yr`) için PNG ekran görüntüsünü doğrudan gözünün önüne getirir (`fresh: true` ile anlık dış Chrome çekimi de yapar).
      - `github_read_file`, `github_search_code`, `github_edit_and_push`, `github_ci_status`: Yerel bilgisayar olmadan `okanozgur16/maas-takip` (`main`) üzerinde satır okuma, arama, çoklu dosya atomik commit/push ve Actions kontrolü yapar.
      - `cloudflare_manage`: `summer-mode-6176` (veya `shiftpay-mcp`) üzerindeki tüm gizli anahtarları (`OWNER_TOKEN`, `VAPID_PUBLIC`, `VAPID_PRIVATE`, `VAPID_SUBJECT`), Cron zamanlayıcısını (`get_schedules` / `set_schedules`) ve KV veritabanını yönetir.
      - `firebase_manage`: `maas-takip-sync` projesinde hem `firestore.rules` okuma/yayınlama hem de Firestore belgelerini (`get_doc`, `list_docs`, `delete_doc`) yönetici yetkisiyle okuma/silme işlemi yapar.

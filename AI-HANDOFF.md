@@ -6,6 +6,14 @@
 
 ---
 
+## v88 (`2026-11-26-shiftpay-v88`) — **Antigravity** — Claude Görsel (`dark`/`light` + Tüm Sekmeler), KV (`401` Fix) ve `robots.txt` Tam Erişim Düzeltmesi
+- **Değişen Dosyalar:** `server/shiftpay-mcp-worker.js`, `.github/workflows/deploy-cloudflare.yml`, `robots.txt`, `_headers`, `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
+- **Çözülen 4 Kök Sorun:**
+  1. **KV `401 Authentication error` Kalıcı Olarak Çözüldü:** `CLOUDFLARE_API_TOKEN` REST KV iznine sahip olmadığı için hem CI ekran görüntüsü yüklemesi hem `cloudflare_manage` (`kv_*`) sessizce `401` alıyordu. `shiftpay-mcp-worker.js` artık doğrudan Worker yerel **`env.KV`** bağlantısını kullanıyor (`kv_list`, `kv_get`, `kv_put`, `kv_delete` + `pages_deployments` + `prod_worker_health`) ve CI da `PUT /mcp/<MCP_PATH_SECRET>/kv-upload/<key>` üzerinden gerçek PNG'leri doğrudan `env.KV` içine yazıyor.
+  2. **`live_site_visual_check` Koyu/Açık Tema + Tüm Sekmeler + Gerçek Chrome Yedek Motoru:** Artık `device: "desktop" | "mobile"`, `color_scheme: "dark" | "light"` ve `tab: "wk" | "brk" | "yr" | "cal" | "settings" | "demo_wk" | "demo_yr"` kombinasyonlarının tamamı her yayında gerçek Google Chrome CDP ile çekilip KV'den anında PNG olarak döner; `fresh: true` veya özel URL verildiğinde Google PageSpeed Insights v5 (gerçek Chrome) -> WordPress mShots -> Microlink -> Thum.io sırasıyla çalışır.
+  3. **`robots.txt` (`web_fetch` Engeli) Çözüldü:** `_redirects` (`/* /index.html 200`) nedeniyle `/robots.txt` isteğine HTML dönüyordu ve `web_fetch` reddediyordu; kök dizine ve `dist/` içine gerçek `robots.txt` (`User-agent: *\nAllow: /`) eklendi.
+  4. **`claude.ai/code` Bulut Ortamı Ağ İzni:** `Default` bulut ortamının ağ erişimi `Sınırlı`'dan **`Tam`** (`Full internet access` + MCP açık) konumuna geçirildi.
+
 ## v87 (`2026-11-26-shiftpay-v87`) — **Claude Pro** — Telefon Alt Çubuğu Modernizasyonu
 - Kullanıcı onaylı önizlemeye göre: yüzen ince hap çubuk, kaydırınca/yazarken gizlenme, sekme başına kaydırma hafızası, aktif sekmeye tekrar dokununca en üste, titreşim, 📊 ikonu. Masaüstü dokunulmadı.
 

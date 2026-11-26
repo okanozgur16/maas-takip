@@ -1,12 +1,18 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-26-shiftpay-v87`
+- **Aktif Sürüm:** `2026-11-26-shiftpay-v88`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v88 Değişiklikleri (Antigravity)
+- **Claude Görsel, KV ve Web Erişimi Tamir Edildi (`server/shiftpay-mcp-worker.js`, `deploy-cloudflare.yml`, `robots.txt`, `_headers`):**
+  1. **Yerel `env.KV` Bağlantısı (`0` adet `401` hatası):** `cloudflare_manage` içindeki `kv_list`, `kv_get`, `kv_put`, `kv_delete` işlemleri REST API token yerine doğrudan Worker içi yerel `env.KV` bağlantısına geçirildi; ayrıca `pages_deployments` ve `prod_worker_health` eylemleri eklendi.
+  2. **Tüm Tema ve Sekmeler İçin Gerçek Google Chrome Ekran Görüntüsü (`live_site_visual_check`):** CI yayın hattı artık `shiftpay-mcp` üzerindeki şifreli `/kv-upload/` uç noktası aracılığıyla `desktop` (`1280x820`) ve `mobile` (`390x844`, `mobile:true`) için hem `dark` hem `light` temada `wk`, `brk`, `yr`, `cal`, `settings` ve dolu örnek veriyle `demo_wk`, `demo_yr` PNG ekran görüntülerini KV'ye kaydeder. Anlık çekim (`fresh: true` veya özel URL) için de Google PageSpeed Gerçek Chrome API + WordPress mShots + Microlink + Thum.io zinciri eklendi.
+  3. **`robots.txt` Düzeltmesi & Claude Code Web Tam Ağ Erişimi:** SPA `_redirects` yüzünden `index.html` döndüren `/robots.txt` için statik `robots.txt` (`Allow: /`) eklendi (`web_fetch` engeli kalktı); `claude.ai/code` bulut ortamı ağ erişimi `Tam` (unrestricted) yapıldı.
 
 ## v87 Değişiklikleri (Claude Pro)
 - **Telefon alt çubuğu modernleşti (`#maasSubBar`, yalnız `<960px`):** kenarlardan 12px içeride yüzen yuvarlak hap, ince (46px düğme), aktif sekmede ikon büyür + `::after` alt çizgi; Özet ikonu 📅 → 📊.
