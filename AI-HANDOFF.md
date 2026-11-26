@@ -6,6 +6,9 @@
 
 ---
 
+## v87 (`2026-11-26-shiftpay-v87`) — **Claude Pro** — Telefon Alt Çubuğu Modernizasyonu
+- Kullanıcı onaylı önizlemeye göre: yüzen ince hap çubuk, kaydırınca/yazarken gizlenme, sekme başına kaydırma hafızası, aktif sekmeye tekrar dokununca en üste, titreşim, 📊 ikonu. Masaüstü dokunulmadı.
+
 ## v86 (`2026-11-26-shiftpay-v86`) — **Claude Pro** — Birikim: Son Tarihe Göre Ters Hesap
 - "Ne zamana kadar?" tarih alanı + `.savg-dl` kartı (gereken haftalık/aylık tutar, mevcut planla erken/geç gün, yetişilemezse en erken tarih, ana birikimle alternatif, tek dokunuşla uygula). TR/EN, haftalık/aylık, borçlu senaryo, geçmiş tarih ve kalıcılık test edildi.
 - v85 alt çubukta hata bulunmadı; modernizasyon önerileri kullanıcıya sunuldu, onay bekleniyor (henüz uygulanmadı).

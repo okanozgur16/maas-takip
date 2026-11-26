@@ -1,12 +1,16 @@
 # ShiftPay · Teknik Mimari & Kod Haritası (`AI-CONTEXT.md`)
 
-- **Aktif Sürüm:** `2026-11-26-shiftpay-v86`
+- **Aktif Sürüm:** `2026-11-26-shiftpay-v87`
 - **Canlı Uygulama (Cloudflare Pages):** `https://shiftpay-app.pages.dev/`
 - **Canlı Worker (Cloudflare Workers):** `https://summer-mode-6176.okan-counter.workers.dev` (`server/bildirim-worker.js`)
 - **Canlı Şifreli Veritabanı (Firebase Firestore):** `maas-takip-sync` (`firestore.rules`, `firebase.json`, `.firebaserc` — GitHub Actions ile otomatik yayınlanır)
 - **GitHub Tek Doğru Kaynak:** `https://github.com/okanozgur16/maas-takip` (`main` dalı)
 
 ---
+
+## v87 Değişiklikleri (Claude Pro)
+- **Telefon alt çubuğu modernleşti (`#maasSubBar`, yalnız `<960px`):** kenarlardan 12px içeride yüzen yuvarlak hap, ince (46px düğme), aktif sekmede ikon büyür + `::after` alt çizgi; Özet ikonu 📅 → 📊.
+- **Davranış (`BAR`, `barSet`, `barShow`, `TAB_SCROLL`):** aşağı kaydırınca gizlenir, yukarı kaydırınca gelir (28px eşik; en üst/en altta hep görünür); metin alanına odaklanınca (klavye) gizlenir; sekme geçişi anında ve sekme başına kaydırma konumu hatırlanır; aktif sekmeye tekrar dokununca en üste yumuşak kaydırır; `navigator.vibrate(8)`. Masaüstü (`sticky` sekme çubuğu) değişmedi; `prefers-reduced-motion` destekli.
 
 ## v86 Değişiklikleri (Claude Pro)
 - **Son tarihe göre ters hesap:** Hedef bölümüne `#ug_deadline` ("Ne zamana kadar? (isteğe bağlı)", `userGoal.deadline`) eklendi. `ugDeadlineCalc()` `ugRunTrack` üzerinde ikili arama ile son tarihe yetişmek için gereken en düşük haftalık tutarı bulur (süreli gelir/giderler ve `incl` modu dahil); `ugDeadlineHTML()` sonuç kartının altında `.savg-dl` kartı gösterir: mevcut planla kaç gün erken/geç, gereken tutar + en düşük harçlık, maaşla yetişilemiyorsa en erken tarih, ana birikim de kullanılırsa yeten tutar ve `ugApplyWk` düğmesi. Geçmiş tarih uyarısı ve kalan süre ipucu (`#ug_dl_hint`) var.

@@ -1272,6 +1272,33 @@ details.chk-drawer .chk-body{padding:10px 13px 12px;border-top:1px solid var(--l
   .row{font-size:14px}
 }
 
+/* v87: Alt çubuk — yüzen hap, kaydırınca gizlenir, klavyede gizlenir */
+@media (max-width:959px){
+  html:not(.ui-classic) .app{padding-bottom:calc(84px + env(safe-area-inset-bottom, 0px)) !important}
+  html:not(.ui-classic) .maassubbar{
+    left:12px !important;right:12px !important;
+    bottom:calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    max-width:440px;margin:0 auto !important;
+    padding:5px !important;border-radius:22px;
+    border:1px solid color-mix(in srgb,var(--line) 85%,transparent) !important;
+    border-top:1px solid color-mix(in srgb,var(--line) 85%,transparent) !important;
+    background:color-mix(in srgb,var(--surface) 86%,transparent) !important;
+    box-shadow:0 10px 28px rgba(0,0,0,.18),0 2px 6px rgba(0,0,0,.08) !important;
+    transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s ease;
+    will-change:transform;
+  }
+  html:not(.ui-classic) .maassubbar.bar-hide{transform:translateY(calc(100% + 24px + env(safe-area-inset-bottom, 0px)));opacity:0;pointer-events:none}
+  html:not(.ui-classic) .maassubtabs{gap:4px !important}
+  html:not(.ui-classic) .maassubtabs button{min-height:46px !important;padding:3px 4px 9px !important;border-radius:17px !important;position:relative;-webkit-tap-highlight-color:transparent;transition:background .18s ease,color .18s ease}
+  html:not(.ui-classic) .maassubtabs button:active{transform:scale(.96)}
+  html:not(.ui-classic) .maassubtabs .tab-ic{font-size:18px}
+  html:not(.ui-classic) .maassubtabs .tab-mob small{font-size:10.5px}
+  html:not(.ui-classic) .maassubtabs button[aria-pressed="true"]{background:color-mix(in srgb,var(--accent) 14%,transparent) !important}
+  html:not(.ui-classic) .maassubtabs button[aria-pressed="true"] .tab-ic{transform:translateY(-1px) scale(1.12)}
+  html:not(.ui-classic) .maassubtabs button[aria-pressed="true"]::after{content:'';position:absolute;left:50%;bottom:3px;width:18px;height:3px;margin-left:-9px;border-radius:3px;background:var(--accent)}
+}
+@media (max-width:959px) and (prefers-reduced-motion:reduce){html:not(.ui-classic) .maassubbar{transition:none}}
+
 /* v69: Birikim — Hedef / Param / Birikim hızı */
 .savg-core-h{margin-top:4px}
 .savg-core-h+.savg-grid3{margin-bottom:8px}
@@ -1402,7 +1429,7 @@ details.savg-how>summary::-webkit-details-marker{display:none}
   <div class="hello" id="hello" hidden></div>
   <div class="pwabanner" id="pwaBanner" hidden></div>
   <div class="holask" id="holAsk" hidden></div>
-  <div class="maassubbar" id="maasSubBar"><div class="seg maassubtabs" id="maasSubTabs" role="tablist" aria-label="Maaş bölümleri"><button type="button" role="tab" data-act="maasSub" data-v="wk" aria-pressed="true"><span class="tab-desk">🎯 Haftalık Plan</span><span class="tab-mob"><i class="tab-ic" aria-hidden="true">🎯</i><small>Plan</small></span></button><button type="button" role="tab" data-act="maasSub" data-v="brk" aria-pressed="false"><span class="tab-desk">🧾 Haftalık Döküm</span><span class="tab-mob"><i class="tab-ic" aria-hidden="true">🧾</i><small>Döküm</small></span></button><button type="button" role="tab" data-act="maasSub" data-v="yr" aria-pressed="false"><span class="tab-desk">📅 Takvim, Aylık &amp; Birikim</span><span class="tab-mob"><i class="tab-ic" aria-hidden="true">📅</i><small>Özet &amp; Birikim</small></span></button></div></div>
+  <div class="maassubbar" id="maasSubBar"><div class="seg maassubtabs" id="maasSubTabs" role="tablist" aria-label="Maaş bölümleri"><button type="button" role="tab" data-act="maasSub" data-v="wk" aria-pressed="true"><span class="tab-desk">🎯 Haftalık Plan</span><span class="tab-mob"><i class="tab-ic" aria-hidden="true">🎯</i><small>Plan</small></span></button><button type="button" role="tab" data-act="maasSub" data-v="brk" aria-pressed="false"><span class="tab-desk">🧾 Haftalık Döküm</span><span class="tab-mob"><i class="tab-ic" aria-hidden="true">🧾</i><small>Döküm</small></span></button><button type="button" role="tab" data-act="maasSub" data-v="yr" aria-pressed="false"><span class="tab-desk">📅 Takvim, Aylık &amp; Birikim</span><span class="tab-mob"><i class="tab-ic" aria-hidden="true">📊</i><small>Özet &amp; Birikim</small></span></button></div></div>
   <div class="sechead" id="secBanner" aria-live="polite"></div>
   <div class="grid" id="maasPage" data-lay="maas" data-sub="wk">
     <div class="gcol" data-col="l">
@@ -2660,7 +2687,7 @@ function bkRestore(i){
   state = nw; commit(); bkMsg = 'Yedek geri yüklendi.'; renderSettings();
 }
 /* ---------- Hata kaydı: kişisel veri yok, sadece hata metni ---------- */
-var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-26-shiftpay-v86';
+var errRef = null, errQ = [], errSent = {}, errTimer = 0, APP_VER = '2026-11-26-shiftpay-v87';
 function errPush(msg, where){
   try {
     msg = String(msg || '').replace(/\d{4,}/g, '#').slice(0, 300); where = String(where || '').slice(0, 120);
@@ -6094,7 +6121,17 @@ document.addEventListener('click', function(ev){
   if (a === 'layEdit'){ layToggle(!document.querySelector('.app').classList.contains('editing')); }
   else if (a === 'layReset'){ layS = {}; laySave(); layApply(); }
   else if (a === 'layFold'){ if (layJust) return; var fL = layGet(el.getAttribute('data-tab')), fid = el.getAttribute('data-card'); fL.fold[fid] = !fL.fold[fid]; laySave(); layApply(); }
-  else if (a === 'maasSub'){ setMaasSub(el.getAttribute('data-v')); if (window.innerWidth < 960 && window.scrollY > 140) window.scrollTo({ top: 0, behavior: 'smooth' }); }
+  else if (a === 'maasSub'){
+    var msV = el.getAttribute('data-v'), msCur = view.maasSub || 'wk', msMob = window.innerWidth < 960;
+    if (msMob && el.closest && el.closest('#maasSubBar') && navigator.vibrate){ try { navigator.vibrate(8); } catch (e) {} }
+    if (msMob && msV === msCur){ window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    else {
+      TAB_SCROLL[msCur] = window.scrollY;
+      setMaasSub(msV);
+      if (msMob) window.scrollTo(0, TAB_SCROLL[msV] || 0);
+    }
+    barShow();
+  }
   else if (a === 'uiVer'){ setUiVer(el.getAttribute('data-v')); }
   else if (a === 'themeSet'){ setTheme(el.getAttribute('data-v')); }
   else if (a === 'themeCycle'){ cycleTheme(); }
@@ -6596,6 +6633,25 @@ document.addEventListener('keydown', function(ev){
   ['dragenter', 'dragover'].forEach(function(n){ d.addEventListener(n, function(e){ e.preventDefault(); d.classList.add('over'); }); });
   ['dragleave', 'drop'].forEach(function(n){ d.addEventListener(n, function(e){ e.preventDefault(); d.classList.remove('over'); }); });
   d.addEventListener('drop', function(e){ var fl = Array.prototype.slice.call((e.dataTransfer && e.dataTransfer.files) || []).filter(function(f){ return /pdf$/i.test(f.name) || f.type === 'application/pdf'; }); if (fl.length) importFiles(fl); });
+})();
+var TAB_SCROLL = {};
+var BAR = { kb: false, acc: 0, y: 0 };
+function barMob(){ return window.innerWidth < 960 && !document.documentElement.classList.contains('ui-classic'); }
+function barSet(hide){ var b = $('maasSubBar'); if (b) b.classList.toggle('bar-hide', !!hide); }
+function barShow(){ BAR.acc = 0; if (!BAR.kb) barSet(false); }
+function barTyping(t){ return !!(t && t.matches && t.matches('input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=button]):not([type=submit]):not([type=file]), textarea, [contenteditable="true"]')); }
+(function(){
+  BAR.y = window.scrollY;
+  window.addEventListener('scroll', function(){
+    var y = window.scrollY, dy = y - BAR.y; BAR.y = y;
+    if (!barMob() || BAR.kb) return;
+    if (y < 60 || window.innerHeight + y >= document.documentElement.scrollHeight - 8){ BAR.acc = 0; barSet(false); return; }
+    if ((dy > 0 && BAR.acc < 0) || (dy < 0 && BAR.acc > 0)) BAR.acc = 0;
+    BAR.acc += dy;
+    if (BAR.acc > 28) barSet(true); else if (BAR.acc < -28) barSet(false);
+  }, { passive: true });
+  document.addEventListener('focusin', function(ev){ if (barMob() && barTyping(ev.target)){ BAR.kb = true; barSet(true); } });
+  document.addEventListener('focusout', function(){ setTimeout(function(){ if (!barTyping(document.activeElement)){ BAR.kb = false; barShow(); } }, 120); });
 })();
 snapTake(); layInit(); renderAll(); setSync('local'); ntfLoad(); setTimeout(function(){ ntfSync(false); }, 4000); document.addEventListener('visibilitychange', function(){ if (document.visibilityState === 'visible') ntfSync(false); });
 if (STANDALONE){
