@@ -356,19 +356,20 @@ jobs:
                 try { chrome.kill("SIGKILL"); } catch (_) {}
                 process.exit(code);
               };
-              setTimeout(() => { console.error("[WARN] Screenshot script timeout"); cleanup(0); }, 55000);
+              setTimeout(() => { console.log("::warning::Ekran görüntüsü betiği zaman aşımına uğradı"); cleanup(0); }, 120000);
 
               let list = null;
-              for (let i = 0; i < 25; i++) {
-                await new Promise(r => setTimeout(r, 300));
+              for (let i = 0; i < 60; i++) {
+                await new Promise(r => setTimeout(r, 500));
                 try {
                   const res = await fetch("http://127.0.0.1:9222/json");
                   if (res.ok) { list = await res.json(); if (list && list.length) break; }
                 } catch (_) {}
               }
               if (!list || !list.length) {
-                console.error("[ERROR] Could not connect to Chrome DevTools:", chromeErr.slice(0, 600));
-                return cleanup(1);
+                console.log("::warning::Chrome DevTools'a 30 sn içinde bağlanılamadı; ekran görüntüleri bu yayında güncellenmedi (site yayında).");
+                console.error(chromeErr.slice(0, 600));
+                return cleanup(0);
               }
 
               const ws = new WebSocket(list[0].webSocketDebuggerUrl);
