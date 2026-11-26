@@ -397,10 +397,29 @@ jobs:
               await cdp("Page.enable");
               await cdp("Runtime.enable");
               await cdp("Emulation.setDeviceMetricsOverride", { width: 1280, height: 820, deviceScaleFactor: 1, mobile: false });
+              await cdp("Page.addScriptToEvaluateOnNewDocument", { source: "try{sessionStorage.setItem('maas-takip-v1-wzlater','1');localStorage.setItem('maas-takip-v1-wzlater-ts',String(Date.now()))}catch(e){}" });
               await cdp("Page.navigate", { url: process.env.TARGET_URL });
               await new Promise(r => setTimeout(r, 2400));
 
               const shots = new Map();
+              // Uygulama tek IIFE içinde: setMaasSub/wzClose/state dışarıdan erişilemez -> DOM düğmeleriyle gez
+              const SHOT_TAB_JS = (tab) => `(function(){
+                var T = ${JSON.stringify(tab)};
+                var wz = document.getElementById('wz'); if (wz) wz.hidden = true;
+                document.querySelectorAll('.overlay').forEach(function(o){ o.hidden = true; });
+                var q = function(s){ return document.querySelector(s); };
+                if (T === 'settings') {
+                  var w = q('[data-act="maasSub"][data-v="wk"]'); if (w && w.getAttribute('aria-pressed') !== 'true') w.click();
+                  var sb = q('[data-act="settings"]'); if (sb) sb.click();
+                } else {
+                  var v = T === 'cal' ? 'yr' : T;
+                  var b = q('[data-act="maasSub"][data-v="' + v + '"]'); if (b && b.getAttribute('aria-pressed') !== 'true') b.click();
+                  window.scrollTo(0, 0);
+                  if (T === 'cal') { var el = document.getElementById('month') || document.getElementById('cal'); if (el) el.scrollIntoView({ block: 'start' }); }
+                }
+                window.dispatchEvent(new Event('resize'));
+                return true;
+              })()`;
               const devices = [
                 { key: "desktop", width: 1280, height: 820, mobile: false },
                 { key: "mobile", width: 390, height: 844, mobile: true }
@@ -420,32 +439,8 @@ jobs:
                     features: [{ name: "prefers-color-scheme", value: scheme }]
                   });
                   for (const tab of tabs) {
-                    await cdp("Runtime.evaluate", {
-                      expression: `(function(){
-                        try { sessionStorage.setItem('maas-takip-v1-wzlater', '1'); } catch (e) {}
-                        if (typeof wzClose === 'function') wzClose();
-                        if (typeof setTheme === 'function') setTheme(${JSON.stringify(scheme)});
-                        var ov2 = document.getElementById('ov2');
-                        if (ov2) ov2.hidden = true;
-                        window.__SET_SNAP = null;
-                        window.dispatchEvent(new Event('resize'));
-                        if (${JSON.stringify(tab)} === 'settings') {
-                          if (typeof setMaasSub === 'function') setMaasSub('wk');
-                          var sb = document.querySelector('[data-act="settings"]');
-                          if (sb) sb.click();
-                        } else if (${JSON.stringify(tab)} === 'cal') {
-                          if (typeof setMaasSub === 'function') setMaasSub('yr');
-                          var el = document.getElementById('month') || document.getElementById('cal');
-                          if (el) el.scrollIntoView({ behavior: 'instant', block: 'start' });
-                        } else {
-                          if (typeof setMaasSub === 'function') setMaasSub(${JSON.stringify(tab)});
-                          window.scrollTo(0, 0);
-                        }
-                        if (typeof barShow === 'function') barShow();
-                        return true;
-                      })()`
-                    });
-                    await new Promise(r => setTimeout(r, 160));
+                    await cdp("Runtime.evaluate", { expression: SHOT_TAB_JS(tab) });
+                    await new Promise(r => setTimeout(r, 450));
                     const shot = await cdp("Page.captureScreenshot", { format: "png" });
                     shots.set(`live_shot_${dev.key}_${scheme}_${tab}`, Buffer.from(shot.data, "base64"));
                   }
@@ -456,35 +451,31 @@ jobs:
               await cdp("Runtime.evaluate", {
                 expression: `(function(){
                   try {
-                    var ov2 = document.getElementById('ov2');
-                    if (ov2) ov2.hidden = true;
-                    window.__SET_SNAP = null;
-                    if (typeof state === 'object' && state) {
-                      state.settings = Object.assign({}, state.settings, { myName: 'Okan', goalNet: 500, driverAns: 'yes' });
-                      var ws = (typeof view === 'object' && view.weekStart) ? view.weekStart : '2026-11-23';
-                      var addD = function(iso, n){ var d = new Date(iso + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0,10); };
-                      state.entries = [
-                        { id: 'd1', date: addD(ws, 0), type: 'shift', shift: 'morning', start: '06:00', end: '14:30', dept: 'Overstappelen · 1. PO', driver: true },
-                        { id: 'd2', date: addD(ws, 1), type: 'shift', shift: 'morning', start: '06:00', end: '15:00', dept: 'Picken HB · 1. PO', driver: true },
-                        { id: 'd3', date: addD(ws, 2), type: 'shift', shift: 'late', start: '15:00', end: '23:30', dept: 'Picken VB · 2. PO', driver: true },
-                        { id: 'd4', date: addD(ws, 3), type: 'shift', shift: 'morning', start: '06:00', end: '14:30', dept: 'Bulk Circuit', driver: true, planned: true }
-                      ];
-                      state.userGoal = Object.assign({}, state.userGoal || {}, {
-                        title: 'Araba Hedefi',
-                        target: 5000,
-                        saved: 1450,
-                        weeklySave: 295,
-                        customNetWk: 465,
-                        incl: false,
-                        deadline: '2027-02-28',
-                        items: [{ id: 'x1', kind: 'exp', name: 'Ek Gider', amount: 180, freq: 'wk', until: '2027-01-27' }]
-                      });
-                      if (typeof renderAll === 'function') renderAll();
-                    }
+                    var t = new Date(); t.setHours(12, 0, 0, 0);
+                    var dow = (t.getDay() + 6) % 7; t.setDate(t.getDate() - dow);
+                    var iso = function(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+                    var addD = function(n){ var d = new Date(t); d.setDate(d.getDate() + n); return iso(d); };
+                    var sh = function(id, n, s, a, b, extra){ return Object.assign({ id: id, type: 'shift', date: addD(n), shift: s, start: a, end: b }, extra || {}); };
+                    var demo = {
+                      entries: [
+                        sh('d1', -7, 'morning', '06:00', '14:30'), sh('d2', -6, 'morning', '06:00', '14:30'), sh('d3', -5, 'late', '14:30', '23:00'), sh('d4', -4, 'late', '14:30', '23:00'), sh('d5', -1, 'morning', '10:00', '17:00'),
+                        sh('d6', 0, 'morning', '06:00', '14:30'), sh('d7', 1, 'morning', '06:00', '15:00'), sh('d8', 2, 'late', '15:00', '23:30'), sh('d9', 3, 'morning', '06:00', '14:30', { planned: true })
+                      ],
+                      slips: {},
+                      settings: {
+                        myName: 'Demo',
+                        userGoal: { title: 'Demo hedef', totalCash: 2000, saved: 1000, targetAmt: 3500, weeklySave: 295, period: 'week', incl: false, customNetWk: 440, deadline: addD(56),
+                          items: [{ id: 'x1', kind: 'out', name: 'Borç', amt: 450, freq: 'month', until: addD(60), active: true }, { id: 'x2', kind: 'out', name: 'Fatura', amt: 90, freq: 'week', until: '', active: true }] }
+                      },
+                      updated: Date.now()
+                    };
+                    localStorage.setItem('maas-takip-v1', JSON.stringify(demo));
                   } catch (e) {}
                   return true;
                 })()`
               });
+              await cdp("Page.reload", { ignoreCache: true });
+              await new Promise(r => setTimeout(r, 2400));
 
               for (const dev of devices) {
                 await cdp("Emulation.setDeviceMetricsOverride", {
@@ -498,17 +489,8 @@ jobs:
                     features: [{ name: "prefers-color-scheme", value: scheme }]
                   });
                   for (const dTab of ["wk", "yr"]) {
-                    await cdp("Runtime.evaluate", {
-                      expression: `(function(){
-                        if (typeof setTheme === 'function') setTheme(${JSON.stringify(scheme)});
-                        window.dispatchEvent(new Event('resize'));
-                        if (typeof setMaasSub === 'function') setMaasSub(${JSON.stringify(dTab)});
-                        window.scrollTo(0, 0);
-                        if (typeof barShow === 'function') barShow();
-                        return true;
-                      })()`
-                    });
-                    await new Promise(r => setTimeout(r, 160));
+                    await cdp("Runtime.evaluate", { expression: SHOT_TAB_JS(dTab) });
+                    await new Promise(r => setTimeout(r, 450));
                     const shot = await cdp("Page.captureScreenshot", { format: "png" });
                     shots.set(`live_shot_${dev.key}_${scheme}_demo_${dTab}`, Buffer.from(shot.data, "base64"));
                   }

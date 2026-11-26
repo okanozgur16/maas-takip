@@ -6,6 +6,11 @@
 
 ---
 
+## v88 ek (CI) — **Claude Pro** — Ekran görüntüsü sekmeleri düzeltildi
+- Uygulama kodu tek IIFE içinde olduğundan CI'daki `setMaasSub`/`wzClose`/`setTheme`/`state` çağrıları dışarıdan çalışmıyordu; 30 görüntünün hepsi aynı ilk ekranı + açılış sihirbazını çekiyordu ve demo verisi yanlış şemayla (`state.userGoal`, `target`) yazılıyordu.
+- Düzeltme: sihirbaz `Page.addScriptToEvaluateOnNewDocument` ile yüklemeden önce ertelenir (`-wzlater`, `-wzlater-ts`); sekmeler `[data-act=maasSub]` / `[data-act=settings]` düğmelerine tıklanarak açılır (`SHOT_TAB_JS`); demo doğru şemayla (`settings.userGoal`, `targetAmt`, `items[].kind/amt/freq`) `localStorage`'a yazılıp `Page.reload` edilir. Tema `auto` olduğu için `prefers-color-scheme` emülasyonu yeterli.
+- Not: `robots.txt` canlıda doğru servis ediliyor (CI doğruladı); Claude `web_fetch` aracı pages.dev'i hâlâ reddediyor (araç/Cloudflare bot tarafı), canlı kontrol için `live_site_visual_check` kullanılır.
+
 ## v88 (`2026-11-26-shiftpay-v88`) — **Antigravity** — Claude Görsel (`dark`/`light` + Tüm Sekmeler), KV (`401` Fix) ve `robots.txt` Tam Erişim Düzeltmesi
 - **Değişen Dosyalar:** `server/shiftpay-mcp-worker.js`, `.github/workflows/deploy-cloudflare.yml`, `robots.txt`, `_headers`, `index.html`, `version.json`, `sw.js`, `README.md`, `CLAUDE.md`, `AI-CONTEXT.md`, `AI-HANDOFF.md`
 - **Çözülen 4 Kök Sorun:**
